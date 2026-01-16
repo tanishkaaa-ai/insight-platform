@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: insight-platform-container
+    container_name: insight-platform-dev
     ports:
       - "3000:3000"
     volumes:
@@ -11,3 +11,5 @@ services:
       - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
+    # If your app requires a database (e.g., MongoDB or Postgres), 
+    # you can add it as another service here.
