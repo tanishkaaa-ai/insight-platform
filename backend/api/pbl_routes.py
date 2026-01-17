@@ -91,49 +91,57 @@ def submit_soft_skill_assessment():
     try:
         data = request.json
         
-        def calculate_average(values):
-            valid = [v for v in values if v > 0]
-            return sum(valid) / len(valid) if valid else 0
-        
-        # Calculate dimension averages
+        # Soft-skill ratings follow a 1–5 Likert scale.
+        # Missing or skipped ratings are represented as None and must be excluded from averages.
+        def average_valid(values):
+            valid = [v for v in values if v is not None]
+            return round(sum(valid) / len(valid), 2) if valid else None
+
         ratings = data['ratings']
-        td_avg = calculate_average([
-            ratings.get('td_communication', 0),
-            ratings.get('td_mutual_support', 0),
-            ratings.get('td_trust', 0),
-            ratings.get('td_active_listening', 0)
+
+        td_avg = average_valid([
+            ratings.get('td_communication'),
+            ratings.get('td_mutual_support'),
+            ratings.get('td_trust'),
+            ratings.get('td_active_listening')
         ])
-        
-        ts_avg = calculate_average([
-            ratings.get('ts_clear_roles', 0),
-            ratings.get('ts_task_scheduling', 0),
-            ratings.get('ts_decision_making', 0),
-            ratings.get('ts_conflict_resolution', 0)
+
+        ts_avg = average_valid([
+            ratings.get('ts_clear_roles'),
+            ratings.get('ts_task_scheduling'),
+            ratings.get('ts_decision_making'),
+            ratings.get('ts_conflict_resolution')
         ])
-        
-        tm_avg = calculate_average([
-            ratings.get('tm_clear_purpose', 0),
-            ratings.get('tm_smart_goals', 0),
-            ratings.get('tm_passion', 0),
-            ratings.get('tm_synergy', 0)
+
+        tm_avg = average_valid([
+            ratings.get('tm_clear_purpose'),
+            ratings.get('tm_smart_goals'),
+            ratings.get('tm_passion'),
+            ratings.get('tm_synergy')
         ])
-        
-        te_avg = calculate_average([
-            ratings.get('te_growth_mindset', 0),
-            ratings.get('te_quality_work', 0),
-            ratings.get('te_self_monitoring', 0),
-            ratings.get('te_reflective_practice', 0)
+
+        te_avg = average_valid([
+            ratings.get('te_growth_mindset'),
+            ratings.get('te_quality_work'),
+            ratings.get('te_self_monitoring'),
+            ratings.get('te_reflective_practice')
         ])
+
+        overall_components = [td_avg, ts_avg, tm_avg, te_avg]
+        valid_components = [v for v in overall_components if v is not None]
         
         assessment = {
             'assessment_id': str(uuid.uuid4()),
             'team_id': data['team_id'],
             'assessed_student_id': data['assessed_student_id'],
-            'overall_td_score': round(td_avg, 2),
-            'overall_ts_score': round(ts_avg, 2),
-            'overall_tm_score': round(tm_avg, 2),
-            'overall_te_score': round(te_avg, 2),
-            'overall_score': round((td_avg + ts_avg + tm_avg + te_avg) / 4, 2),
+            'overall_td_score': round(td_avg, 2) if td_avg is not None else None,
+            'overall_ts_score': round(ts_avg, 2) if ts_avg is not None else None,
+            'overall_tm_score': round(tm_avg, 2) if tm_avg is not None else None,
+            'overall_te_score': round(te_avg, 2) if te_avg is not None else None,
+            'overall_score': (
+                round(sum(valid_components) / len(valid_components), 2)
+                if valid_components else None
+            ),
             'assessed_at': datetime.now().isoformat()
         }
         
