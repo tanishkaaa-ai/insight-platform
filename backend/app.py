@@ -61,11 +61,13 @@ def create_app(config_class=Config):
 
 def register_blueprints(app):
     """Register all API route blueprints"""
+    from api.auth_routes import auth_bp
     from api.mastery_routes import mastery_bp
     from api.engagement_routes import engagement_bp
     from api.pbl_routes import pbl_bp
     from api.analytics_routes import analytics_bp
 
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(mastery_bp, url_prefix="/api/mastery")
     app.register_blueprint(engagement_bp, url_prefix="/api/engagement")
     app.register_blueprint(pbl_bp, url_prefix="/api/pbl")

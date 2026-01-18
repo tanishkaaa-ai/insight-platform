@@ -12,66 +12,119 @@ from bson import ObjectId
 import os
 
 # ============================================================================
+# MOCK DATABASE FOR DEVELOPMENT WITHOUT MONGODB
+# ============================================================================
+
+class MockCollection:
+    def __init__(self, name):
+        self.name = name
+        self._data = {}
+
+    def insert_one(self, doc):
+        doc_id = doc.get('_id', str(ObjectId()))
+        doc['_id'] = doc_id
+        self._data[doc_id] = doc
+        return type('Result', (), {'inserted_id': doc_id})()
+
+    def find_one(self, query, projection=None):
+        for doc in self._data.values():
+            if all(doc.get(k) == v for k, v in query.items()):
+                if projection:
+                    return {k: doc.get(k) for k in projection if k in doc} if projection else doc
+                return doc
+        return None
+
+    def update_one(self, query, update, upsert=False):
+        for doc_id, doc in self._data.items():
+            if all(doc.get(k) == v for k, v in query.items()):
+                if '$set' in update:
+                    doc.update(update['$set'])
+                return type('Result', (), {'modified_count': 1})()
+        return type('Result', (), {'modified_count': 0})()
+
+    def delete_one(self, query):
+        for doc_id, doc in list(self._data.items()):
+            if all(doc.get(k) == v for k, v in query.items()):
+                del self._data[doc_id]
+                return type('Result', (), {'deleted_count': 1})()
+        return type('Result', (), {'deleted_count': 0})()
+
+    def create_index(self, *args, **kwargs):
+        pass
+
+
+class MockDB:
+    def __init__(self):
+        self._collections = {}
+
+    def __getitem__(self, name):
+        if name not in self._collections:
+            self._collections[name] = MockCollection(name)
+        return self._collections[name]
+
+
+# ============================================================================
 # MONGODB CONNECTION
 # ============================================================================
 
 class MongoDB:
-    """MongoDB connection singleton"""
     _instance = None
     _client = None
     _db = None
-    
+    _mock_mode = False
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(MongoDB, cls).__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
-        if self._client is None:
+        if self._client is None and self._db is None:
             self.connect()
-    
+
     def connect(self):
-        """Connect to MongoDB"""
         mongodb_uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
         db_name = os.getenv('MONGODB_DB_NAME', 'amep_db')
-        
+
         try:
             self._client = MongoClient(
                 mongodb_uri,
                 maxPoolSize=50,
                 minPoolSize=10,
-                serverSelectionTimeoutMS=5000,
+                serverSelectionTimeoutMS=3000,
                 socketTimeoutMS=30000,
             )
-            # Test connection
             self._client.admin.command('ping')
             self._db = self._client[db_name]
+            self._mock_mode = False
             print(f"✓ Connected to MongoDB: {db_name}")
         except ConnectionFailure as e:
-            print(f"✗ MongoDB connection failed: {e}")
-            raise
-    
+            print(f"⚠ MongoDB unavailable, using mock database: {e}")
+            self._db = MockDB()
+            self._mock_mode = True
+
     @property
     def db(self):
-        """Get database instance"""
         if self._db is None:
             self.connect()
         return self._db
-    
+
     @property
     def client(self):
-        """Get client instance"""
         if self._client is None:
             self.connect()
         return self._client
-    
+
+    @property
+    def is_mock(self):
+        return self._mock_mode
+
     def close(self):
-        """Close connection"""
-        if self._client:
+        if self._client and not self._mock_mode:
             self._client.close()
             print("✓ MongoDB connection closed")
 
-# Global database instance
+
 mongo = MongoDB()
 db = mongo.db
 
