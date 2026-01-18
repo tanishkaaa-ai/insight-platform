@@ -2,8 +2,10 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 from bson import ObjectId
 import re
+import logging
 
 from models.database import db, USERS, STUDENTS, TEACHERS
+from pymongo.errors import DuplicateKeyError
 from utils.auth import (
     hash_password,
     verify_password,
@@ -46,12 +48,6 @@ def register():
         if role not in ["student", "teacher", "admin"]:
             return jsonify({"error": "Invalid role"}), 400
 
-        if db[USERS].find_one({"email": email}):
-            return jsonify({"error": "Email already registered"}), 409
-
-        if db[USERS].find_one({"username": username}):
-            return jsonify({"error": "Username already taken"}), 409
-
         user_id = str(ObjectId())
         user_doc = {
             "_id": user_id,
@@ -63,8 +59,18 @@ def register():
             "updated_at": datetime.utcnow()
         }
 
-        db[USERS].insert_one(user_doc)
+        try:
+            db[USERS].insert_one(user_doc)
+        except DuplicateKeyError as e:
+            error_msg = str(e)
+            if "email" in error_msg:
+                return jsonify({"error": "Email already registered"}), 409
+            if "username" in error_msg:
+                return jsonify({"error": "Username already taken"}), 409
+            return jsonify({"error": "User already exists"}), 409
 
+        # NOTE: Admin users intentionally do not have profile documents in STUDENTS or TEACHERS.
+        # They are standalone users with elevated privileges managed directly through the users collection.
         if role == "student":
             student_doc = {
                 "_id": str(ObjectId()),
@@ -110,13 +116,16 @@ def register():
         }), 201
 
     except Exception as e:
-        print(f"Registration error: {e}")
-        return jsonify({"error": f"Registration failed: {str(e)}"}), 500
+        logging.exception("Registration error")
+        return jsonify({"error": "Registration failed. Please try again."}), 500
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
 
     email = data.get("email", "").strip().lower()
     password = data.get("password", "")
@@ -161,6 +170,10 @@ def login():
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh():
     data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
     refresh_token = data.get("refresh_token", "")
 
     if not refresh_token:
@@ -237,6 +250,9 @@ def logout():
 def change_password():
     current_user = get_current_user()
     data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
 
     current_password = data.get("current_password", "")
     new_password = data.get("new_password", "")

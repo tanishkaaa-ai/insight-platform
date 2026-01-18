@@ -21,31 +21,73 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Refresh queue pattern to handle concurrent 401 responses
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const subscribeToTokenRefresh = (callback) => {
+  refreshSubscribers.push(callback);
+};
+
+const onRefreshed = (token) => {
+  refreshSubscribers.forEach((callback) => callback(token, null));
+  refreshSubscribers = [];
+};
+
+const onRefreshError = (error) => {
+  refreshSubscribers.forEach((callback) => callback(null, error));
+  refreshSubscribers = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue this request until token is refreshed
+        return new Promise((resolve, reject) => {
+          subscribeToTokenRefresh((token, err) => {
+            if (err) {
+              return reject(err);
+            }
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return resolve(api(originalRequest));
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
-            refresh_token: refreshToken
-          });
+      if (!refreshToken) {
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
 
-          const { access_token } = response.data;
-          localStorage.setItem('access_token', access_token);
+      try {
+        const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+          refresh_token: refreshToken
+        });
 
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return api(originalRequest);
-        } catch (refreshError) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
-        }
+        const { access_token } = response.data;
+        localStorage.setItem('access_token', access_token);
+
+        isRefreshing = false;
+        onRefreshed(access_token);
+
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        isRefreshing = false;
+        onRefreshError(refreshError);
+
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
       }
     }
 

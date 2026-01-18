@@ -1,5 +1,6 @@
 from functools import wraps
 from datetime import datetime, timedelta
+from typing import Optional
 import jwt
 import hashlib
 from flask import request, jsonify, current_app
@@ -40,7 +41,7 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, current_app.config["JWT_SECRET_KEY"], algorithm="HS256")
 
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(
             token,
