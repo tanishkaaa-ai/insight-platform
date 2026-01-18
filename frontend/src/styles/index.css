@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-info {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: 40px;
+}
+
+.error-page h1 {
+    font-size: 72px;
+    font-weight: 700;
+    color: #e5e7eb;
+    margin: 0;
+}
+
+.error-page p {
+    color: #6b7280;
+    margin: 16px 0 24px;
+}
+
+.error-page a {
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.error-page a:hover {
+    text-decoration: underline;
+}
