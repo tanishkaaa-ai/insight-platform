@@ -22,5 +22,5 @@ def get_projects(teacher_id=None, student_id=None):
     if student_id:
         return [p for p in PROJECTS if student_id in p.get('student_ids', [])]
 
-    return PROJECTS
+    return list(PROJECTS)
 
