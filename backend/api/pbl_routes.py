@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 import uuid
+from backend.services.project_service import get_projects
 
 pbl_bp = Blueprint('pbl', __name__)
 
@@ -16,22 +17,14 @@ def list_projects():
     try:
         teacher_id = request.args.get('teacher_id')
         student_id = request.args.get('student_id')
-        
-        # Mock data
-        projects = [
-            {
-                'project_id': 'p1',
-                'title': 'Sustainable Energy Solutions',
-                'current_stage': 'research',
-                'start_date': '2025-01-06',
-                'end_date': '2025-02-14',
-                'team_count': 3,
-                'status': 'on_track'
-            }
-        ]
-        
+
+        projects = get_projects(
+            teacher_id=teacher_id,
+            student_id=student_id
+        )
+
         return jsonify(projects), 200
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
