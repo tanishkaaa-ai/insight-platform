@@ -7,7 +7,7 @@ import pickle
 logger = logging.getLogger(__name__)
 
 def calculate_mastery_score(student_id: int, response_data: Dict) -> float:
-    """N    Optimized mastery calculation using hybrid approach
+    """Optimized mastery calculation using hybrid approach.
     Returns score between 0-100
     """
     try:
@@ -97,13 +97,14 @@ def load_cached_dkt_weights():
     
     try:
         if os.path.exists(weights_path):
-            with open(weights_path, 'rb') as f:
-                weights = pickle.load(f)
+            data = np.load(weights_path)
+            weights = {'input': data['input'], 'output': data['output']}
             logger.info(f"Loaded DKT weights from {weights_path}")
             return weights
         else:
             logger.warning(f"DKT weights not found at {weights_path}. Using fallback weights.")
-            # Return fallback weights (should be replaced with proper model in production)
+            # Fixed fallback weights for consistency (replace with proper model in production)
+            np.random.seed(42)
             return {
                 'input': np.random.randn(4, 4) * 0.1,
                 'output': np.random.randn(4) * 0.1

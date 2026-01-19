@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   redis:
@@ -35,10 +35,10 @@ services:
       - "5555:5555"
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - FLOWER_BASIC_AUTH=admin:secure_password_change_me
+      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH:-admin:changeme}
     depends_on:
       - redis
-    command: celery -A celery_app flower --basic_auth=admin:secure_password_change_me
+    command: sh -c 'celery -A celery_app flower --basic_auth=$$FLOWER_BASIC_AUTH'
 
 volumes:
   redis_data:

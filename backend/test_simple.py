@@ -5,18 +5,19 @@ Run: python test_simple.py
 import time
 import threading
 from queue import Queue
-import json
 
 # Mock Redis/Celery with Python Queue
 task_queue = Queue()
 results = {}
+results_lock = threading.Lock()
 
 def mock_ml_processing(student_id, response_data):
     """Simulate heavy ML computation"""
     print(f"Processing student {student_id}...")
     time.sleep(2)  # Simulate 2-second ML computation
     score = 75 + (student_id % 25)  # Mock score
-    results[student_id] = score
+    with results_lock:
+        results[student_id] = score
     print(f"Student {student_id} completed: {score}")
     return score
 
@@ -26,6 +27,7 @@ def worker():
         try:
             task = task_queue.get(timeout=1)
             if task is None:
+                task_queue.task_done()
                 break
             mock_ml_processing(task['student_id'], task['response_data'])
             task_queue.task_done()
@@ -46,12 +48,13 @@ def submit_response(student_id, response_data):
     end_time = time.time()
     print(f"API Response for student {student_id}: {(end_time - start_time)*1000:.1f}ms")
     return {"status": "accepted", "student_id": student_id}
-
 def get_status(student_id):
     """Check if processing is done"""
-    if student_id in results:
-        return {"status": "completed", "score": results[student_id]}
-    else:
+    with results_lock:
+        if student_id in results:
+            return {"status": "completed", "score": results[student_id]}
+        else:
+            return {"status": "processing"}
         return {"status": "processing"}
 
 if __name__ == "__main__":

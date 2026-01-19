@@ -14,8 +14,12 @@ celery -A celery_app worker --loglevel=info --queues=analytics --concurrency=4 -
 # Start Celery worker for default tasks
 celery -A celery_app worker --loglevel=info --queues=default --concurrency=2 --hostname=default_worker@%h &
 
-# Start Flower monitoring (optional)
-celery -A celery_app flower --port=5555 --basic_auth=admin:secure_password_change_me &
+# Start Flower monitoring (optional - requires FLOWER_BASIC_AUTH to be set)
+if [ -n "$FLOWER_BASIC_AUTH" ]; then
+    celery -A celery_app flower --port=5555 --basic_auth=${FLOWER_BASIC_AUTH} &
+else
+    echo "Warning: FLOWER_BASIC_AUTH not set, skipping Flower monitoring"
+fi
 
 echo "Background services started. Starting Flask app..."
 
