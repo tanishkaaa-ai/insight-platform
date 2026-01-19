@@ -76,15 +76,17 @@ api.interceptors.response.use(
           refresh_token: refreshToken
         });
 
-        const { access_token } = response.data;
+        const { access_token, refresh_token: newRefreshToken } = response.data;
         localStorage.setItem('access_token', access_token);
-
+        if (newRefreshToken) {
+          localStorage.setItem('refresh_token', newRefreshToken);
+        }
+        
         isRefreshing = false;
         onRefreshed(access_token);
 
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
-        return api(originalRequest);
-      } catch (refreshError) {
+        return api(originalRequest);      } catch (refreshError) {
         isRefreshing = false;
         onRefreshError(refreshError);
 
