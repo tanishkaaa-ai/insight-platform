@@ -29,7 +29,8 @@ def worker():
                 break
             mock_ml_processing(task['student_id'], task['response_data'])
             task_queue.task_done()
-        except:
+        except Exception as e:
+            print(f"Worker error: {e}")
             continue
 
 def submit_response(student_id, response_data):

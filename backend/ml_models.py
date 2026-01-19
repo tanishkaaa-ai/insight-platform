@@ -1,12 +1,13 @@
 import numpy as np
 from typing import Dict, List
 import logging
+import os
+import pickle
 
 logger = logging.getLogger(__name__)
 
 def calculate_mastery_score(student_id: int, response_data: Dict) -> float:
-    """
-    Optimized mastery calculation using hybrid approach
+    """N    Optimized mastery calculation using hybrid approach
     Returns score between 0-100
     """
     try:
@@ -41,7 +42,7 @@ def bayesian_knowledge_tracing(history: List, current_response: Dict) -> float:
     P_L = P_L0
     
     for response in history:
-        correct = response['correct']
+        correct = response.get('correct', False)  # Defensive check
         
         # Update probability of knowing
         if correct:
@@ -74,7 +75,7 @@ def extract_features(history: List, current_response: Dict) -> np.ndarray:
     
     # Recent performance (last 5 responses)
     recent = history[-5:] if len(history) >= 5 else history
-    accuracy = sum(r['correct'] for r in recent) / len(recent) if recent else 0.5
+    accuracy = sum(r.get('correct', False) for r in recent) / len(recent) if recent else 0.5
     features.append(accuracy)
     
     # Response time pattern
@@ -82,7 +83,7 @@ def extract_features(history: List, current_response: Dict) -> np.ndarray:
     features.append(min(avg_time / 60, 1.0))  # Normalize to 0-1
     
     # Current response
-    features.append(1.0 if current_response['correct'] else 0.0)
+    features.append(1.0 if current_response.get('correct', False) else 0.0)
     features.append(min(current_response.get('response_time', 30) / 60, 1.0))
     
     return np.array(features)
@@ -92,10 +93,28 @@ def sigmoid(x):
 
 def load_cached_dkt_weights():
     """Load pre-computed model weights"""
-    return {
-        'input': np.random.randn(4, 4) * 0.1,  # Placeholder - load from file
-        'output': np.random.randn(4) * 0.1
-    }
+    weights_path = os.getenv('DKT_WEIGHTS_PATH', 'models/dkt_weights.pkl')
+    
+    try:
+        if os.path.exists(weights_path):
+            with open(weights_path, 'rb') as f:
+                weights = pickle.load(f)
+            logger.info(f"Loaded DKT weights from {weights_path}")
+            return weights
+        else:
+            logger.warning(f"DKT weights not found at {weights_path}. Using fallback weights.")
+            # Return fallback weights (should be replaced with proper model in production)
+            return {
+                'input': np.random.randn(4, 4) * 0.1,
+                'output': np.random.randn(4) * 0.1
+            }
+    except Exception as e:
+        logger.error(f"Failed to load DKT weights: {e}")
+        # In production, consider failing fast here
+        return {
+            'input': np.random.randn(4, 4) * 0.1,
+            'output': np.random.randn(4) * 0.1
+        }
 
 def get_student_history(student_id: int) -> List[Dict]:
     """Get student's response history from database"""

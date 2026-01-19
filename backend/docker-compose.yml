@@ -15,6 +15,7 @@ services:
       - "5000:5000"
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - FLASK_DEBUG=false
     depends_on:
       - redis
     command: gunicorn -w 4 -b 0.0.0.0:5000 api:app
@@ -26,8 +27,7 @@ services:
     depends_on:
       - redis
     command: celery -A celery_app worker --loglevel=info --queues=ml_processing,analytics,default
-    deploy:
-      replicas: 2
+    # For scaling: docker-compose up --scale celery_worker=3
 
   celery_monitor:
     build: .
@@ -35,9 +35,10 @@ services:
       - "5555:5555"
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - FLOWER_BASIC_AUTH=admin:secure_password_change_me
     depends_on:
       - redis
-    command: celery -A celery_app flower
+    command: celery -A celery_app flower --basic_auth=admin:secure_password_change_me
 
 volumes:
   redis_data:

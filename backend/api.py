@@ -2,14 +2,37 @@ from flask import Flask, request, jsonify
 from celery_app import process_mastery_update, update_engagement_metrics
 import redis
 import json
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+redis_client = redis.from_url(REDIS_URL)
+
+def validate_json_request(required_fields):
+    """Validate JSON request and required fields"""
+    if not request.is_json:
+        return None, {"error": "Content-Type must be application/json"}, 400
+    
+    data = request.get_json()
+    if data is None:
+        return None, {"error": "Invalid JSON"}, 400
+    
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return None, {"error": f"Missing required fields: {missing_fields}"}, 400
+    
+    return data, None, None
 
 @app.route('/api/submit_response', methods=['POST'])
 def submit_response():
     """Non-blocking response submission"""
-    data = request.json
+    data, error_response, status_code = validate_json_request(['student_id', 'response'])
+    if error_response:
+        return jsonify(error_response), status_code
+    
     student_id = data['student_id']
     response_data = data['response']
     
@@ -43,9 +66,10 @@ def get_mastery_status(student_id):
                 "mastery_score": result["mastery_score"]
             })
         else:
+            logger.error(f"Task failed for student {student_id}: {task.info}")
             return jsonify({
                 "status": "failed",
-                "error": str(task.info)
+                "error": "Processing failed. Please try again."
             }), 500
     else:
         return jsonify({"status": "processing"}), 202
@@ -53,7 +77,10 @@ def get_mastery_status(student_id):
 @app.route('/api/engagement_event', methods=['POST'])
 def log_engagement():
     """Log engagement event asynchronously"""
-    data = request.json
+    data, error_response, status_code = validate_json_request(['student_id', 'engagement_data'])
+    if error_response:
+        return jsonify(error_response), status_code
+    
     student_id = data['student_id']
     engagement_data = data['engagement_data']
     
@@ -65,7 +92,10 @@ def log_engagement():
 @app.route('/api/live_poll_response', methods=['POST'])
 def live_poll_response():
     """Handle live polling with immediate response"""
-    data = request.json
+    data, error_response, status_code = validate_json_request(['student_id', 'response'])
+    if error_response:
+        return jsonify(error_response), status_code
+    
     student_id = data['student_id']
     poll_response = data['response']
     
@@ -84,4 +114,5 @@ def live_poll_response():
     return jsonify({"status": "recorded"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode)

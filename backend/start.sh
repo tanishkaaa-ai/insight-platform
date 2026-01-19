@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Starting AMEP Backend with async processing..."
+
 # Start Redis (if not using Docker)
 # redis-server &
 
@@ -13,9 +15,9 @@ celery -A celery_app worker --loglevel=info --queues=analytics --concurrency=4 -
 celery -A celery_app worker --loglevel=info --queues=default --concurrency=2 --hostname=default_worker@%h &
 
 # Start Flower monitoring (optional)
-celery -A celery_app flower --port=5555 &
+celery -A celery_app flower --port=5555 --basic_auth=admin:secure_password_change_me &
 
-# Start Flask app
+echo "Background services started. Starting Flask app..."
+
+# Start Flask app (this runs in foreground)
 python api.py
-
-echo "AMEP Backend started with async processing"

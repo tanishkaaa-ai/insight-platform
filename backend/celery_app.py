@@ -1,11 +1,15 @@
 from celery import Celery
 import os
+import logging
 from kombu import Queue
+
+logger = logging.getLogger(__name__)
 
 # Celery configuration
 app = Celery('amep')
-app.conf.broker_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-app.conf.result_backend = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+app.conf.broker_url = REDIS_URL
+app.conf.result_backend = REDIS_URL
 
 # Task routing
 app.conf.task_routes = {
@@ -37,20 +41,25 @@ def process_mastery_update(self, student_id, response_data):
         return {"student_id": student_id, "mastery_score": mastery_score}
     
     except Exception as exc:
-        # Retry with exponential backoff
+        logger.error(f"Mastery update failed for student {student_id}: {exc}")
         raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
 
-@app.task
-def update_engagement_metrics(student_id, engagement_data):
+@app.task(bind=True, max_retries=3)
+def update_engagement_metrics(self, student_id, engagement_data):
     """Update engagement analytics"""
-    from analytics import calculate_engagement_score
+    try:
+        from analytics import calculate_engagement_score
+        
+        engagement_score = calculate_engagement_score(student_id, engagement_data)
+        
+        from database import update_engagement_analytics
+        update_engagement_analytics(student_id, engagement_score)
+        
+        return engagement_score
     
-    engagement_score = calculate_engagement_score(student_id, engagement_data)
-    
-    from database import update_engagement_analytics
-    update_engagement_analytics(student_id, engagement_score)
-    
-    return engagement_score
+    except Exception as exc:
+        logger.error(f"Engagement update failed for student {student_id}: {exc}")
+        raise self.retry(exc=exc, countdown=30 * (2 ** self.request.retries))
 
 if __name__ == '__main__':
     app.start()
