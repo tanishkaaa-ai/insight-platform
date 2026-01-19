@@ -76,17 +76,15 @@ def jwt_required(f):
         if payload.get("type") != "access":
             return jsonify({"error": "Invalid token type"}), 401
 
-       user_id = payload.get("sub")
-       user_role = payload.get("role")
-
-      if not user_id or not user_role:
-          return jsonify({"error": "Invalid token claims"}), 401
-
-      request.current_user = {
-          "user_id": user_id,
-          "role": user_role
-      }
-      return f(*args, **kwargs)
+        user_id = payload.get("sub")
+        user_role = payload.get("role")
+        if not user_id or not user_role:
+            return jsonify({"error": "Invalid token claims"}), 401
+        request.current_user = {
+            "user_id": user_id,
+            "role": user_role
+        }
+        return f(*args, **kwargs)
 return decorated
 
 
