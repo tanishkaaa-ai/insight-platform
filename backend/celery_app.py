@@ -35,8 +35,8 @@ def process_mastery_update(self, student_id, response_data):
         mastery_score = calculate_mastery_score(student_id, response_data)
         
         # Update database
-        from database import update_student_mastery
-        update_student_mastery(student_id, mastery_score)
+        from database.operations import DatabaseOperations
+        DatabaseOperations.update_student_mastery(student_id, mastery_score)
         
         return {"student_id": student_id, "mastery_score": mastery_score}
     
@@ -52,8 +52,8 @@ def update_engagement_metrics(self, student_id, engagement_data):
         
         engagement_score = calculate_engagement_score(student_id, engagement_data)
         
-        from database import update_engagement_analytics
-        update_engagement_analytics(student_id, engagement_score)
+        from database.operations import DatabaseOperations
+        DatabaseOperations.update_engagement_analytics(student_id, engagement_score)
         
         return engagement_score
     

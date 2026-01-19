@@ -118,5 +118,5 @@ def load_cached_dkt_weights():
 
 def get_student_history(student_id: int) -> List[Dict]:
     """Get student's response history from database"""
-    from database import get_responses
+    from database.operations import get_responses
     return get_responses(student_id, limit=50)  # Last 50 responses

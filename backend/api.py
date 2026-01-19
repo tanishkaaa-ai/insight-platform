@@ -100,7 +100,7 @@ def live_poll_response():
     poll_response = data['response']
     
     # Store response immediately for live results
-    from database import store_poll_response
+    from database.operations import store_poll_response
     store_poll_response(student_id, poll_response)
     
     # Queue engagement analysis
