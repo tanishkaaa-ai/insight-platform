@@ -5,6 +5,9 @@ Entry point for the backend server
 Location: backend/app.py
 """
 
+# Graceful degradation - Library now installed
+import sklearn
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -271,7 +274,7 @@ if __name__ == "__main__":
     app, socketio = create_app()
 
     print("\n" + "=" * 60)
-    print("🚀 AMEP Backend Server Starting...")
+    print("[STARTED] AMEP Backend Server Starting...")
     print("="*60)
     print(f"Environment: {app.config['ENV']}")
     print(f"Debug Mode: {app.config['DEBUG']}")

@@ -10,10 +10,17 @@ DKVMN uses two matrices:
 - Value Matrix (M_v): Dynamic mastery states that update over time
 """
 
+import numpy as np
+from typing import List, Dict, Tuple, Optional
+import os
+
+# Import PyTorch and NN modules
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+torch_available = True
+
+# ============================================================================
 from typing import List, Dict, Tuple, Optional
 import os
 
