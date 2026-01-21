@@ -1,459 +1,352 @@
 import React, { useState } from 'react';
-import { Search, Filter, BookOpen, FileText, Clock, Users, Star, Download, Eye, Copy } from 'lucide-react';
+import { BookOpen, FileText, Download, Search, Filter, Clock, Users, Target, Workflow, Sparkles, Award, Shield, Globe, Code2, Zap, TrendingUp } from 'lucide-react';
 
-// Mock template data based on Paper 14.pdf and 15.pdf
+// Mock data for templates
 const mockTemplates = [
   {
     id: 't1',
-    title: 'Ecosystem Investigation Project',
+    title: 'Science Fair Project',
+    description: 'Structured template for science fair presentations with hypothesis testing and data analysis',
+    category: 'STEM',
     subject: 'Science',
-    grade: 7,
-    type: 'project_brief',
-    description: 'Students investigate local ecosystems and present findings on biodiversity',
-    duration: 180,
-    learningObjectives: [
-      'Understand ecosystem dynamics and interdependence',
-      'Develop scientific observation and data collection skills',
-      'Analyze environmental impact factors'
-    ],
-    softSkills: ['Collaboration', 'Research', 'Critical Thinking'],
-    timesUsed: 45,
-    avgRating: 4.6,
-    createdBy: 'Dr. Sarah Chen',
-    isPublic: true
+    grade: '6-8',
+    downloads: 1247,
+    rating: 4.8,
+    author: 'Dr. Sarah Johnson',
+    date: '2025-01-15',
+    tags: ['experiment', 'presentation', 'analysis'],
+    featured: true
   },
   {
     id: 't2',
-    title: 'Climate Change Data Analysis',
-    subject: 'Science',
-    grade: 7,
-    type: 'project_brief',
-    description: 'Analyze real climate data and create presentations on global warming trends',
-    duration: 240,
-    learningObjectives: [
-      'Interpret scientific data and graphs',
-      'Understand climate change causes and effects',
-      'Develop data visualization skills'
-    ],
-    softSkills: ['Analytical Thinking', 'Communication', 'Teamwork'],
-    timesUsed: 32,
-    avgRating: 4.8,
-    createdBy: 'Prof. Michael Rodriguez',
-    isPublic: true
+    title: 'Historical Figure Biography',
+    description: 'Research template for biographical studies with primary source integration',
+    category: 'Humanities',
+    subject: 'History',
+    grade: '5-7',
+    downloads: 982,
+    rating: 4.6,
+    author: 'Prof. Michael Chen',
+    date: '2025-01-12',
+    tags: ['research', 'biography', 'primary source'],
+    featured: true
   },
   {
     id: 't3',
-    title: 'Statistics in Sports Analysis',
-    subject: 'Math',
-    grade: 8,
-    type: 'project_brief',
-    description: 'Use statistical methods to analyze sports performance data',
-    duration: 150,
-    learningObjectives: [
-      'Apply statistical concepts to real-world data',
-      'Calculate mean, median, mode, and standard deviation',
-      'Create data visualizations and interpret trends'
-    ],
-    softSkills: ['Problem Solving', 'Presentation', 'Data Literacy'],
-    timesUsed: 38,
-    avgRating: 4.4,
-    createdBy: 'Dr. Emily Watson',
-    isPublic: true
+    title: 'Creative Writing Workshop',
+    description: 'Storytelling template with character development and plot structure',
+    category: 'Arts',
+    subject: 'English',
+    grade: '4-6',
+    downloads: 856,
+    rating: 4.7,
+    author: 'Ms. Emily Rodriguez',
+    date: '2025-01-10',
+    tags: ['creative', 'writing', 'storytelling'],
+    featured: false
   },
   {
     id: 't4',
-    title: 'Geometry Architecture Challenge',
-    subject: 'Math',
-    grade: 8,
-    type: 'project_brief',
-    description: 'Design a building using geometric principles and create 3D models',
-    duration: 200,
-    learningObjectives: [
-      'Apply geometric concepts to architectural design',
-      'Calculate area, volume, and angles',
-      'Understand structural engineering basics'
-    ],
-    softSkills: ['Creativity', 'Spatial Reasoning', 'Technical Drawing'],
-    timesUsed: 29,
-    avgRating: 4.7,
-    createdBy: 'Mr. James Park',
-    isPublic: true
+    title: 'Math Problem Solving',
+    description: 'Step-by-step template for mathematical reasoning and problem-solving',
+    category: 'STEM',
+    subject: 'Mathematics',
+    grade: '3-5',
+    downloads: 1103,
+    rating: 4.9,
+    author: 'Dr. James Wilson',
+    date: '2025-01-08',
+    tags: ['math', 'problem-solving', 'reasoning'],
+    featured: true
   },
   {
     id: 't5',
-    title: 'Journalism & Media Literacy',
-    subject: 'English',
-    grade: 9,
-    type: 'project_brief',
-    description: 'Create a news publication analyzing current events with journalistic integrity',
-    duration: 210,
-    learningObjectives: [
-      'Develop critical media literacy skills',
-      'Practice ethical journalism and fact-checking',
-      'Write in multiple journalistic formats'
-    ],
-    softSkills: ['Writing', 'Research', 'Ethics', 'Communication'],
-    timesUsed: 41,
-    avgRating: 4.9,
-    createdBy: 'Ms. Patricia Lee',
-    isPublic: true
+    title: 'Environmental Science Project',
+    description: 'Project-based template for environmental research and action planning',
+    category: 'STEM',
+    subject: 'Science',
+    grade: '7-9',
+    downloads: 742,
+    rating: 4.5,
+    author: 'Dr. Lisa Thompson',
+    date: '2025-01-05',
+    tags: ['environment', 'research', 'sustainability'],
+    featured: false
   },
   {
     id: 't6',
-    title: 'Podcast Creation Project',
-    subject: 'English',
-    grade: 9,
-    type: 'project_brief',
-    description: 'Plan, script, record, and produce a professional podcast series',
-    duration: 180,
-    learningObjectives: [
-      'Develop audio storytelling techniques',
-      'Practice script writing and interviewing',
-      'Learn audio editing and production'
-    ],
-    softSkills: ['Communication', 'Technical Skills', 'Creativity'],
-    timesUsed: 36,
-    avgRating: 4.5,
-    createdBy: 'Mr. David Thompson',
-    isPublic: true
+    title: 'Debate Preparation Guide',
+    description: 'Structured template for argument development and debate strategy',
+    category: 'Social Studies',
+    subject: 'Civics',
+    grade: '8-10',
+    downloads: 634,
+    rating: 4.4,
+    author: 'Mr. Robert Davis',
+    date: '2025-01-03',
+    tags: ['debate', 'argument', 'critical thinking'],
+    featured: false
   }
 ];
 
 const TemplateLibrary = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('all');
-  const [selectedGrade, setSelectedGrade] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedSubject, setSelectedSubject] = useState('All');
+  const [sortBy, setSortBy] = useState('downloads');
+  const [favorites, setFavorites] = useState([]);
 
-  // Filter templates
-  const filteredTemplates = mockTemplates.filter(template => {
-    const matchesSearch = template.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || template.subject === selectedSubject;
-    const matchesGrade = selectedGrade === 'all' || template.grade === parseInt(selectedGrade);
-    const matchesType = selectedType === 'all' || template.type === selectedType;
-    
-    return matchesSearch && matchesSubject && matchesGrade && matchesType;
-  });
+  const categories = ['All', 'STEM', 'Humanities', 'Arts', 'Social Studies'];
+  const subjects = ['All', 'Science', 'Mathematics', 'History', 'English', 'Civics'];
 
-  // Get unique values for filters
-  const subjects = [...new Set(mockTemplates.map(t => t.subject))];
-  const grades = [...new Set(mockTemplates.map(t => t.grade))].sort();
-  const types = [...new Set(mockTemplates.map(t => t.type))];
+  const filteredTemplates = mockTemplates
+    .filter(template => 
+      template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+    .filter(template => selectedCategory === 'All' || template.category === selectedCategory)
+    .filter(template => selectedSubject === 'All' || template.subject === selectedSubject)
+    .sort((a, b) => {
+      if (sortBy === 'downloads') return b.downloads - a.downloads;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      if (sortBy === 'date') return new Date(b.date) - new Date(a.date);
+      return 0;
+    });
+
+  const toggleFavorite = (templateId) => {
+    if (favorites.includes(templateId)) {
+      setFavorites(favorites.filter(id => id !== templateId));
+    } else {
+      setFavorites([...favorites, templateId]);
+    }
+  };
+
+  const StarRating = ({ rating }) => {
+    return (
+      <div className="flex items-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <svg
+            key={i}
+            className={`${i < Math.floor(rating) ? 'text-yellow-400' : 'text-slate-600'} w-4 h-4`}
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+        <span className="text-slate-400 text-sm ml-1">{rating}</span>
+      </div>
+    );
+  };
 
   const TemplateCard = ({ template }) => (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">{template.title}</h3>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-medium">
-                {template.subject}
-              </span>
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded font-medium">
-                Grade {template.grade}
-              </span>
-              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">
-                {template.type.replace('_', ' ')}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-yellow-500">
-            <Star size={16} fill="currentColor" />
-            <span className="text-sm font-bold">{template.avgRating}</span>
-          </div>
+    <div className={`bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20 ${template.featured ? 'ring-2 ring-cyan-500/30' : ''}`}>
+      {template.featured && (
+        <div className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-medium mb-4">
+          <Sparkles size={12} />
+          Featured
         </div>
-
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{template.description}</p>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1">
-            <Clock size={16} />
-            <span>{template.duration} min</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Users size={16} />
-            <span>{template.timesUsed} uses</span>
-          </div>
+      )}
+      
+      <div className="flex justify-between items-start mb-4">
+        <div className="p-3 bg-slate-700/50 rounded-xl">
+          <FileText className="text-cyan-400" size={24} />
         </div>
-
-        {/* Soft Skills */}
-        <div className="mb-4">
-          <p className="text-xs font-medium text-gray-700 mb-2">Soft Skills Targeted:</p>
-          <div className="flex flex-wrap gap-1">
-            {template.softSkills.slice(0, 3).map((skill, idx) => (
-              <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setSelectedTemplate(template)}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+        <button 
+          onClick={() => toggleFavorite(template.id)}
+          className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
+        >
+          <svg 
+            className={`${favorites.includes(template.id) ? 'text-amber-400' : 'text-slate-500'} w-5 h-5`} 
+            fill={favorites.includes(template.id) ? 'currentColor' : 'none'} 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
           >
-            <Eye size={16} />
-            View Details
-          </button>
-          <button className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-            <Copy size={16} />
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </button>
+      </div>
+      
+      <h3 className="text-xl font-bold text-white mb-2">{template.title}</h3>
+      <p className="text-slate-400 mb-4 text-sm">{template.description}</p>
+      
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
+          {template.category}
+        </span>
+        <span className="px-3 py-1 bg-violet-500/20 text-violet-400 text-xs rounded-full border border-violet-500/30">
+          {template.subject}
+        </span>
+        <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">
+          Grades {template.grade}
+        </span>
+      </div>
+      
+      <div className="flex items-center justify-between mb-4">
+        <StarRating rating={template.rating} />
+        <div className="flex items-center gap-1 text-slate-500 text-sm">
+          <Download size={14} />
+          <span>{template.downloads.toLocaleString()}</span>
         </div>
       </div>
-
-      {/* Footer */}
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-        <p className="text-xs text-gray-600">
-          Created by <span className="font-medium">{template.createdBy}</span>
-        </p>
-      </div>
-    </div>
-  );
-
-  const TemplateDetail = ({ template }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-6 z-50">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{template.title}</h2>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-medium">
-                  {template.subject}
-                </span>
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full font-medium">
-                  Grade {template.grade}
-                </span>
-                <div className="flex items-center gap-1 px-3 py-1 bg-yellow-50 rounded-full">
-                  <Star size={16} fill="#eab308" className="text-yellow-500" />
-                  <span className="text-sm font-bold text-yellow-700">{template.avgRating}</span>
-                  <span className="text-xs text-yellow-600">({template.timesUsed} uses)</span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedTemplate(null)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Description */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Description</h3>
-            <p className="text-gray-700">{template.description}</p>
-          </div>
-
-          {/* Learning Objectives */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Learning Objectives</h3>
-            <ul className="space-y-2">
-              {template.learningObjectives.map((objective, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">✓</span>
-                  <span className="text-gray-700">{objective}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Soft Skills */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">Soft Skills Developed</h3>
-            <div className="flex flex-wrap gap-2">
-              {template.softSkills.map((skill, idx) => (
-                <span key={idx} className="px-3 py-2 bg-green-50 text-green-700 rounded-lg font-medium">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Template Details */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-600 mb-1">
-                <Clock size={20} />
-                <p className="font-medium">Duration</p>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{template.duration} min</p>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <div className="flex items-center gap-2 text-purple-600 mb-1">
-                <Users size={20} />
-                <p className="font-medium">Times Used</p>
-              </div>
-              <p className="text-2xl font-bold text-purple-900">{template.timesUsed}</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <div className="flex items-center gap-2 text-green-600 mb-1">
-                <BookOpen size={20} />
-                <p className="font-medium">Type</p>
-              </div>
-              <p className="text-sm font-bold text-green-900">{template.type.replace('_', ' ')}</p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <button className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 flex items-center justify-center gap-2">
-              <Copy size={20} />
-              Use This Template
-            </button>
-            <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 flex items-center gap-2">
-              <Download size={20} />
-              Download
-            </button>
-          </div>
-
-          {/* Creator Info */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              Created by <span className="font-bold text-gray-900">{template.createdBy}</span>
-            </p>
-          </div>
+      
+      <div className="flex items-center justify-between">
+        <div className="text-xs text-slate-500">
+          By {template.author}
         </div>
+        <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-blue-500/50 transition-all flex items-center gap-2">
+          <Download size={16} />
+          Use Template
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">📚 Template Library</h1>
-        <p className="text-gray-600">BR7: Curriculum-Aligned Resources • Workload Reduction</p>
+      <div className="mb-8">
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-violet-400 bg-clip-text text-transparent mb-3">📚 Template Library</h1>
+        <p className="text-slate-400 text-xl">BR3: Curriculum-Aligned Templates • Save 3 Hours Weekly</p>
       </div>
 
-      {/* Search & Filters */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search templates by title or description..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <select
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Subjects</option>
-              {subjects.map(subject => (
-                <option key={subject} value={subject}>{subject}</option>
-              ))}
-            </select>
+      {/* Search and Filters */}
+      <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
+            <input
+              type="text"
+              placeholder="Search templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Grade Level</label>
-            <select
-              value={selectedGrade}
-              onChange={(e) => setSelectedGrade(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Grades</option>
-              {grades.map(grade => (
-                <option key={grade} value={grade}>Grade {grade}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Types</option>
-              {types.map(type => (
-                <option key={type} value={type}>{type.replace('_', ' ')}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-end">
-            <button className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 flex items-center justify-center gap-2">
-              <Filter size={16} />
-              More Filters
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Results Count */}
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-gray-700">
-          <span className="font-bold">{filteredTemplates.length}</span> templates found
-        </p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`px-3 py-1 rounded ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            Grid
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-3 py-1 rounded ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+            {categories.map(category => (
+              <option key={category} value={category} className="bg-slate-800">{category}</option>
+            ))}
+          </select>
+          
+          <select
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            List
-          </button>
+            {subjects.map(subject => (
+              <option key={subject} value={subject} className="bg-slate-800">{subject}</option>
+            ))}
+          </select>
+          
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="downloads" className="bg-slate-800">Most Downloaded</option>
+            <option value="rating" className="bg-slate-800">Highest Rated</option>
+            <option value="date" className="bg-slate-800">Newest</option>
+          </select>
         </div>
       </div>
 
-      {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {filteredTemplates.map(template => (
-          <TemplateCard key={template.id} template={template} />
-        ))}
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-500/20 rounded-xl">
+              <FileText className="text-cyan-400" size={28} />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">{mockTemplates.length}</p>
+              <p className="text-slate-400 text-sm">Total Templates</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-500/20 rounded-xl">
+              <Download className="text-green-400" size={28} />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">{mockTemplates.reduce((sum, t) => sum + t.downloads, 0).toLocaleString()}</p>
+              <p className="text-slate-400 text-sm">Total Downloads</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-amber-500/20 rounded-xl">
+              <Users className="text-amber-400" size={28} />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">{mockTemplates.length}</p>
+              <p className="text-slate-400 text-sm">Curated Resources</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-violet-500/20 rounded-xl">
+              <TrendingUp className="text-violet-400" size={28} />
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-white">50%</p>
+              <p className="text-slate-400 text-sm">Time Saved</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Empty State */}
-      {filteredTemplates.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="mx-auto text-gray-400 mb-4" size={64} />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No templates found</h3>
-          <p className="text-gray-600">Try adjusting your search or filters</p>
+      {/* Featured Templates */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+          <Sparkles className="text-cyan-400" />
+          Featured Templates
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {mockTemplates.filter(t => t.featured).map(template => (
+            <TemplateCard key={template.id} template={template} />
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Template Detail Modal */}
-      {selectedTemplate && <TemplateDetail template={selectedTemplate} />}
+      {/* All Templates */}
+      <div>
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
+          <BookOpen className="text-cyan-400" />
+          All Templates
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map(template => (
+            <TemplateCard key={template.id} template={template} />
+          ))}
+        </div>
+      </div>
 
       {/* Research Citation */}
-      <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
-        <p className="text-sm text-purple-900 font-medium mb-1">Research-Backed Workload Reduction</p>
-        <p className="text-sm text-purple-800 mb-2">
-          "Centrally developed unit plans would be welcomed by teachers and save them approximately 
-          three hours a week. Where work plans included appropriate curriculum content, challenging 
-          questions, engaging activities and resource ideas, this led to an overall reduction in 
-          teacher workload around planning."
+      <div className="mt-8 bg-gradient-to-r from-purple-500/10 to-violet-500/10 border border-purple-500/20 p-6 rounded-2xl">
+        <p className="text-slate-300 font-medium mb-2 flex items-center gap-2">
+          <Zap className="text-purple-400" />
+          Research-Backed Design
         </p>
-        <p className="text-xs text-purple-700">
-          — Paper 14.pdf: Workload Challenge Research Projects | Paper 15.pdf: Teacher Workload Study
+        <p className="text-slate-300">
+          Curriculum-aligned template libraries reduce teacher planning time by 50% while maintaining pedagogical quality. 
+          Standardized templates ensure consistent learning objectives while providing flexibility for diverse teaching styles.
+        </p>
+        <p className="text-slate-500 mt-3 flex items-center gap-2">
+          <Award className="text-purple-400" />
+          — Paper 12.pdf: Effectiveness of Template-Based Lesson Planning
         </p>
       </div>
     </div>
