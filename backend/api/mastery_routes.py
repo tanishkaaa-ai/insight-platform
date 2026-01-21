@@ -92,8 +92,7 @@ def calculate_mastery():
             'dkvmn_component': result['dkvmn_component'],
             'confidence': result['confidence'],
             'learning_velocity': result['learning_velocity'],
-            'last_assessed': datetime.utcnow(),
-            'times_assessed': 1
+            'last_assessed': datetime.utcnow()
         }
         
         # Update or insert
