@@ -93,39 +93,35 @@ def register_blueprints(app):
     from api.auth_routes import auth_bp
     from api.mastery_routes import mastery_bp
     from api.engagement_routes import engagement_bp
-    from api.pbl_routes import pbl_bp
-    from api.analytics_routes import analytics_bp
     from api.classroom_routes import classroom_bp
     from api.live_polling_routes import live_polling_bp
     from api.template_routes import template_bp
     from api.dashboard_routes import dashboard_bp
+    from api.pbl_workflow_routes import pbl_workflow_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
-    logger.info("Registered: /api/auth (Authentication)")
+    logger.info("Registered: /api/auth")
 
     app.register_blueprint(mastery_bp, url_prefix="/api/mastery")
-    logger.info("Registered: /api/mastery (Knowledge Tracing)")
+    logger.info("Registered: /api/mastery")
 
     app.register_blueprint(classroom_bp, url_prefix="/api/classroom")
-    logger.info("Registered: /api/classroom (Classroom Management)")
+    logger.info("Registered: /api/classroom")
 
     app.register_blueprint(engagement_bp, url_prefix="/api/engagement")
-    logger.info("Registered: /api/engagement (Engagement Detection)")
-
-    app.register_blueprint(pbl_bp, url_prefix="/api/pbl")
-    logger.info("Registered: /api/pbl (Project-Based Learning)")
-
-    app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
-    logger.info("Registered: /api/analytics (Analytics & Reporting)")
+    logger.info("Registered: /api/engagement")
 
     app.register_blueprint(live_polling_bp, url_prefix="/api/polling")
-    logger.info("Registered: /api/polling (Live Polling System)")
+    logger.info("Registered: /api/polling")
 
     app.register_blueprint(template_bp, url_prefix="/api/templates")
-    logger.info("Registered: /api/templates (Curriculum Templates)")
+    logger.info("Registered: /api/templates")
 
     app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
-    logger.info("Registered: /api/dashboard (Real-Time Teacher Dashboards)")
+    logger.info("Registered: /api/dashboard")
+
+    app.register_blueprint(pbl_workflow_bp, url_prefix="/api/pbl")
+    logger.info("Registered: /api/pbl")
 
     logger.info("All blueprints registered successfully")
 
@@ -287,5 +283,6 @@ if __name__ == "__main__":
         app,
         host=app.config.get("HOST", "0.0.0.0"),
         port=app.config.get("PORT", 5000),
-        debug=app.config.get("DEBUG", False)
+        debug=app.config.get("DEBUG", False),
+        use_reloader=False
     )

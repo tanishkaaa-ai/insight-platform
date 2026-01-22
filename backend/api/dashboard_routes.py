@@ -911,4 +911,142 @@ def get_talk_time_ratio(classroom_id):
         }), 500
 
 
+@dashboard_bp.route('/interventions/track', methods=['POST'])
+def track_intervention():
+    try:
+        data = request.json
+        mastery_before = data.get('mastery_before')
+        if not mastery_before:
+            mastery_records = find_many(STUDENT_CONCEPT_MASTERY, {'student_id': {'$in': data['target_students']}, 'concept_id': data['concept_id']})
+            mastery_before = sum(r.get('mastery_score', 0) for r in mastery_records) / len(mastery_records) if mastery_records else 0
+
+        intervention_effectiveness = {'one_on_one_tutoring': 0.15, 'small_group_review': 0.10, 'homework_assignment': 0.05, 'peer_teaching': 0.12, 'adaptive_practice': 0.18}
+        intervention_type = data['intervention_type']
+        expected_improvement = intervention_effectiveness.get(intervention_type, 0.08) * 100
+        predicted_mastery_after = min(100, mastery_before + expected_improvement)
+
+        intervention_doc = {'_id': str(ObjectId()), 'teacher_id': data['teacher_id'], 'concept_id': data['concept_id'], 'intervention_type': intervention_type, 'target_students': data['target_students'], 'description': data.get('description'), 'mastery_before': mastery_before, 'mastery_after': None, 'improvement': None, 'predicted_improvement': round(expected_improvement, 2), 'predicted_mastery_after': round(predicted_mastery_after, 2), 'confidence': 0.75, 'performed_at': datetime.utcnow(), 'measured_at': None}
+        intervention_id = insert_one(TEACHER_INTERVENTIONS, intervention_doc)
+
+        return jsonify({'intervention_id': intervention_id, 'teacher_id': data['teacher_id'], 'concept_id': data['concept_id'], 'intervention_type': intervention_type, 'mastery_before': mastery_before, 'predicted_improvement': round(expected_improvement, 2), 'predicted_mastery_after': round(predicted_mastery_after, 2), 'performed_at': intervention_doc['performed_at'].isoformat()}), 201
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@dashboard_bp.route('/interventions/<intervention_id>/measure', methods=['POST'])
+def measure_intervention_impact(intervention_id):
+    try:
+        intervention = find_one(TEACHER_INTERVENTIONS, {'_id': intervention_id})
+        if not intervention:
+            return jsonify({'error': 'Intervention not found'}), 404
+
+        mastery_records = find_many(STUDENT_CONCEPT_MASTERY, {'student_id': {'$in': intervention['target_students']}, 'concept_id': intervention['concept_id']})
+        mastery_after = sum(r.get('mastery_score', 0) for r in mastery_records) / len(mastery_records) if mastery_records else intervention['mastery_before']
+        actual_improvement = mastery_after - intervention['mastery_before']
+        predicted_improvement = intervention.get('predicted_improvement', 0)
+        prediction_error = abs(actual_improvement - predicted_improvement)
+        prediction_accuracy = max(0, 100 - (prediction_error / predicted_improvement * 100)) if predicted_improvement > 0 else 0
+
+        update_one(TEACHER_INTERVENTIONS, {'_id': intervention_id}, {'$set': {'mastery_after': mastery_after, 'improvement': actual_improvement, 'prediction_accuracy': round(prediction_accuracy, 2), 'prediction_error': round(prediction_error, 2), 'measured_at': datetime.utcnow()}})
+
+        effectiveness_rating = 'highly_effective' if actual_improvement > predicted_improvement * 1.2 else 'effective' if actual_improvement > predicted_improvement * 0.8 else 'moderately_effective' if actual_improvement > 0 else 'ineffective'
+
+        return jsonify({'intervention_id': intervention_id, 'mastery_before': intervention['mastery_before'], 'mastery_after': round(mastery_after, 2), 'actual_improvement': round(actual_improvement, 2), 'predicted_improvement': predicted_improvement, 'prediction_accuracy': round(prediction_accuracy, 2), 'effectiveness_rating': effectiveness_rating, 'measured_at': datetime.utcnow().isoformat()}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@dashboard_bp.route('/interventions/teacher/<teacher_id>', methods=['GET'])
+def get_teacher_interventions(teacher_id):
+    try:
+        interventions = find_many(TEACHER_INTERVENTIONS, {'teacher_id': teacher_id}, sort=[('performed_at', -1)])
+        formatted_interventions = []
+        total_predicted_improvement = 0
+        total_actual_improvement = 0
+        measured_count = 0
+
+        for intervention in interventions:
+            formatted_interventions.append({'intervention_id': intervention['_id'], 'concept_id': intervention.get('concept_id'), 'intervention_type': intervention.get('intervention_type'), 'target_students_count': len(intervention.get('target_students', [])), 'mastery_before': intervention.get('mastery_before'), 'mastery_after': intervention.get('mastery_after'), 'improvement': intervention.get('improvement'), 'predicted_improvement': intervention.get('predicted_improvement'), 'prediction_accuracy': intervention.get('prediction_accuracy'), 'performed_at': intervention.get('performed_at').isoformat() if intervention.get('performed_at') else None, 'measured_at': intervention.get('measured_at').isoformat() if intervention.get('measured_at') else None})
+            if intervention.get('measured_at'):
+                measured_count += 1
+                total_actual_improvement += intervention.get('improvement', 0)
+                total_predicted_improvement += intervention.get('predicted_improvement', 0)
+
+        avg_actual_improvement = total_actual_improvement / measured_count if measured_count > 0 else 0
+        teacher_effectiveness = {'total_interventions': len(interventions), 'measured_interventions': measured_count, 'avg_improvement': round(avg_actual_improvement, 2), 'effectiveness_rating': 'excellent' if avg_actual_improvement > 12 else 'good' if avg_actual_improvement > 8 else 'satisfactory' if avg_actual_improvement > 5 else 'needs_improvement'}
+
+        return jsonify({'teacher_id': teacher_id, 'interventions': formatted_interventions, 'teacher_effectiveness': teacher_effectiveness}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@dashboard_bp.route('/interventions/recommendations/<teacher_id>', methods=['GET'])
+def get_intervention_recommendations(teacher_id):
+    try:
+        past_interventions = find_many(TEACHER_INTERVENTIONS, {'teacher_id': teacher_id, 'measured_at': {'$ne': None}})
+        intervention_effectiveness = {}
+
+        for intervention in past_interventions:
+            intervention_type = intervention.get('intervention_type')
+            improvement = intervention.get('improvement', 0)
+            if intervention_type not in intervention_effectiveness:
+                intervention_effectiveness[intervention_type] = []
+            intervention_effectiveness[intervention_type].append(improvement)
+
+        recommendations = []
+        for intervention_type, improvements in intervention_effectiveness.items():
+            avg_improvement = sum(improvements) / len(improvements)
+            effectiveness_rating = 'highly_recommended' if avg_improvement > 12 else 'recommended' if avg_improvement > 8 else 'consider' if avg_improvement > 5 else 'not_recommended'
+            recommendations.append({'intervention_type': intervention_type, 'avg_improvement': round(avg_improvement, 2), 'effectiveness_rating': effectiveness_rating, 'times_used': len(improvements)})
+
+        recommendations.sort(key=lambda x: x['avg_improvement'], reverse=True)
+        return jsonify({'teacher_id': teacher_id, 'recommendations': recommendations}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@dashboard_bp.route('/unified', methods=['GET'])
+def get_unified_analytics():
+    try:
+        metric_date = request.args.get('date', datetime.utcnow().date().isoformat())
+
+        all_students = find_many(STUDENTS, {})
+        total_students = len(all_students)
+        mastery_records = find_many(STUDENT_CONCEPT_MASTERY, {})
+        students_mastered = len([r for r in mastery_records if r.get('mastery_score', 0) >= 70])
+        mastery_rate = (students_mastered / total_students * 100) if total_students > 0 else 0
+
+        all_teachers = find_many(TEACHERS, {})
+        active_sessions = find_many(ENGAGEMENT_SESSIONS, {'session_start': {'$gte': datetime.utcnow() - timedelta(days=7)}})
+        active_teachers = len(set(s.get('teacher_id') for s in active_sessions if s.get('teacher_id')))
+        teacher_adoption_rate = (active_teachers / len(all_teachers) * 100) if all_teachers else 0
+
+        data_completeness = (len(mastery_records) / (total_students * 10) * 100) if total_students > 0 else 0
+        admin_confidence_score = min(100, data_completeness * 0.5 + mastery_rate * 0.3 + teacher_adoption_rate * 0.2)
+
+        return jsonify({'metric_date': metric_date, 'mastery_rate': round(mastery_rate, 2), 'teacher_adoption_rate': round(teacher_adoption_rate, 2), 'admin_confidence_score': round(admin_confidence_score, 2), 'total_students': total_students, 'total_teachers': len(all_teachers)}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@dashboard_bp.route('/unified/trends', methods=['GET'])
+def get_unified_trends():
+    try:
+        days = request.args.get('days', default=30, type=int)
+        start_date = datetime.utcnow() - timedelta(days=days)
+
+        sessions = find_many(ENGAGEMENT_SESSIONS, {'session_start': {'$gte': start_date}}, sort=[('session_start', 1)])
+        daily_engagement = {}
+        for session in sessions:
+            date_key = session['session_start'].date().isoformat()
+            if date_key not in daily_engagement:
+                daily_engagement[date_key] = []
+            daily_engagement[date_key].append(session.get('engagement_score', 0))
+
+        trends = {'mastery_rate': [], 'engagement_score': []}
+        for date_key in sorted(daily_engagement.keys()):
+            avg_engagement = sum(daily_engagement[date_key]) / len(daily_engagement[date_key])
+            trends['engagement_score'].append({'date': date_key, 'value': round(avg_engagement, 1)})
+
+        trend_direction = 'improving' if len(trends['engagement_score']) > 1 and trends['engagement_score'][-1]['value'] > trends['engagement_score'][0]['value'] else 'stable'
+
+        return jsonify({'has_data': len(trends['engagement_score']) > 0, 'trends': trends, 'trend_directions': {'engagement': trend_direction}}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
 logger.info("Dashboard routes initialized successfully")
