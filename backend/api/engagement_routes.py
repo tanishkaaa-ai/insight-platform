@@ -93,6 +93,11 @@ def analyze_engagement():
             implicit
         )
         
+        # Convert Enum types to strings for JSON serialization
+        for b in behaviors:
+            if hasattr(b['type'], 'value'):
+                b['type'] = b['type'].value
+        
         # Calculate engagement score
         logger.info(f"Calculating engagement score | student_id: {student_id}")
         result = engagement_engine.calculate_engagement_score(

@@ -44,7 +44,7 @@ from models.database import (
 )
 
 # Import AI engines
-from ai_engine.engagement_detection import EngagementDetector
+from ai_engine.engagement_detection import EngagementDetectionEngine
 
 # Import logging
 from utils.logger import get_logger
@@ -56,7 +56,7 @@ dashboard_bp = Blueprint('dashboard', __name__)
 logger = get_logger(__name__)
 
 # Initialize engagement detector
-engagement_detector = EngagementDetector()
+engagement_detector = EngagementDetectionEngine()
 
 # ============================================================================
 # CLASS ENGAGEMENT INDEX (BR6)
@@ -66,9 +66,9 @@ engagement_detector = EngagementDetector()
 def get_class_engagement_index(classroom_id):
     """
     BR6: Real-time class engagement index
-
+    
     GET /api/dashboard/class-engagement/{classroom_id}
-
+    
     Returns:
     - Overall class engagement score (0-100)
     - Distribution by engagement level
@@ -83,15 +83,15 @@ def get_class_engagement_index(classroom_id):
         classroom = find_one(CLASSROOMS, {'_id': classroom_id})
         if not classroom:
             return jsonify({'error': 'Classroom not found'}), 404
-
+        
         # Get all students in classroom
         memberships = find_many(
-            CLASSROOM_MEMBERSHIPS,
+            CLASSROOM_MEMBERSHIPS, 
             {'classroom_id': classroom_id, 'role': 'student'}
         )
-
+        
         student_ids = [m['user_id'] for m in memberships]
-
+        
         if not student_ids:
             return jsonify({
                 'classroom_id': classroom_id,
@@ -104,11 +104,46 @@ def get_class_engagement_index(classroom_id):
                 'recommendation': 'No students enrolled yet'
             }), 200
 
+        # Gather engagement data for all students
+        student_engagements = []
+        for sid in student_ids:
+            # Get latest session
+            latest_session = find_one(
+                ENGAGEMENT_SESSIONS,
+                {'student_id': sid},
+                sort=[('session_start', -1)]
+            )
+            
+            # Get active alerts to determine status overrides
+            active_alert = find_one(
+                DISENGAGEMENT_ALERTS,
+                {'student_id': sid, 'resolved': False},
+                sort=[('timestamp', -1)]
+            )
+            
+            if active_alert:
+                 student_engagements.append({
+                    'student_id': sid,
+                    'engagement_score': active_alert.get('engagement_score', 50),
+                    'engagement_level': active_alert.get('engagement_level', 'MONITOR') # Should be computed severity mapped to level if needed
+                 })
+            elif latest_session:
+                student_engagements.append({
+                    'student_id': sid,
+                    'engagement_score': latest_session.get('engagement_score', 75),
+                    'engagement_level': latest_session.get('engagement_level', 'ENGAGED')
+                })
+            else:
+                 # Default for no data
+                 student_engagements.append({
+                    'student_id': sid,
+                    'engagement_score': 50, # Neutral
+                    'engagement_level': 'MONITOR'
+                 })
+
         # Calculate class-level engagement
         result = engagement_detector.analyze_class_engagement(
-            classroom_id=classroom_id,
-            student_ids=student_ids,
-            days=7
+            student_engagements=student_engagements
         )
 
         # Get active alerts

@@ -8,13 +8,16 @@ Research Source: Paper 2105_15106v4.pdf - Section III-C-1
 This module provides a production-ready LSTM neural network for knowledge tracing.
 """
 
-import torch
-import torch.nn as nn
 import numpy as np
 from typing import List, Dict, Tuple, Optional
 import pickle
 import os
 from datetime import datetime
+
+# Import PyTorch and NN modules
+import torch
+import torch.nn as nn
+torch_available = True
 
 # ============================================================================
 # DEEP KNOWLEDGE TRACING LSTM MODEL

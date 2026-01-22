@@ -46,9 +46,9 @@ class MongoDB:
             # Test connection
             self._client.admin.command('ping')
             self._db = self._client[db_name]
-            print(f"✓ Connected to MongoDB: {db_name}")
+            print(f"[OK] Connected to MongoDB: {db_name}")
         except ConnectionFailure as e:
-            print(f"✗ MongoDB connection failed: {e}")
+            print(f"[FAIL] MongoDB connection failed: {e}")
             raise
     
     @property
@@ -69,7 +69,7 @@ class MongoDB:
         """Close connection"""
         if self._client:
             self._client.close()
-            print("✓ MongoDB connection closed")
+            print("[OK] MongoDB connection closed")
 
 # Global database instance
 mongo = MongoDB()
@@ -123,24 +123,24 @@ def init_db(app=None):
     db[USERS].create_index([('email', ASCENDING)], unique=True)
     db[USERS].create_index([('username', ASCENDING)], unique=True)
     db[USERS].create_index([('role', ASCENDING)])
-    print(f"✓ {USERS} collection initialized")
+    print(f"[OK] {USERS} collection initialized")
     
     # Students collection
     db[STUDENTS].create_index([('user_id', ASCENDING)], unique=True)
     db[STUDENTS].create_index([('grade_level', ASCENDING)])
     db[STUDENTS].create_index([('section', ASCENDING)])
-    print(f"✓ {STUDENTS} collection initialized")
+    print(f"[OK] {STUDENTS} collection initialized")
     
     # Teachers collection
     db[TEACHERS].create_index([('user_id', ASCENDING)], unique=True)
     db[TEACHERS].create_index([('subject_area', ASCENDING)])
-    print(f"✓ {TEACHERS} collection initialized")
+    print(f"[OK] {TEACHERS} collection initialized")
     
     # Concepts collection
     db[CONCEPTS].create_index([('concept_name', ASCENDING)])
     db[CONCEPTS].create_index([('subject_area', ASCENDING)])
     db[CONCEPTS].create_index([('difficulty_level', ASCENDING)])
-    print(f"✓ {CONCEPTS} collection initialized")
+    print(f"[OK] {CONCEPTS} collection initialized")
     
     # Student Concept Mastery collection (BR1)
     db[STUDENT_CONCEPT_MASTERY].create_index([
@@ -149,37 +149,37 @@ def init_db(app=None):
     ], unique=True)
     db[STUDENT_CONCEPT_MASTERY].create_index([('mastery_score', ASCENDING)])
     db[STUDENT_CONCEPT_MASTERY].create_index([('last_assessed', DESCENDING)])
-    print(f"✓ {STUDENT_CONCEPT_MASTERY} collection initialized")
+    print(f"[OK] {STUDENT_CONCEPT_MASTERY} collection initialized")
     
     # Student Responses collection
     db[STUDENT_RESPONSES].create_index([('student_id', ASCENDING)])
     db[STUDENT_RESPONSES].create_index([('concept_id', ASCENDING)])
     db[STUDENT_RESPONSES].create_index([('submitted_at', DESCENDING)])
     db[STUDENT_RESPONSES].create_index([('session_id', ASCENDING)])
-    print(f"✓ {STUDENT_RESPONSES} collection initialized")
+    print(f"[OK] {STUDENT_RESPONSES} collection initialized")
     
     # Engagement Sessions collection (BR4)
     db[ENGAGEMENT_SESSIONS].create_index([('student_id', ASCENDING)])
     db[ENGAGEMENT_SESSIONS].create_index([('start_time', DESCENDING)])
-    print(f"✓ {ENGAGEMENT_SESSIONS} collection initialized")
+    print(f"[OK] {ENGAGEMENT_SESSIONS} collection initialized")
     
     # Engagement Logs collection (BR4)
     db[ENGAGEMENT_LOGS].create_index([('student_id', ASCENDING)])
     db[ENGAGEMENT_LOGS].create_index([('timestamp', DESCENDING)])
     db[ENGAGEMENT_LOGS].create_index([('event_type', ASCENDING)])
-    print(f"✓ {ENGAGEMENT_LOGS} collection initialized")
+    print(f"[OK] {ENGAGEMENT_LOGS} collection initialized")
     
     # Disengagement Alerts collection (BR6)
     db[DISENGAGEMENT_ALERTS].create_index([('student_id', ASCENDING)])
     db[DISENGAGEMENT_ALERTS].create_index([('severity', ASCENDING)])
     db[DISENGAGEMENT_ALERTS].create_index([('detected_at', DESCENDING)])
-    print(f"✓ {DISENGAGEMENT_ALERTS} collection initialized")
+    print(f"[OK] {DISENGAGEMENT_ALERTS} collection initialized")
     
     # Live Polls collection (BR4)
     db[LIVE_POLLS].create_index([('teacher_id', ASCENDING)])
     db[LIVE_POLLS].create_index([('is_active', ASCENDING)])
     db[LIVE_POLLS].create_index([('created_at', DESCENDING)])
-    print(f"✓ {LIVE_POLLS} collection initialized")
+    print(f"[OK] {LIVE_POLLS} collection initialized")
     
     # Poll Responses collection (BR4)
     db[POLL_RESPONSES].create_index([
@@ -187,42 +187,42 @@ def init_db(app=None):
         ('student_id', ASCENDING)
     ], unique=True)
     db[POLL_RESPONSES].create_index([('submitted_at', DESCENDING)])
-    print(f"✓ {POLL_RESPONSES} collection initialized")
+    print(f"[OK] {POLL_RESPONSES} collection initialized")
     
     # Projects collection (BR9)
     db[PROJECTS].create_index([('teacher_id', ASCENDING)])
     db[PROJECTS].create_index([('current_stage', ASCENDING)])
     db[PROJECTS].create_index([('start_date', ASCENDING)])
-    print(f"✓ {PROJECTS} collection initialized")
+    print(f"[OK] {PROJECTS} collection initialized")
     
     # Teams collection (BR9)
     db[TEAMS].create_index([('project_id', ASCENDING)])
-    print(f"✓ {TEAMS} collection initialized")
+    print(f"[OK] {TEAMS} collection initialized")
     
     # Team Memberships collection (BR9)
     db[TEAM_MEMBERSHIPS].create_index([
         ('team_id', ASCENDING),
         ('student_id', ASCENDING)
     ], unique=True)
-    print(f"✓ {TEAM_MEMBERSHIPS} collection initialized")
+    print(f"[OK] {TEAM_MEMBERSHIPS} collection initialized")
     
     # Soft Skills Assessments collection (BR5)
     db[SOFT_SKILL_ASSESSMENTS].create_index([('team_id', ASCENDING)])
     db[SOFT_SKILL_ASSESSMENTS].create_index([('assessed_student_id', ASCENDING)])
     db[SOFT_SKILL_ASSESSMENTS].create_index([('assessed_at', DESCENDING)])
-    print(f"✓ {SOFT_SKILL_ASSESSMENTS} collection initialized")
+    print(f"[OK] {SOFT_SKILL_ASSESSMENTS} collection initialized")
     
     # Project Milestones collection (BR9)
     db[PROJECT_MILESTONES].create_index([('project_id', ASCENDING)])
     db[PROJECT_MILESTONES].create_index([('team_id', ASCENDING)])
     db[PROJECT_MILESTONES].create_index([('due_date', ASCENDING)])
-    print(f"✓ {PROJECT_MILESTONES} collection initialized")
+    print(f"[OK] {PROJECT_MILESTONES} collection initialized")
     
     # Project Artifacts collection (BR9)
     db[PROJECT_ARTIFACTS].create_index([('team_id', ASCENDING)])
     db[PROJECT_ARTIFACTS].create_index([('project_id', ASCENDING)])
     db[PROJECT_ARTIFACTS].create_index([('uploaded_at', DESCENDING)])
-    print(f"✓ {PROJECT_ARTIFACTS} collection initialized")
+    print(f"[OK] {PROJECT_ARTIFACTS} collection initialized")
     
     # Curriculum Templates collection (BR7)
     db[CURRICULUM_TEMPLATES].create_index([('subject_area', ASCENDING)])
@@ -234,24 +234,24 @@ def init_db(app=None):
         ('title', 'text'),
         ('description', 'text')
     ])
-    print(f"✓ {CURRICULUM_TEMPLATES} collection initialized")
+    print(f"[OK] {CURRICULUM_TEMPLATES} collection initialized")
     
     # Institutional Metrics collection (BR8)
     db[INSTITUTIONAL_METRICS].create_index([('metric_date', DESCENDING)])
-    print(f"✓ {INSTITUTIONAL_METRICS} collection initialized")
+    print(f"[OK] {INSTITUTIONAL_METRICS} collection initialized")
     
     # Teacher Interventions collection (BR6)
     db[TEACHER_INTERVENTIONS].create_index([('teacher_id', ASCENDING)])
     db[TEACHER_INTERVENTIONS].create_index([('concept_id', ASCENDING)])
     db[TEACHER_INTERVENTIONS].create_index([('performed_at', DESCENDING)])
-    print(f"✓ {TEACHER_INTERVENTIONS} collection initialized")
+    print(f"[OK] {TEACHER_INTERVENTIONS} collection initialized")
 
     # Classrooms collection
     db[CLASSROOMS].create_index([('teacher_id', ASCENDING)])
     db[CLASSROOMS].create_index([('join_code', ASCENDING)], unique=True)
     db[CLASSROOMS].create_index([('is_active', ASCENDING)])
     db[CLASSROOMS].create_index([('created_at', DESCENDING)])
-    print(f"✓ {CLASSROOMS} collection initialized")
+    print(f"[OK] {CLASSROOMS} collection initialized")
 
     # Classroom Memberships collection
     db[CLASSROOM_MEMBERSHIPS].create_index([
@@ -260,19 +260,19 @@ def init_db(app=None):
     ], unique=True)
     db[CLASSROOM_MEMBERSHIPS].create_index([('student_id', ASCENDING)])
     db[CLASSROOM_MEMBERSHIPS].create_index([('classroom_id', ASCENDING), ('is_active', ASCENDING)])
-    print(f"✓ {CLASSROOM_MEMBERSHIPS} collection initialized")
+    print(f"[OK] {CLASSROOM_MEMBERSHIPS} collection initialized")
 
     # Classroom Posts collection
     db[CLASSROOM_POSTS].create_index([('classroom_id', ASCENDING), ('created_at', DESCENDING)])
     db[CLASSROOM_POSTS].create_index([('author_id', ASCENDING)])
     db[CLASSROOM_POSTS].create_index([('post_type', ASCENDING)])
     db[CLASSROOM_POSTS].create_index([('is_pinned', DESCENDING), ('created_at', DESCENDING)])
-    print(f"✓ {CLASSROOM_POSTS} collection initialized")
+    print(f"[OK] {CLASSROOM_POSTS} collection initialized")
 
     # Classroom Comments collection
     db[CLASSROOM_COMMENTS].create_index([('post_id', ASCENDING), ('created_at', ASCENDING)])
     db[CLASSROOM_COMMENTS].create_index([('author_id', ASCENDING)])
-    print(f"✓ {CLASSROOM_COMMENTS} collection initialized")
+    print(f"[OK] {CLASSROOM_COMMENTS} collection initialized")
 
     # Classroom Submissions collection
     db[CLASSROOM_SUBMISSIONS].create_index([
@@ -281,15 +281,15 @@ def init_db(app=None):
     ], unique=True)
     db[CLASSROOM_SUBMISSIONS].create_index([('student_id', ASCENDING), ('status', ASCENDING)])
     db[CLASSROOM_SUBMISSIONS].create_index([('assignment_id', ASCENDING), ('status', ASCENDING)])
-    print(f"✓ {CLASSROOM_SUBMISSIONS} collection initialized")
+    print(f"[OK] {CLASSROOM_SUBMISSIONS} collection initialized")
 
     # Classroom Notifications collection
     db[CLASSROOM_NOTIFICATIONS].create_index([('user_id', ASCENDING), ('is_read', ASCENDING), ('created_at', DESCENDING)])
     db[CLASSROOM_NOTIFICATIONS].create_index([('classroom_id', ASCENDING)])
-    print(f"✓ {CLASSROOM_NOTIFICATIONS} collection initialized")
+    print(f"[OK] {CLASSROOM_NOTIFICATIONS} collection initialized")
 
     print("="*60)
-    print("✓ All MongoDB collections and indexes created successfully")
+    print("[OK] All MongoDB collections and indexes created successfully")
     print("="*60 + "\n")
 
 # ============================================================================
@@ -513,7 +513,7 @@ def seed_sample_data():
     
     try:
         db[CONCEPTS].insert_many(concepts)
-        print(f"✓ Inserted {len(concepts)} sample concepts")
+        print(f"[OK] Inserted {len(concepts)} sample concepts")
     except Exception as e:
         print(f"Note: Sample concepts may already exist")
     

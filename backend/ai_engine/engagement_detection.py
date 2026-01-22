@@ -49,20 +49,20 @@ class ImplicitSignals:
     time_on_task: float  # Minutes spent on learning activities
     interaction_count: int  # Clicks, responses, resource access
     response_times: List[float]  # Average time per question
-    task_completion_rate: float  # 0.0 to 1.0
-    reattempt_rate: float  # Proportion of exercises reattempted
-    optional_resource_usage: int  # Count of optional materials accessed
-    discussion_participation: int  # Forum posts, peer reviews
+    task_completion_rate: float = 0.5
+    reattempt_rate: float = 0.0
+    optional_resource_usage: int = 0
+    discussion_participation: int = 0
 
 @dataclass
 class ExplicitSignals:
     """
     BR4: Explicit Engagement Indicators (from polls, self-reports)
     """
-    poll_responses: int  # Number of polls responded to
-    understanding_level: float  # Average self-reported understanding (1-5)
-    participation_rate: float  # Percentage of activities completed
-    quiz_accuracy: float  # 0.0 to 1.0
+    poll_responses: int = 0
+    understanding_level: float = 3.0
+    participation_rate: float = 0.5
+    quiz_accuracy: float = 0.5
 
 class EngagementDetectionEngine:
     """

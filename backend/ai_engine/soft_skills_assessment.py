@@ -443,7 +443,11 @@ class SoftSkillsEngine:
             return {
                 'trend': 'insufficient_data',
                 'improvement_rate': 0.0,
-                'trajectory': 'unknown'
+                'percent_change': 0.0,
+                'trajectory': 'unknown',
+                'dimension_trends': {},
+                'assessment_count': len(historical_assessments),
+                'time_span_days': 0
             }
         
         # Sort by timestamp
