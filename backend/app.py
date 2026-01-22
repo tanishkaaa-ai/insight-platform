@@ -6,7 +6,7 @@ Location: backend/app.py
 """
 
 # Graceful degradation - Library now installed
-import sklearn
+# import sklearn  # Temporarily commented out for testing
 
 from flask import Flask, jsonify
 from flask_cors import CORS
