@@ -78,20 +78,28 @@ export const softSkillsAPI = {
 };
 
 export const templatesAPI = {
-  searchTemplates: (params) => api.get('/templates/templates/search', { params }), // Mapping says /api/templates/templates/search
+  searchTemplates: (params) => api.get('/templates/templates/search', { params }),
   createTemplate: (data) => api.post('/templates/templates', data),
-};
-
-export const analyticsAPI = {
-  getUnifiedMetrics: (date) => api.get('/analytics/unified', { params: { date } }),
-  trackIntervention: (data) => api.post('/analytics/interventions/track', data),
+  getTemplate: (templateId) => api.get(`/templates/templates/${templateId}`),
+  rateTemplate: (templateId, data) => api.post(`/templates/templates/${templateId}/rate`, data),
+  getPopular: (limit) => api.get('/templates/templates/popular', { params: { limit } }),
 };
 
 export const dashboardAPI = {
   getClassEngagement: (classId) => api.get(`/dashboard/class-engagement/${classId}`),
   getAttentionMap: (classId) => api.get(`/dashboard/attention-map/${classId}`),
   getMasteryHeatmap: (classId) => api.get(`/dashboard/mastery-heatmap/${classId}`),
-  getEngagementTrends: (classId) => api.get(`/dashboard/engagement-trends/${classId}`),
+  getEngagementTrends: (classId, days) => api.get(`/dashboard/engagement-trends/${classId}`, { params: { days } }),
+  createIntervention: (data) => api.post('/dashboard/interventions', data),
+  updateInterventionOutcome: (interventionId, data) => api.put(`/dashboard/interventions/${interventionId}/outcome`, data),
+  getStudentInterventions: (studentId) => api.get(`/dashboard/interventions/student/${studentId}`),
+  trackIntervention: (data) => api.post('/dashboard/interventions/track', data),
+  measureIntervention: (interventionId) => api.post(`/dashboard/interventions/${interventionId}/measure`),
+  getTeacherInterventions: (teacherId) => api.get(`/dashboard/interventions/teacher/${teacherId}`),
+  getInterventionRecommendations: (teacherId) => api.get(`/dashboard/interventions/recommendations/${teacherId}`),
+  getInstitutionalMetrics: () => api.get('/dashboard/institutional-metrics'),
+  getUnifiedMetrics: (date) => api.get('/dashboard/unified', { params: { date } }),
+  getUnifiedTrends: (days) => api.get('/dashboard/unified/trends', { params: { days } }),
 };
 
 export default api;
