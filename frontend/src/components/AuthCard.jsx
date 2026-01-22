@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const AuthCard = ({ isRegister = false }) => {
   const navigate = useNavigate();
+  const { login, register: registerUser, user } = useAuth();
   const [isLogin, setIsLogin] = useState(!isRegister);
   const [loginData, setLoginData] = useState({
     email: '',
@@ -135,25 +137,20 @@ const AuthCard = ({ isRegister = false }) => {
     setLoading(true);
     setApiError('');
 
-    try {
-      const response = await authAPI.login(loginData);
-      
-      // Store token in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+    const result = await login(loginData);
+    
+    if (result.success) {
       // Navigate based on user role
-      if (response.data.user.role === 'teacher') {
-        navigate('/dashboard');
+      if (user?.role === 'teacher') {
+        navigate('/teacher');
       } else {
-        navigate('/'); // Default to home for students
+        navigate('/student');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setApiError(error.response?.data?.error || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
+    } else {
+      setApiError(result.error || 'Login failed. Please try again.');
     }
+    
+    setLoading(false);
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -166,46 +163,41 @@ const AuthCard = ({ isRegister = false }) => {
     setLoading(true);
     setApiError('');
 
-    try {
-      // Prepare the payload - only send the required fields based on role
-      const payload = {
-        email: registerData.email,
-        username: registerData.username,
-        password: registerData.password,
-        role: registerData.role,
-        first_name: registerData.first_name,
-        last_name: registerData.last_name,
-      };
+    // Prepare the payload - only send the required fields based on role
+    const payload = {
+      email: registerData.email,
+      username: registerData.username,
+      password: registerData.password,
+      role: registerData.role,
+      first_name: registerData.first_name,
+      last_name: registerData.last_name,
+    };
 
-      // Add role-specific fields
-      if (registerData.role === 'student') {
-        payload.grade_level = parseInt(registerData.grade_level);
-        if (registerData.section) payload.section = registerData.section;
-        if (registerData.learning_style) payload.learning_style = registerData.learning_style;
-      } else if (registerData.role === 'teacher') {
-        if (registerData.subject_area) payload.subject_area = registerData.subject_area;
-        if (registerData.department) payload.department = registerData.department;
-        if (registerData.years_experience) payload.years_experience = parseInt(registerData.years_experience);
-      }
-
-      const response = await authAPI.register(payload);
-      
-      // Store token in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // Navigate based on user role
-      if (response.data.user.role === 'teacher') {
-        navigate('/dashboard');
-      } else {
-        navigate('/'); // Default to home for students
-      }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setApiError(error.response?.data?.error || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
+    // Add role-specific fields
+    if (registerData.role === 'student') {
+      payload.grade_level = parseInt(registerData.grade_level);
+      if (registerData.section) payload.section = registerData.section;
+      if (registerData.learning_style) payload.learning_style = registerData.learning_style;
+    } else if (registerData.role === 'teacher') {
+      if (registerData.subject_area) payload.subject_area = registerData.subject_area;
+      if (registerData.department) payload.department = registerData.department;
+      if (registerData.years_experience) payload.years_experience = parseInt(registerData.years_experience);
     }
+
+    const result = await registerUser(payload);
+    
+    if (result.success) {
+      // Navigate based on user role
+      if (user?.role === 'teacher') {
+        navigate('/teacher');
+      } else {
+        navigate('/student');
+      }
+    } else {
+      setApiError(result.error || 'Registration failed. Please try again.');
+    }
+    
+    setLoading(false);
   };
 
   return (

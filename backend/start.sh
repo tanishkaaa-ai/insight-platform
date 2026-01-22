@@ -24,4 +24,4 @@ fi
 echo "Background services started. Starting Flask app..."
 
 # Start Flask app (this runs in foreground)
-python api.py
+python app.py

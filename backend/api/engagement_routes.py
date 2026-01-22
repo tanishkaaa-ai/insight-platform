@@ -424,30 +424,6 @@ def get_poll_results(poll_id):
         }), 500
 
 
-@engagement_bp.route('/polls/<poll_id>/close', methods=['POST'])
-def close_poll(poll_id):
-    """
-    BR4: Close an active poll
-    """
-    try:
-        update_one(
-            LIVE_POLLS,
-            {'_id': poll_id},
-            {
-                '$set': {
-                    'is_active': False,
-                    'closed_at': datetime.utcnow()
-                }
-            }
-        )
-        
-        return jsonify({'message': 'Poll closed successfully'}), 200
-        
-    except Exception as e:
-        return jsonify({
-            'error': 'Internal server error',
-            'detail': str(e)
-        }), 500
 
 
 @engagement_bp.route('/alerts', methods=['GET'])

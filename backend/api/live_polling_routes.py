@@ -294,39 +294,6 @@ def respond_to_poll(poll_id):
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
-@live_polling_bp.route('/polls/<poll_id>/close', methods=['POST'])
-def close_poll(poll_id):
-    """
-    Teacher closes a poll
-
-    BR6: Instant feedback - teacher can review results immediately
-    """
-    try:
-        logger.info(f"Close poll request | poll_id: {poll_id}")
-
-        result = update_one(
-            LIVE_POLLS,
-            {'_id': poll_id},
-            {'$set': {'is_active': False, 'closed_at': datetime.utcnow()}}
-        )
-
-        if result:
-            # Get final results
-            poll = find_one(LIVE_POLLS, {'_id': poll_id})
-            if poll and poll.get('classroom_id'):
-                broadcast_poll_update(poll_id, poll['classroom_id'], {
-                    'event': 'poll_closed',
-                    'message': 'Poll has been closed by the teacher'
-                })
-
-            logger.info(f"Poll closed | poll_id: {poll_id}")
-            return jsonify({'message': 'Poll closed successfully'}), 200
-        else:
-            return jsonify({'error': 'Poll not found'}), 404
-
-    except Exception as e:
-        logger.info(f"Close poll exception | error: {str(e)}")
-        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
 @live_polling_bp.route('/polls/<poll_id>/results', methods=['GET'])

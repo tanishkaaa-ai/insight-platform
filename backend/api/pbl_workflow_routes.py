@@ -547,36 +547,6 @@ def create_milestone(project_id):
         }), 500
 
 
-@pbl_workflow_bp.route('/milestones/<milestone_id>/complete', methods=['PUT'])
-def complete_milestone(milestone_id):
-    """
-    Mark milestone as completed
-
-    PUT /api/pbl-workflow/milestones/{milestone_id}/complete
-    """
-    try:
-        update_data = {
-            'completed': True,
-            'completed_at': datetime.utcnow()
-        }
-
-        result = update_one(PROJECT_MILESTONES, {'_id': milestone_id}, {'$set': update_data})
-
-        if result == 0:
-            return jsonify({'error': 'Milestone not found'}), 404
-
-        logger.info(f"Milestone completed | milestone_id: {milestone_id}")
-
-        return jsonify({'message': 'Milestone marked as completed'}), 200
-
-    except Exception as e:
-        logger.error(f"Error completing milestone | milestone_id: {milestone_id} | error: {str(e)}")
-        return jsonify({
-            'error': 'Internal server error',
-            'detail': str(e)
-        }), 500
-
-
 @pbl_workflow_bp.route('/teams/<team_id>/tasks', methods=['POST'])
 def create_task(team_id):
     """
@@ -617,48 +587,6 @@ def create_task(team_id):
 
     except Exception as e:
         logger.error(f"Error creating task | team_id: {team_id} | error: {str(e)}")
-        return jsonify({
-            'error': 'Internal server error',
-            'detail': str(e)
-        }), 500
-
-
-@pbl_workflow_bp.route('/tasks/<task_id>/status', methods=['PUT'])
-def update_task_status(task_id):
-    """
-    Update task status
-
-    PUT /api/pbl-workflow/tasks/{task_id}/status
-    """
-    try:
-        data = request.json
-
-        if 'status' not in data:
-            return jsonify({'error': 'Missing required field: status'}), 400
-
-        valid_statuses = ['todo', 'in_progress', 'completed']
-        if data['status'] not in valid_statuses:
-            return jsonify({'error': f'Invalid status. Must be one of: {valid_statuses}'}), 400
-
-        update_data = {
-            'status': data['status'],
-            'updated_at': datetime.utcnow()
-        }
-
-        if data['status'] == 'completed':
-            update_data['completed_at'] = datetime.utcnow()
-
-        result = update_one(PROJECT_TASKS, {'_id': task_id}, {'$set': update_data})
-
-        if result == 0:
-            return jsonify({'error': 'Task not found'}), 404
-
-        logger.info(f"Task status updated | task_id: {task_id} | new_status: {data['status']}")
-
-        return jsonify({'message': 'Task status updated successfully'}), 200
-
-    except Exception as e:
-        logger.error(f"Error updating task status | task_id: {task_id} | error: {str(e)}")
         return jsonify({
             'error': 'Internal server error',
             'detail': str(e)
@@ -1154,6 +1082,13 @@ def update_task(task_id):
             update_data['due_date'] = datetime.fromisoformat(data['due_date'])
         if 'priority' in data:
             update_data['priority'] = data['priority']
+        if 'status' in data:
+            valid_statuses = ['todo', 'in_progress', 'completed']
+            if data['status'] not in valid_statuses:
+                return jsonify({'error': f'Invalid status. Must be one of: {valid_statuses}'}), 400
+            update_data['status'] = data['status']
+            if data['status'] == 'completed':
+                update_data['completed_at'] = datetime.utcnow()
 
         if update_data:
             update_data['updated_at'] = datetime.utcnow()

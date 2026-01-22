@@ -1,20 +1,115 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { Target, Lock, CheckCircle, Play, BrainCircuit } from 'lucide-react';
+import { Target, Lock, CheckCircle, Play, BrainCircuit, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Mock Mastery Data
-const masteryNodes = [
-    { id: 1, title: 'Intro to Forensics', status: 'mastered', score: 95, x: 10, y: 10 },
-    { id: 2, title: 'Crime Scene Basics', status: 'mastered', score: 88, x: 40, y: 20 },
-    { id: 3, title: 'Evidence Collection', status: 'in_progress', score: 65, x: 20, y: 50 },
-    { id: 4, title: 'Fingerprint Analysis', status: 'in_progress', score: 45, x: 60, y: 40 },
-    { id: 5, title: 'DNA Profiling', status: 'locked', score: 0, x: 80, y: 60 },
-    { id: 6, title: 'Digital Forensics', status: 'locked', score: 0, x: 50, y: 80 },
-];
+import { masteryAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const StudentPractice = () => {
+    const { getUserId } = useAuth();
     const [selectedNode, setSelectedNode] = useState(null);
+    const [masteryNodes, setMasteryNodes] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const STUDENT_ID = getUserId();
+
+    // Fixed positions for graph visualization (since backend doesn't store coordinates yet)
+    // We'll deterministically map concepts to these slots
+    const GRAPH_SLOTS = [
+        { x: 10, y: 10 }, { x: 40, y: 20 }, { x: 20, y: 50 },
+        { x: 60, y: 40 }, { x: 80, y: 60 }, { x: 50, y: 80 },
+        { x: 30, y: 80 }, { x: 70, y: 20 }, { x: 90, y: 40 }
+    ];
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [masteryRes, recsRes] = await Promise.all([
+                    masteryAPI.getStudentMastery(STUDENT_ID),
+                    masteryAPI.getRecommendations(STUDENT_ID)
+                ]);
+
+                // Transform Mastery Data to Nodes
+                const concepts = masteryRes.data.concepts || [];
+                const nodes = concepts.map((concept, index) => {
+                    const slot = GRAPH_SLOTS[index % GRAPH_SLOTS.length];
+                    let status = 'locked';
+                    if (concept.mastery_score >= 85) status = 'mastered';
+                    else if (concept.mastery_score > 0) status = 'in_progress';
+                    // Simple logic: unlock if previous concept has score > 50 (chained)
+                    // Or if it has any score. For now, assuming if it's in the list it's unlocked or in progress.
+                    // The backend returns only concepts with some interaction usually, or all if initialized.
+                    // Let's assume if score > 0 it's unlocked.
+                    if (concept.mastery_score === 0) status = 'locked';
+                    // To make it look better for demo, let's unlock "next" empty ones if we have few
+                    if (concept.mastery_score === 0 && index === 0) status = 'in_progress'; // Always unlock first
+
+                    return {
+                        id: concept.concept_id,
+                        title: concept.concept_name,
+                        status: status,
+                        score: Math.round(concept.mastery_score),
+                        x: slot.x,
+                        y: slot.y,
+                        // Add some randomness to bubbles so they don't look too rigid
+                        x: slot.x + (Math.random() * 5 - 2.5),
+                        y: slot.y + (Math.random() * 5 - 2.5)
+                    };
+                });
+
+                // If no data, keep some mock nodes or show empty state?
+                // For demo, if empty, we might want to seed some data or handle it.
+                // But the user wants "Real API". If API returns empty, UI should reflect that.
+
+                setMasteryNodes(nodes);
+                setRecommendations(recsRes.data.recommendations || []);
+
+            } catch (err) {
+                console.error("Error loading practice data:", err);
+                setError("Failed to load your mastery path.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (STUDENT_ID) {
+            fetchData();
+        } else {
+            setLoading(false);
+            setError("Please log in to view your practice zone.");
+        }
+    }, [STUDENT_ID]);
+
+    const handleStartPractice = () => {
+        alert("Generating personalized practice session... (Feature linking to /api/mastery/practice/generate coming soon)");
+    };
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
+                    <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
+                    <p className="text-gray-500 font-medium">Loading knowledge map...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center">
+                    <div className="bg-red-100 p-4 rounded-full text-red-500 mb-4">
+                        <AlertCircle size={32} />
+                    </div>
+                    <p className="text-gray-500">{error}</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -28,10 +123,12 @@ const StudentPractice = () => {
                         </h1>
                         <p className="text-gray-500 mt-1">Master concepts to unlock new levels and earn XP!</p>
                     </div>
-                    <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-2">
-                        <BrainCircuit className="text-purple-500" size={20} />
-                        <span className="font-bold text-gray-700">Adaptive AI Active</span>
-                    </div>
+                    {recommendations.length > 0 && (
+                        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg border border-purple-400 flex items-center gap-2 animate-pulse">
+                            <BrainCircuit size={20} />
+                            <span className="font-bold text-sm">Recommended: {recommendations[0].concept_name}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Area: Map & Details */}
@@ -40,7 +137,7 @@ const StudentPractice = () => {
                     {/* Concept Map Visualizer (Left 2/3) */}
                     <div className="col-span-2 bg-slate-50 relative p-8 overflow-auto flex items-center justify-center">
 
-                        {/* Connection Lines (Simulated SVG) */}
+                        {/* Connection Lines (Decoration) */}
                         <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20">
                             <path d="M100 100 L 300 200 L 150 400" stroke="#cbd5e1" strokeWidth="4" fill="none" />
                             <path d="M300 200 L 500 350 L 700 500" stroke="#cbd5e1" strokeWidth="4" fill="none" />
@@ -48,27 +145,34 @@ const StudentPractice = () => {
 
                         {/* Nodes */}
                         <div className="relative w-full h-full max-w-2xl max-h-2xl">
-                            {masteryNodes.map((node) => (
-                                <motion.button
-                                    key={node.id}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => setSelectedNode(node)}
-                                    className={`absolute w-32 p-3 rounded-xl shadow-lg border-2 flex flex-col items-center justify-center gap-2 transition-all z-10
-                     ${node.status === 'mastered' ? 'bg-green-50 border-green-500 text-green-700' :
-                                            node.status === 'in_progress' ? 'bg-yellow-50 border-yellow-500 text-yellow-700' :
-                                                'bg-gray-100 border-gray-300 text-gray-400 grayscale'}
-                     ${selectedNode?.id === node.id ? 'ring-4 ring-offset-2 ring-blue-200' : ''}
-                   `}
-                                    style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                                >
-                                    {node.status === 'locked' ? <Lock size={20} /> :
-                                        node.status === 'mastered' ? <CheckCircle size={20} /> :
-                                            <Target size={20} />}
-                                    <span className="font-bold text-xs text-center leading-tight">{node.title}</span>
-                                    {node.status !== 'locked' && <span className="text-xs font-mono bg-white/50 px-1 rounded">{node.score}%</span>}
-                                </motion.button>
-                            ))}
+                            {masteryNodes.length === 0 ? (
+                                <div className="absolute inset-0 flex items-center justify-center text-gray-400 flex-col">
+                                    <Target size={48} className="mb-4 opacity-20" />
+                                    <p>No mastery data yet. Complete assignments to see your progress!</p>
+                                </div>
+                            ) : (
+                                masteryNodes.map((node) => (
+                                    <motion.button
+                                        key={node.id}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => setSelectedNode(node)}
+                                        className={`absolute w-32 p-3 rounded-xl shadow-lg border-2 flex flex-col items-center justify-center gap-2 transition-all z-10
+                         ${node.status === 'mastered' ? 'bg-green-50 border-green-500 text-green-700' :
+                                                node.status === 'in_progress' ? 'bg-yellow-50 border-yellow-500 text-yellow-700' :
+                                                    'bg-gray-100 border-gray-300 text-gray-400 grayscale'}
+                         ${selectedNode?.id === node.id ? 'ring-4 ring-offset-2 ring-blue-200' : ''}
+                       `}
+                                        style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                                    >
+                                        {node.status === 'locked' ? <Lock size={20} /> :
+                                            node.status === 'mastered' ? <CheckCircle size={20} /> :
+                                                <Target size={20} />}
+                                        <span className="font-bold text-xs text-center leading-tight">{node.title}</span>
+                                        {node.status !== 'locked' && <span className="text-xs font-mono bg-white/50 px-1 rounded">{node.score}%</span>}
+                                    </motion.button>
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -98,7 +202,7 @@ const StudentPractice = () => {
 
                                 {selectedNode.status === 'locked' ? (
                                     <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium">
-                                        This module is currently locked. Complete "Evidence Collection" to unlock.
+                                        This module is currently locked. Complete prerequisites to unlock.
                                     </div>
                                 ) : (
                                     <>
@@ -113,7 +217,10 @@ const StudentPractice = () => {
                                             </div>
                                         </div>
 
-                                        <button className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transform transition-all flex items-center justify-center gap-2">
+                                        <button
+                                            onClick={handleStartPractice}
+                                            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transform transition-all flex items-center justify-center gap-2"
+                                        >
                                             <Play size={20} fill="currentColor" />
                                             Start Practice Session
                                         </button>

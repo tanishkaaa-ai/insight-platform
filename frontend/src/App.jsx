@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { socket } from './services/api';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Import components
 import TeacherDashboard from './pages/TeacherDashboard';
@@ -16,6 +17,7 @@ import StudentClasses from './pages/StudentClasses';
 import StudentPractice from './pages/StudentPractice';
 import StudentProjects from './pages/StudentProjects';
 import StudentPolls from './pages/StudentPolls';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function MainLayout({ isConnected }) {
   const location = useLocation();
@@ -47,24 +49,24 @@ function MainLayout({ isConnected }) {
         <Route path="/" element={<StartPage />} />
 
         {/* Teacher Routes */}
-        <Route path="/teacher" element={<TeacherDashboard />} />
-        <Route path="/teacher/classes" element={<TeacherClasses />} />
-        <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
-        <Route path="/teacher/polls" element={<LivePolling />} /> {/* Aliased for now */}
-        <Route path="/teacher/projects" element={<PBLWorkspace />} /> {/* Aliased for now */}
-        <Route path="/teacher/templates" element={<TemplateLibrary />} /> {/* Aliased for now */}
+        <Route path="/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
+        <Route path="/teacher/classes" element={<ProtectedRoute requiredRole="teacher"><TeacherClasses /></ProtectedRoute>} />
+        <Route path="/teacher/analytics" element={<ProtectedRoute requiredRole="teacher"><TeacherAnalytics /></ProtectedRoute>} />
+        <Route path="/teacher/polls" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
+        <Route path="/teacher/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
+        <Route path="/teacher/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
 
-        <Route path="/polling" element={<LivePolling />} />
-        <Route path="/projects" element={<PBLWorkspace />} />
-        <Route path="/soft-skills" element={<SoftSkillsRubric />} />
-        <Route path="/templates" element={<TemplateLibrary />} />
+        <Route path="/polling" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
+        <Route path="/soft-skills" element={<ProtectedRoute requiredRole="teacher"><SoftSkillsRubric /></ProtectedRoute>} />
+        <Route path="/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
 
         {/* Student Portal Routes */}
-        <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/student/classes" element={<StudentClasses />} />
-        <Route path="/student/practice" element={<StudentPractice />} />
-        <Route path="/student/projects" element={<StudentProjects />} />
-        <Route path="/student/polls" element={<StudentPolls />} />
+        <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/student/classes" element={<ProtectedRoute requiredRole="student"><StudentClasses /></ProtectedRoute>} />
+        <Route path="/student/practice" element={<ProtectedRoute requiredRole="student"><StudentPractice /></ProtectedRoute>} />
+        <Route path="/student/projects" element={<ProtectedRoute requiredRole="student"><StudentProjects /></ProtectedRoute>} />
+        <Route path="/student/polls" element={<ProtectedRoute requiredRole="student"><StudentPolls /></ProtectedRoute>} />
       </Routes>
     </>
   );
@@ -92,9 +94,11 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <MainLayout isConnected={isConnected} />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <MainLayout isConnected={isConnected} />
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -68,6 +68,10 @@ def update_milestone(milestone_id):
             update_data['description'] = data['description']
         if 'due_date' in data:
             update_data['due_date'] = datetime.fromisoformat(data['due_date'])
+        if 'is_completed' in data:
+            update_data['is_completed'] = data['is_completed']
+            if data['is_completed']:
+                update_data['completed_at'] = datetime.utcnow()
 
         if update_data:
             update_one(PROJECT_MILESTONES, {'_id': milestone_id}, {'$set': update_data})

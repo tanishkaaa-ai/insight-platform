@@ -689,50 +689,6 @@ def create_intervention():
         }), 500
 
 
-@dashboard_bp.route('/interventions/<intervention_id>/outcome', methods=['PUT'])
-def update_intervention_outcome(intervention_id):
-    """
-    BR6: Update intervention outcome after follow-up
-
-    PUT /api/dashboard/interventions/{intervention_id}/outcome
-    """
-    try:
-        data = request.json
-
-        if 'outcome' not in data:
-            return jsonify({'error': 'Missing required field: outcome'}), 400
-
-        update_data = {
-            'outcome': data['outcome'],  # improved, no_change, declined
-            'outcome_notes': data.get('outcome_notes', ''),
-            'completed_at': datetime.utcnow(),
-            'status': 'completed'
-        }
-
-        result = update_one(
-            TEACHER_INTERVENTIONS,
-            {'_id': intervention_id},
-            {'$set': update_data}
-        )
-
-        if result == 0:
-            return jsonify({'error': 'Intervention not found'}), 404
-
-        logger.info(f"Intervention outcome updated | intervention_id: {intervention_id} | outcome: {data['outcome']}")
-
-        return jsonify({
-            'message': 'Intervention outcome updated successfully',
-            'outcome': data['outcome']
-        }), 200
-
-    except Exception as e:
-        logger.error(f"Error updating intervention outcome | intervention_id: {intervention_id} | error: {str(e)}")
-        return jsonify({
-            'error': 'Internal server error',
-            'detail': str(e)
-        }), 500
-
-
 @dashboard_bp.route('/interventions/student/<student_id>', methods=['GET'])
 def get_student_interventions(student_id):
     """

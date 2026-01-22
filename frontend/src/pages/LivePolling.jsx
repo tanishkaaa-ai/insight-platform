@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Users, AlertCircle, Clock, BarChart3, MessageSquare, Zap } from 'lucide-react';
 import { pollsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const LivePollingSystem = () => {
+  const { getUserId, isTeacher } = useAuth();
   const [activePoll, setActivePoll] = useState(null);
   const [pollHistory, setPollHistory] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [teacherId] = useState('teacher_123'); // TODO: Get from Auth Context
+  
+  const teacherId = isTeacher() ? getUserId() : null;
 
   // Stats animation trigger
   const [statsInView, setStatsInView] = useState(false);
@@ -104,6 +107,11 @@ const LivePollingSystem = () => {
   };
 
   const createPoll = async () => {
+    if (!teacherId) {
+      alert("Please log in as a teacher to create polls.");
+      return;
+    }
+    
     try {
       setLoading(true);
       const pollData = {

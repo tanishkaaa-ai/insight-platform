@@ -20,14 +20,21 @@ def update_poll(poll_id):
         if not poll:
             return jsonify({'error': 'Poll not found'}), 404
 
-        if poll.get('is_active'):
-            return jsonify({'error': 'Cannot update active poll. Close it first.'}), 400
-
         update_data = {}
         if 'question' in data:
+            if poll.get('is_active'):
+                return jsonify({'error': 'Cannot update question on active poll. Close it first.'}), 400
             update_data['question'] = data['question']
         if 'options' in data:
+            if poll.get('is_active'):
+                return jsonify({'error': 'Cannot update options on active poll. Close it first.'}), 400
             update_data['options'] = data['options']
+        if 'is_active' in data:
+            update_data['is_active'] = data['is_active']
+            if data['is_active']:
+                update_data['reopened_at'] = datetime.utcnow()
+            else:
+                update_data['closed_at'] = datetime.utcnow()
 
         if update_data:
             update_one(POLLS, {'_id': poll_id}, {'$set': update_data})
@@ -50,17 +57,6 @@ def delete_poll(poll_id):
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
-@poll_template_crud_bp.route('/polls/<poll_id>/reopen', methods=['POST'])
-def reopen_poll(poll_id):
-    try:
-        poll = find_one(POLLS, {'_id': poll_id})
-        if not poll:
-            return jsonify({'error': 'Poll not found'}), 404
-
-        update_one(POLLS, {'_id': poll_id}, {'$set': {'is_active': True, 'reopened_at': datetime.utcnow()}})
-        return jsonify({'message': 'Poll reopened successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 @poll_template_crud_bp.route('/polls/<poll_id>/responses/<student_id>', methods=['GET'])
 def get_student_poll_response(poll_id, student_id):
@@ -234,6 +230,13 @@ def update_intervention(intervention_id):
             update_data['intervention_type'] = data['intervention_type']
         if 'status' in data:
             update_data['status'] = data['status']
+        if 'outcome' in data:
+            update_data['outcome'] = data['outcome']
+            update_data['completed_at'] = datetime.utcnow()
+            if 'status' not in data:
+                update_data['status'] = 'completed'
+        if 'outcome_notes' in data:
+            update_data['outcome_notes'] = data['outcome_notes']
 
         if update_data:
             update_one('interventions', {'_id': intervention_id}, {'$set': update_data})
@@ -281,30 +284,29 @@ def create_notification():
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
-@poll_template_crud_bp.route('/notifications/<notification_id>', methods=['DELETE'])
-def delete_notification(notification_id):
+@poll_template_crud_bp.route('/notifications', methods=['DELETE'])
+def delete_notifications():
     try:
-        notification = find_one('classroom_notifications', {'_id': notification_id})
-        if not notification:
-            return jsonify({'error': 'Notification not found'}), 404
+        notification_id = request.args.get('notification_id')
+        user_id = request.args.get('user_id')
+        older_than_days = request.args.get('older_than_days')
 
-        delete_one('classroom_notifications', {'_id': notification_id})
-        return jsonify({'message': 'Notification deleted successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+        if notification_id:
+            notification = find_one('classroom_notifications', {'_id': notification_id})
+            if not notification:
+                return jsonify({'error': 'Notification not found'}), 404
+            delete_one('classroom_notifications', {'_id': notification_id})
+            return jsonify({'message': 'Notification deleted successfully'}), 200
 
-@poll_template_crud_bp.route('/notifications/user/<user_id>', methods=['DELETE'])
-def delete_old_notifications(user_id):
-    try:
-        older_than_days = int(request.args.get('older_than_days', 30))
-        cutoff_date = datetime.utcnow() - timedelta(days=older_than_days)
+        if user_id and older_than_days:
+            cutoff_date = datetime.utcnow() - timedelta(days=int(older_than_days))
+            result = db['classroom_notifications'].delete_many({
+                'user_id': user_id,
+                'created_at': {'$lt': cutoff_date}
+            })
+            return jsonify({'message': f'Deleted {result.deleted_count} notifications', 'deleted_count': result.deleted_count}), 200
 
-        result = db['classroom_notifications'].delete_many({
-            'user_id': user_id,
-            'created_at': {'$lt': cutoff_date}
-        })
-
-        return jsonify({'message': f'Deleted {result.deleted_count} notifications', 'deleted_count': result.deleted_count}), 200
+        return jsonify({'error': 'Either notification_id or (user_id and older_than_days) are required'}), 400
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 

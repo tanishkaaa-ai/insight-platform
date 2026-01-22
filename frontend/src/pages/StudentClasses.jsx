@@ -1,35 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { Book, User, Clock, MessageSquare, FileText, ChevronRight } from 'lucide-react';
+import { Book, User, Clock, MessageSquare, FileText, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Mock Data
-const mockClasses = [
-    { id: 1, name: 'Forensic Science 101', teacher: 'Dr. Watson', time: 'Mon/Wed 10:00 AM', color: 'bg-teal-100 text-teal-700', icon: 'microscope' },
-    { id: 2, name: 'Digital Investigation', teacher: 'Ms. Holmes', time: 'Tue/Thu 2:00 PM', color: 'bg-blue-100 text-blue-700', icon: 'laptop' },
-    { id: 3, name: 'Cyber Ethics', teacher: 'Mr. Poirot', time: 'Fri 11:00 AM', color: 'bg-purple-100 text-purple-700', icon: 'scale' },
-];
-
-const mockStream = [
-    { id: 1, classId: 1, type: 'announcement', author: 'Dr. Watson', content: 'Remember to bring your lab coats for tomorrow\'s crime scene simulation!', date: '2 hours ago', comments: 12 },
-    { id: 2, classId: 1, type: 'assignment', author: 'Dr. Watson', content: 'New Assignment Posted: Case Study #5 - The Silent Witness', date: 'Yesterday', due: 'Friday, 5 PM', comments: 3 },
-    { id: 3, classId: 2, type: 'announcement', author: 'Ms. Holmes', content: 'Guest lecture on digital forensics tools this Thursday.', date: '1 day ago', comments: 5 },
-    { id: 4, classId: 2, type: 'assignment', author: 'Ms. Holmes', content: 'Assignment: Recover deleted files from the provided image.', date: '2 days ago', due: 'Next Monday', comments: 8 },
-    { id: 5, classId: 3, type: 'announcement', author: 'Mr. Poirot', content: 'Review the ethical guidelines for standard procedure.', date: '3 hours ago', comments: 2 },
-];
+import { classroomAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const StudentClasses = () => {
-    const [selectedClass, setSelectedClass] = useState(mockClasses[0]);
+    const { getUserId } = useAuth();
+    const [classes, setClasses] = useState([]);
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [stream, setStream] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [streamLoading, setStreamLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const classStream = mockStream.filter(post => post.classId === selectedClass.id);
+    const STUDENT_ID = getUserId();
 
-    const handleStartAssignment = () => {
-        alert("Assignment submission interface coming soon!");
+    // Fetch classes on mount
+    useEffect(() => {
+        const fetchClasses = async () => {
+            try {
+                setLoading(true);
+                const response = await classroomAPI.getStudentClasses(STUDENT_ID);
+                setClasses(response.data);
+                if (response.data.length > 0) {
+                    setSelectedClass(response.data[0]);
+                }
+            } catch (err) {
+                console.error("Error fetching classes:", err);
+                setError("Failed to load your classes.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (STUDENT_ID) {
+            fetchClasses();
+        } else {
+            setLoading(false);
+            setError("Please log in to view your classes.");
+        }
+    }, [STUDENT_ID]);
+
+    // Fetch stream when selected class changes
+    useEffect(() => {
+        if (!selectedClass) return;
+
+        const fetchStream = async () => {
+            try {
+                setStreamLoading(true);
+                const response = await classroomAPI.getClassStream(selectedClass.classroom_id);
+                setStream(response.data);
+            } catch (err) {
+                console.error("Error fetching stream:", err);
+                // Don't set global error, just maybe show empty stream or toast
+            } finally {
+                setStreamLoading(false);
+            }
+        };
+
+        fetchStream();
+    }, [selectedClass]);
+
+    const handleStartAssignment = (assignmentId) => {
+        // TODO: Navigate to assignment submission page
+        alert(`Starting assignment ${assignmentId}... (Feature coming soon)`);
     };
 
-    const handleViewDetails = () => {
-        alert("Assignment details opening...");
+    const handleViewDetails = (postId) => {
+        alert(`Viewing details for ${postId}...`);
     };
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)]">
+                    <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
+                    <p className="text-gray-500 font-medium">Loading your classes...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center">
+                    <div className="bg-red-100 p-4 rounded-full text-red-500 mb-4">
+                        <AlertCircle size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800">Oops!</h3>
+                    <p className="text-gray-500 mb-6">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -40,116 +111,138 @@ const StudentClasses = () => {
                     <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Book className="text-orange-500" /> My Classes
                     </h2>
-                    {mockClasses.map((cls) => (
-                        <motion.div
-                            key={cls.id}
-                            onClick={() => setSelectedClass(cls)}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-300 ease-out hover:-translate-y-1 ${selectedClass.id === cls.id
-                                ? 'border-orange-400 bg-white shadow-md -rotate-1 ring-2 ring-orange-100 ring-offset-2'
-                                : 'border-transparent bg-white/60 hover:bg-white hover:shadow-sm'
-                                }`}
-                        >
-                            <div className="flex items-start justify-between mb-2">
-                                <div className={`p-2 rounded-lg ${cls.color} font-bold text-xs uppercase tracking-wider`}>
-                                    {cls.name.split(' ')[0]}
+                    {classes.length === 0 ? (
+                        <div className="text-gray-400 italic p-4 border-2 border-dashed border-gray-200 rounded-xl text-center">
+                            You haven't joined any classes yet.
+                        </div>
+                    ) : (
+                        classes.map((cls) => (
+                            <motion.div
+                                key={cls.classroom_id}
+                                onClick={() => setSelectedClass(cls)}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-300 ease-out hover:-translate-y-1 ${selectedClass?.classroom_id === cls.classroom_id
+                                    ? 'border-orange-400 bg-white shadow-md -rotate-1 ring-2 ring-orange-100 ring-offset-2'
+                                    : 'border-transparent bg-white/60 hover:bg-white hover:shadow-sm'
+                                    }`}
+                            >
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className={`p-2 rounded-lg ${cls.theme_color ? '' : 'bg-teal-100 text-teal-700'} font-bold text-xs uppercase tracking-wider`}
+                                        style={cls.theme_color ? { backgroundColor: `${cls.theme_color}20`, color: cls.theme_color } : {}}>
+                                        {cls.class_name.split(' ')[0]}
+                                    </div>
+                                    <ChevronRight className={`transition-transform ${selectedClass?.classroom_id === cls.classroom_id ? 'rotate-90 text-orange-500' : 'text-gray-300'}`} size={20} />
                                 </div>
-                                <ChevronRight className={`transition-transform ${selectedClass.id === cls.id ? 'rotate-90 text-orange-500' : 'text-gray-300'}`} size={20} />
-                            </div>
-                            <h3 className="font-bold text-gray-800 text-lg">{cls.name}</h3>
-                            <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
-                                <span className="flex items-center gap-1"><User size={14} /> {cls.teacher}</span>
-                                <span className="flex items-center gap-1"><Clock size={14} /> {cls.time}</span>
-                            </div>
-                        </motion.div>
-                    ))}
+                                <h3 className="font-bold text-gray-800 text-lg">{cls.class_name}</h3>
+                                <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
+                                    <span className="flex items-center gap-1"><User size={14} /> {cls.teacher_name}</span>
+                                    {/* <span className="flex items-center gap-1"><Clock size={14} /> {cls.time}</span> */}
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
                 </div>
 
                 {/* Class Stream (Main Content) */}
                 <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-orange-100 overflow-hidden flex flex-col">
-                    {/* Header */}
-                    <div className="p-6 bg-gradient-to-r from-slate-50 to-orange-50 border-b border-orange-100">
-                        <h1 className="text-2xl font-extrabold text-gray-800">{selectedClass.name}</h1>
-                        <p className="text-gray-500 flex items-center gap-2 mt-1">
-                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">Active</span>
-                            • Instructor: {selectedClass.teacher}
-                        </p>
-                    </div>
-
-                    {/* Feed */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
-                        {classStream.length > 0 ? (
-                            classStream.map((post) => (
-                                <motion.div
-                                    key={post.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 group hover:border-orange-200 transition-colors"
-                                >
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-                                            {post.author[0]}
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-800 text-sm">{post.author}</p>
-                                            <p className="text-xs text-gray-400">{post.date}</p>
-                                        </div>
-                                        {post.type === 'assignment' && (
-                                            <span className="ml-auto bg-blue-100 text-blue-600 text-xs font-bold px-2 py-1 rounded-lg uppercase">
-                                                Assignment
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
-
-                                    {post.type === 'assignment' && (
-                                        <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-between mb-4">
-                                            <span className="text-sm text-blue-800 font-medium flex items-center gap-2">
-                                                <Clock size={16} /> Due: {post.due}
-                                            </span>
-                                            <button
-                                                onClick={handleStartAssignment}
-                                                className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                Start Now
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center gap-4 pt-3 border-t border-gray-50 text-gray-400 text-sm">
-                                        <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
-                                            <MessageSquare size={16} /> {post.comments} Comments
-                                        </button>
-                                        {post.type === 'assignment' && (
-                                            <button
-                                                onClick={handleViewDetails}
-                                                className="flex items-center gap-1 hover:text-blue-500 transition-colors cursor-pointer"
-                                            >
-                                                <FileText size={16} /> View Details
-                                            </button>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-64 text-center p-8 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
-                                <div className="bg-white p-4 rounded-full shadow-sm mb-4 relative">
-                                    <Book size={32} className="text-gray-300" />
-                                    <div className="absolute -bottom-1 -right-1 bg-green-100 p-1 rounded-full">
-                                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                                    </div>
-                                </div>
-                                <h3 className="font-bold text-gray-800 text-lg">All caught up in {selectedClass.name}!</h3>
-                                <p className="text-gray-500 max-w-xs mt-2">No new assignments or announcements. Enjoy the downtime ☕</p>
+                    {selectedClass ? (
+                        <>
+                            {/* Header */}
+                            <div className="p-6 bg-gradient-to-r from-slate-50 to-orange-50 border-b border-orange-100">
+                                <h1 className="text-2xl font-extrabold text-gray-800">{selectedClass.class_name}</h1>
+                                <p className="text-gray-500 flex items-center gap-2 mt-1">
+                                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold">Active</span>
+                                    • Instructor: {selectedClass.teacher_name}
+                                </p>
                             </div>
-                        )}
 
-                        <div className="text-center py-8 text-gray-400 text-sm">
-                            — You're all caught up! —
+                            {/* Feed */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
+                                {streamLoading ? (
+                                    <div className="flex justify-center p-12">
+                                        <Loader2 className="animate-spin text-orange-400" size={32} />
+                                    </div>
+                                ) : stream.length > 0 ? (
+                                    stream.map((post) => (
+                                        <motion.div
+                                            key={post.post_id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 group hover:border-orange-200 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold uppercase">
+                                                    {post.author.author_name[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-800 text-sm">{post.author.author_name}</p>
+                                                    <p className="text-xs text-gray-400">{new Date(post.created_at).toLocaleDateString()} {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                </div>
+                                                {post.post_type === 'assignment' && (
+                                                    <span className="ml-auto bg-blue-100 text-blue-600 text-xs font-bold px-2 py-1 rounded-lg uppercase">
+                                                        Assignment
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-gray-700 mb-4 leading-relaxed whitespace-pre-wrap">{post.content || post.title}</p>
+                                            {post.content && post.title && post.title !== post.content && <h4 className='font-bold mb-2'>{post.title}</h4>}
+
+
+                                            {post.post_type === 'assignment' && post.assignment_details && (
+                                                <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center justify-between mb-4">
+                                                    <span className="text-sm text-blue-800 font-medium flex items-center gap-2">
+                                                        <Clock size={16} /> Due: {post.assignment_details.due_date ? new Date(post.assignment_details.due_date).toLocaleDateString() : 'No Due Date'}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => handleStartAssignment(post.post_id)}
+                                                        className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        Start Now
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-4 pt-3 border-t border-gray-50 text-gray-400 text-sm">
+                                                <button className="flex items-center gap-1 hover:text-orange-500 transition-colors">
+                                                    <MessageSquare size={16} /> {post.comment_count} Comments
+                                                </button>
+                                                {post.post_type === 'assignment' && (
+                                                    <button
+                                                        onClick={() => handleViewDetails(post.post_id)}
+                                                        className="flex items-center gap-1 hover:text-blue-500 transition-colors cursor-pointer"
+                                                    >
+                                                        <FileText size={16} /> View Details
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-64 text-center p-8 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
+                                        <div className="bg-white p-4 rounded-full shadow-sm mb-4 relative">
+                                            <Book size={32} className="text-gray-300" />
+                                            <div className="absolute -bottom-1 -right-1 bg-green-100 p-1 rounded-full">
+                                                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <h3 className="font-bold text-gray-800 text-lg">All caught up in {selectedClass.class_name}!</h3>
+                                        <p className="text-gray-500 max-w-xs mt-2">No new assignments or announcements. Enjoy the downtime ☕</p>
+                                    </div>
+                                )}
+
+                                <div className="text-center py-8 text-gray-400 text-sm">
+                                    — You're all caught up! —
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400 flex-col">
+                            <Book size={48} className="mb-4 opacity-20" />
+                            <p>Select a class to view its stream</p>
                         </div>
-                    </div>
+                    )}
                 </div>
 
             </div>

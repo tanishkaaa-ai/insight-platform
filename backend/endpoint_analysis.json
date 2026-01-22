@@ -1,0 +1,2294 @@
+{
+  "endpoint_tree": {
+    "/api/pbl/projects/<project_id>/milestones": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/milestones/<milestone_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>/deliverables": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/deliverables/<deliverable_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/deliverables/<deliverable_id>/grade": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/grades": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/peer-reviews/<review_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>": {
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>": {
+      "methods": [
+        "GET",
+        "PUT",
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/tasks/<task_id>": {
+      "methods": [
+        "PUT",
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "pbl_crud_extensions.py",
+          "blueprint": "pbl_crud_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/dashboard/class-engagement/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/attention-map/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/mastery-heatmap/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/engagement-trends/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/<intervention_id>/outcome": {
+      "methods": [
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/student/<student_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/institutional-metrics": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/talk-time/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/track": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/<intervention_id>/measure": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/teacher/<teacher_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/recommendations/<teacher_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/unified": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/dashboard/unified/trends": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "dashboard_routes.py",
+          "blueprint": "dashboard_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/templates/templates": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/templates/search": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/templates/<template_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/templates/<template_id>/rate": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/teachers/<teacher_id>/templates": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/templates/popular": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/templates/templates/seed": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "template_routes.py",
+          "blueprint": "template_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/analyze": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/class/<class_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/student/<student_id>/history": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/polls/create": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/polls/<poll_id>/respond": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/polls/<poll_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/polls/<poll_id>/close": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/alerts": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/alerts/<alert_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/engagement/alerts/<alert_id>/acknowledge": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "engagement_routes.py",
+          "blueprint": "engagement_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/mastery/concepts": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/concepts/<concept_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/items": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/items/<item_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        },
+        {
+          "file": "mastery_concepts_routes.py",
+          "blueprint": "concepts_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/calculate": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/student/<student_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/concept/<concept_id>/class/<class_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/practice/generate": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/response/submit": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/history/<student_id>/<concept_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/mastery/recommendations/<student_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "mastery_routes.py",
+          "blueprint": "mastery_bp",
+          "prefix": "/api/mastery"
+        }
+      ]
+    },
+    "/api/classroom/classrooms": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/students/<student_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/join": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/teacher/<teacher_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/student/<student_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/students": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/leave": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/posts": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/stream": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/posts/<post_id>/comments": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/classrooms/<classroom_id>/assignments": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/assignments/<assignment_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/assignments/<assignment_id>/submit": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/submissions/<submission_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/assignments/<assignment_id>/submissions": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/submissions/<submission_id>/grade": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/students/<student_id>/assignments": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/notifications/<user_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/classroom/notifications/<notification_id>/read": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "classroom_routes.py",
+          "blueprint": "classroom_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/auth/register": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "auth_routes.py",
+          "blueprint": "auth_bp",
+          "prefix": "/api/auth"
+        }
+      ]
+    },
+    "/api/auth/login": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "auth_routes.py",
+          "blueprint": "auth_bp",
+          "prefix": "/api/auth"
+        }
+      ]
+    },
+    "/api/auth/verify": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "auth_routes.py",
+          "blueprint": "auth_bp",
+          "prefix": "/api/auth"
+        }
+      ]
+    },
+    "/api/auth/change-password": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "auth_routes.py",
+          "blueprint": "auth_bp",
+          "prefix": "/api/auth"
+        }
+      ]
+    },
+    "/api/pbl/projects": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>/stage": {
+      "methods": [
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/classroom/<classroom_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>/teams": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/members": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/milestones/<milestone_id>/complete": {
+      "methods": [
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/tasks": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/tasks/<task_id>/status": {
+      "methods": [
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/peer-reviews": {
+      "methods": [
+        "POST",
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        },
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/students/<student_id>/soft-skills": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/soft-skills-summary": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/stages": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/dimensions": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/students/<student_id>/projects": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/students/<student_id>/teams": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>/deliverable": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/projects/<project_id>/grade": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/pbl/teams/<team_id>/members/<student_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "pbl_workflow_routes.py",
+          "blueprint": "pbl_workflow_bp",
+          "prefix": "/api/pbl"
+        }
+      ]
+    },
+    "/api/polling/polls": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>/respond": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>/close": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>/results": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/polling/classrooms/<classroom_id>/polls": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "live_polling_routes.py",
+          "blueprint": "live_polling_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/polls/<poll_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/classroom/polls/<poll_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/polls/<poll_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>/reopen": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/polls/<poll_id>/reopen": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/polls/<poll_id>/reopen": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/polls/<poll_id>/reopen": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/polls/<poll_id>/reopen": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/polls/<poll_id>/responses/<student_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/polls/<poll_id>/responses/<student_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/polls/<poll_id>/responses/<student_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/polls/<poll_id>/responses/<student_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/polls/<poll_id>/responses/<student_id>": {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/templates/<template_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/engagement/templates/<template_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/templates/<template_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/templates/<template_id>": {
+      "methods": [
+        "DELETE",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/templates/<template_id>/use": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/templates/<template_id>/use": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/templates/<template_id>/use": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/templates/<template_id>/use": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/templates/<template_id>/use": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/templates/<template_id>/ratings/<rating_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/templates/<template_id>/ratings/<rating_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/templates/<template_id>/ratings/<rating_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/templates/<template_id>/ratings/<rating_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/templates/<template_id>/ratings/<rating_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/interventions/<intervention_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/interventions/<intervention_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/interventions/<intervention_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/interventions/<intervention_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/interventions/<intervention_id>": {
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        },
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/notifications": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/notifications": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/notifications": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/notifications": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/notifications": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/notifications/<notification_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/notifications/<notification_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/notifications/<notification_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/notifications/<notification_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/notifications/<notification_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/notifications/user/<user_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/notifications/user/<user_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/engagement/notifications/user/<user_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/engagement"
+        }
+      ]
+    },
+    "/api/classroom/notifications/user/<user_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/notifications/user/<user_id>": {
+      "methods": [
+        "DELETE"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/polling/alerts": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/polling"
+        }
+      ]
+    },
+    "/api/templates/alerts": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/templates"
+        }
+      ]
+    },
+    "/api/classroom/alerts": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/classroom"
+        }
+      ]
+    },
+    "/api/dashboard/alerts": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "polling_template_crud.py",
+          "blueprint": "poll_template_crud_bp",
+          "prefix": "/api/dashboard"
+        }
+      ]
+    },
+    "/api/submit_response": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "api.py",
+          "blueprint": "standalone",
+          "prefix": ""
+        }
+      ]
+    },
+    "/api/mastery_status/<student_id>": {
+      "methods": [
+        "GET"
+      ],
+      "sources": [
+        {
+          "file": "api.py",
+          "blueprint": "standalone",
+          "prefix": ""
+        }
+      ]
+    },
+    "/api/engagement_event": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "api.py",
+          "blueprint": "standalone",
+          "prefix": ""
+        }
+      ]
+    },
+    "/api/live_poll_response": {
+      "methods": [
+        "POST"
+      ],
+      "sources": [
+        {
+          "file": "api.py",
+          "blueprint": "standalone",
+          "prefix": ""
+        }
+      ]
+    }
+  },
+  "analysis": {
+    "total_endpoints": 156,
+    "methods_distribution": {
+      "POST": 61,
+      "GET": 73,
+      "DELETE": 43,
+      "PUT": 36
+    },
+    "prefix_distribution": {
+      "/api": 156
+    },
+    "issues": [
+      {
+        "type": "missing_health",
+        "severity": "high",
+        "description": "No health check endpoint - cannot monitor service status"
+      },
+      {
+        "type": "duplicate_paths",
+        "severity": "medium",
+        "description": "Found 40 paths with multiple methods - potential conflicts",
+        "details": {
+          "/api/pbl/projects/<project_id>/milestones": "{'POST', 'GET'}",
+          "/api/pbl/milestones/<milestone_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/pbl/deliverables/<deliverable_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/pbl/deliverables/<deliverable_id>/grade": "{'GET', 'PUT'}",
+          "/api/pbl/peer-reviews/<review_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/pbl/projects/<project_id>": "{'GET', 'DELETE'}",
+          "/api/pbl/teams/<team_id>": "{'DELETE', 'GET', 'PUT'}",
+          "/api/pbl/tasks/<task_id>": "{'DELETE', 'PUT'}",
+          "/api/templates/templates/<template_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/engagement/polls/<poll_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/engagement/alerts": "{'POST', 'GET'}",
+          "/api/engagement/alerts/<alert_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/mastery/concepts": "{'POST', 'GET'}",
+          "/api/mastery/concepts/<concept_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/mastery/items": "{'POST', 'GET'}",
+          "/api/mastery/items/<item_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/classroom/classrooms/<classroom_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/classroom/posts/<post_id>/comments": "{'POST', 'GET'}",
+          "/api/classroom/assignments/<assignment_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/classroom/submissions/<submission_id>": "{'GET', 'PUT'}",
+          "/api/pbl/teams/<team_id>/tasks": "{'POST', 'GET'}",
+          "/api/pbl/teams/<team_id>/peer-reviews": "{'POST', 'GET'}",
+          "/api/polling/polls/<poll_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/templates/polls/<poll_id>": "{'PUT', 'DELETE'}",
+          "/api/classroom/polls/<poll_id>": "{'PUT', 'DELETE'}",
+          "/api/dashboard/polls/<poll_id>": "{'PUT', 'DELETE'}",
+          "/api/polling/polls/<poll_id>/responses/<student_id>": "{'GET', 'PUT'}",
+          "/api/templates/polls/<poll_id>/responses/<student_id>": "{'GET', 'PUT'}",
+          "/api/engagement/polls/<poll_id>/responses/<student_id>": "{'GET', 'PUT'}",
+          "/api/classroom/polls/<poll_id>/responses/<student_id>": "{'GET', 'PUT'}",
+          "/api/dashboard/polls/<poll_id>/responses/<student_id>": "{'GET', 'PUT'}",
+          "/api/polling/templates/<template_id>": "{'PUT', 'DELETE'}",
+          "/api/engagement/templates/<template_id>": "{'PUT', 'DELETE'}",
+          "/api/classroom/templates/<template_id>": "{'PUT', 'DELETE'}",
+          "/api/dashboard/templates/<template_id>": "{'PUT', 'DELETE'}",
+          "/api/polling/interventions/<intervention_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/templates/interventions/<intervention_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/engagement/interventions/<intervention_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/classroom/interventions/<intervention_id>": "{'GET', 'PUT', 'DELETE'}",
+          "/api/dashboard/interventions/<intervention_id>": "{'GET', 'PUT', 'DELETE'}"
+        }
+      },
+      {
+        "type": "incomplete_crud",
+        "severity": "low",
+        "description": "Resource /auth missing CRUD operations: PUT (update), DELETE (delete)"
+      }
+    ]
+  },
+  "metadata": {
+    "total_routes_parsed": 145,
+    "standalone_routes": 4,
+    "blueprint_prefixes": 11
+  }
+}

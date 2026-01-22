@@ -25,4 +25,4 @@ ENV FLASK_DEBUG=false
 EXPOSE 5000
 
 # Default command (can be overridden in docker-compose)
-CMD ["python", "api.py"]
+CMD ["python", "app.py"]

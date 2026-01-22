@@ -11,6 +11,37 @@ const api = axios.create({
   },
 });
 
+// Add auth token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Socket.IO connection
 export const socket = io(API_BASE_URL, {
   autoConnect: false,
@@ -53,6 +84,7 @@ export const engagementAPI = {
   updateAlert: (alertId, data) => api.put(`/engagement/alerts/${alertId}`, data),
   dismissAlert: (alertId) => api.delete(`/engagement/alerts/${alertId}`),
   acknowledgeAlert: (alertId) => api.post(`/engagement/alerts/${alertId}/acknowledge`),
+  getStudentEngagementHistory: (studentId, days) => api.get(`/engagement/student/${studentId}/history`, { params: { days } }),
 };
 
 export const pollsAPI = {
