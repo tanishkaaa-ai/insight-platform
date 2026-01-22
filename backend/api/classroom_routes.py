@@ -510,7 +510,7 @@ def leave_classroom(classroom_id):
 # ============================================================================
 
 @classroom_bp.route('/classrooms/<classroom_id>/posts', methods=['POST'])
-def create_post():
+def create_post(classroom_id):
     """
     Create a new post (announcement, assignment, material, question)
 
@@ -526,7 +526,6 @@ def create_post():
     }
     """
     try:
-        classroom_id = request.view_args['classroom_id']
         data = request.json
         logger.info(f"Create post request | classroom_id: {classroom_id} | type: {data.get('post_type')} | author: {data.get('author_id')}")
 
@@ -661,7 +660,7 @@ def get_classroom_stream(classroom_id):
 
 
 @classroom_bp.route('/posts/<post_id>/comments', methods=['POST'])
-def add_comment():
+def add_comment(post_id):
     """
     Add comment to a post
 
@@ -674,7 +673,6 @@ def add_comment():
     }
     """
     try:
-        post_id = request.view_args['post_id']
         data = request.json
         logger.info(f"Add comment request | post_id: {post_id} | author: {data.get('author_id')}")
 
