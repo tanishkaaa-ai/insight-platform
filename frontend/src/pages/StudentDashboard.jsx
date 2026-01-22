@@ -3,34 +3,155 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import GamificationBadge from '../components/GamificationBadge';
 import ProgressBar from '../components/ProgressBar';
-import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap } from 'lucide-react';
+import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Mock Data (Simulating API response)
-const mockStudentData = {
-    name: 'Alex',
-    level: 5,
-    xp: 2450,
-    nextLevelXp: 3000,
-    streak: 5,
-    masteryScore: 78,
-    pendingAssignments: 3,
-    nextClass: {
-        subject: 'Forensic Science',
-        time: '10:00 AM',
-        topic: 'Crime Scene Analysis'
-    },
-    recentActivity: [
-        { type: 'mastery', title: 'Mastered "DNA Profiling"', date: '2 hours ago', icon: 'medal', color: 'purple' },
-        { type: 'assignment', title: 'Submitted "Case Study #4"', date: 'Yesterday', icon: 'scroll', color: 'blue' },
-        { type: 'badge', title: 'Earned "Fast Learner"', date: '2 days ago', icon: 'flame', color: 'yellow' }
-    ]
-};
+import { masteryAPI, classroomAPI, engagementAPI } from '../services/api';
 
 const StudentDashboard = () => {
-    const [data, setData] = useState(mockStudentData);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [data, setData] = useState({
+        name: 'Alex', // Fallback/Mock for now
+        level: 1,
+        xp: 0,
+        nextLevelXp: 1000,
+        streak: 0,
+        masteryScore: 0,
+        pendingAssignments: 0,
+        nextClass: {
+            subject: 'No Upcoming Classes',
+            time: '--:--',
+            topic: 'Enjoy your break!'
+        },
+        recentActivity: []
+    });
 
-    // In production, fetch this data from /api/mastery/student/:id and /api/classroom/students/:id/assignments
+    const STUDENT_ID = 'student_456'; // TODO: Get from Auth Context
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+
+                // Parallel data fetching
+                const [engagementRes, masteryRes, assignmentsRes, classesRes] = await Promise.allSettled([
+                    engagementAPI.getStudentEngagementHistory(STUDENT_ID, 30),
+                    masteryAPI.getStudentMastery(STUDENT_ID),
+                    classroomAPI.getStudentAssignments(STUDENT_ID, 'assigned'),
+                    classroomAPI.getStudentClasses(STUDENT_ID)
+                ]);
+
+                // Process Engagement Data (XP, Level, Streak)
+                let engagementData = { level: 1, xp: 0, streak: 0, history: [] };
+                if (engagementRes.status === 'fulfilled') {
+                    const history = engagementRes.value.data.history || [];
+                    // Simple gamification logic based on history length/scores (mock logic for demo as backend doesn't return aggregated XP yet)
+                    const totalScore = history.reduce((acc, curr) => acc + (curr.engagement_score || 0), 0);
+                    engagementData = {
+                        level: Math.floor(totalScore / 500) + 1,
+                        xp: totalScore % 1000,
+                        streak: history.length > 5 ? 5 : history.length, // Placeholder streak logic
+                        history: history
+                    };
+                }
+
+                // Process Mastery Data
+                let masteryScore = 0;
+                let recentMasteryActivity = [];
+                if (masteryRes.status === 'fulfilled') {
+                    masteryScore = masteryRes.value.data.overall_mastery || 0;
+                    // Extract recent mastered concepts for activity feed
+                    recentMasteryActivity = (masteryRes.value.data.concepts || [])
+                        .sort((a, b) => new Date(b.last_assessed) - new Date(a.last_assessed))
+                        .slice(0, 2)
+                        .map(c => ({
+                            type: 'mastery',
+                            title: `Mastered "${c.concept_name}"`,
+                            date: new Date(c.last_assessed).toLocaleDateString(),
+                            icon: 'medal',
+                            color: 'purple'
+                        }));
+                }
+
+                // Process Assignments (Pending count & activity)
+                let pendingCount = 0;
+                let recentAssignmentActivity = [];
+                if (assignmentsRes.status === 'fulfilled') {
+                    const assignments = assignmentsRes.value.data || [];
+                    pendingCount = assignments.length;
+
+                    recentAssignmentActivity = assignments.slice(0, 1).map(a => ({
+                        type: 'assignment',
+                        title: `New Assignment: ${a.title}`,
+                        date: new Date(a.created_at).toLocaleDateString(),
+                        icon: 'scroll',
+                        color: 'blue'
+                    }));
+                }
+
+                // Process Next Class (Mock logic: pick first class)
+                let nextClass = { subject: 'No Upcoming Classes', time: '--:--', topic: 'Relax!' };
+                if (classesRes.status === 'fulfilled' && classesRes.value.data.length > 0) {
+                    const firstClass = classesRes.value.data[0];
+                    nextClass = {
+                        subject: firstClass.class_name,
+                        time: '10:00 AM', // Placeholder as API doesn't return schedule yet
+                        topic: firstClass.subject
+                    };
+                }
+
+                setData(prev => ({
+                    ...prev,
+                    level: engagementData.level,
+                    xp: engagementData.xp,
+                    streak: engagementData.streak,
+                    masteryScore: Math.round(masteryScore),
+                    pendingAssignments: pendingCount,
+                    nextClass: nextClass,
+                    recentActivity: [...recentMasteryActivity, ...recentAssignmentActivity]
+                }));
+
+            } catch (err) {
+                console.error("Dashboard fetch error:", err);
+                setError("Failed to load dashboard data. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[60vh]">
+                    <Loader2 className="animate-spin text-orange-500 mb-4" size={48} />
+                    <p className="text-gray-500 font-medium">Loading your adventure...</p>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (error) {
+        return (
+            <DashboardLayout>
+                <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+                    <div className="bg-red-100 p-4 rounded-full text-red-500 mb-4">
+                        <AlertCircle size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800">Connection Error</h3>
+                    <p className="text-gray-500 mb-6 max-w-md">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -144,16 +265,20 @@ const StudentDashboard = () => {
                             <Link to="/student/practice" className="text-orange-500 font-bold text-sm hover:underline">View All</Link>
                         </div>
                         <div className="divide-y divide-gray-50">
-                            {data.recentActivity.map((activity, idx) => (
-                                <div key={idx} className="p-4 hover:bg-orange-50/30 transition-colors flex items-center gap-4">
-                                    <GamificationBadge icon={activity.icon} color={activity.color} label="" />
-                                    <div className="flex-1">
-                                        <p className="font-bold text-gray-800">{activity.title}</p>
-                                        <p className="text-sm text-gray-500">{activity.date}</p>
+                            {data.recentActivity.length > 0 ? (
+                                data.recentActivity.map((activity, idx) => (
+                                    <div key={idx} className="p-4 hover:bg-orange-50/30 transition-colors flex items-center gap-4">
+                                        <GamificationBadge icon={activity.icon} color={activity.color} label="" />
+                                        <div className="flex-1">
+                                            <p className="font-bold text-gray-800">{activity.title}</p>
+                                            <p className="text-sm text-gray-500">{activity.date}</p>
+                                        </div>
+                                        <ChevronRight className="text-gray-300" size={20} />
                                     </div>
-                                    <ChevronRight className="text-gray-300" size={20} />
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <div className="p-8 text-center text-gray-400 italic">No recent activity yet. Go explore!</div>
+                            )}
                         </div>
                     </div>
 
