@@ -108,6 +108,19 @@ CLASSROOM_COMMENTS = 'classroom_comments'
 CLASSROOM_SUBMISSIONS = 'classroom_submissions'
 CLASSROOM_NOTIFICATIONS = 'classroom_notifications'
 
+# PBL Extended Collections
+PROJECT_TASKS = 'project_tasks'
+PROJECT_DELIVERABLES = 'project_deliverables'
+PEER_REVIEWS = 'peer_reviews'
+PROJECT_GRADES = 'project_grades'
+TEAM_ACHIEVEMENTS = 'team_achievements'
+TEAM_PROGRESS = 'team_progress'
+
+# Additional Collections
+INTERVENTIONS = 'interventions'
+TEMPLATE_USAGE = 'template_usage'
+TEMPLATE_RATINGS = 'template_ratings'
+
 # ============================================================================
 # INITIALIZE COLLECTIONS & INDEXES
 # ============================================================================
@@ -287,6 +300,64 @@ def init_db(app=None):
     db[CLASSROOM_NOTIFICATIONS].create_index([('user_id', ASCENDING), ('is_read', ASCENDING), ('created_at', DESCENDING)])
     db[CLASSROOM_NOTIFICATIONS].create_index([('classroom_id', ASCENDING)])
     print(f"[OK] {CLASSROOM_NOTIFICATIONS} collection initialized")
+
+    # PBL Tasks collection
+    db[PROJECT_TASKS].create_index([('team_id', ASCENDING)])
+    db[PROJECT_TASKS].create_index([('assigned_to', ASCENDING)])
+    db[PROJECT_TASKS].create_index([('status', ASCENDING)])
+    db[PROJECT_TASKS].create_index([('due_date', ASCENDING)])
+    print(f"[OK] {PROJECT_TASKS} collection initialized")
+
+    # PBL Deliverables collection
+    db[PROJECT_DELIVERABLES].create_index([('project_id', ASCENDING)])
+    db[PROJECT_DELIVERABLES].create_index([('team_id', ASCENDING)])
+    db[PROJECT_DELIVERABLES].create_index([('submitted_at', DESCENDING)])
+    db[PROJECT_DELIVERABLES].create_index([('graded', ASCENDING)])
+    print(f"[OK] {PROJECT_DELIVERABLES} collection initialized")
+
+    # PBL Peer Reviews collection
+    db[PEER_REVIEWS].create_index([('team_id', ASCENDING)])
+    db[PEER_REVIEWS].create_index([('reviewer_id', ASCENDING)])
+    db[PEER_REVIEWS].create_index([('reviewee_id', ASCENDING)])
+    db[PEER_REVIEWS].create_index([('review_type', ASCENDING)])
+    db[PEER_REVIEWS].create_index([('submitted_at', DESCENDING)])
+    print(f"[OK] {PEER_REVIEWS} collection initialized")
+
+    # PBL Grades collection
+    db[PROJECT_GRADES].create_index([('project_id', ASCENDING)])
+    db[PROJECT_GRADES].create_index([('team_id', ASCENDING)])
+    db[PROJECT_GRADES].create_index([('graded_at', DESCENDING)])
+    print(f"[OK] {PROJECT_GRADES} collection initialized")
+
+    # Team Achievements collection
+    db[TEAM_ACHIEVEMENTS].create_index([('team_id', ASCENDING)])
+    db[TEAM_ACHIEVEMENTS].create_index([('achievement_type', ASCENDING)])
+    db[TEAM_ACHIEVEMENTS].create_index([('earned_at', DESCENDING)])
+    print(f"[OK] {TEAM_ACHIEVEMENTS} collection initialized")
+
+    # Team Progress collection
+    db[TEAM_PROGRESS].create_index([('team_id', ASCENDING)], unique=True)
+    db[TEAM_PROGRESS].create_index([('project_id', ASCENDING)])
+    db[TEAM_PROGRESS].create_index([('current_level', ASCENDING)])
+    print(f"[OK] {TEAM_PROGRESS} collection initialized")
+
+    # Interventions collection
+    db[INTERVENTIONS].create_index([('student_id', ASCENDING)])
+    db[INTERVENTIONS].create_index([('teacher_id', ASCENDING)])
+    db[INTERVENTIONS].create_index([('status', ASCENDING)])
+    db[INTERVENTIONS].create_index([('created_at', DESCENDING)])
+    print(f"[OK] {INTERVENTIONS} collection initialized")
+
+    # Template Usage collection
+    db[TEMPLATE_USAGE].create_index([('template_id', ASCENDING)])
+    db[TEMPLATE_USAGE].create_index([('teacher_id', ASCENDING)])
+    db[TEMPLATE_USAGE].create_index([('used_at', DESCENDING)])
+    print(f"[OK] {TEMPLATE_USAGE} collection initialized")
+
+    # Template Ratings collection
+    db[TEMPLATE_RATINGS].create_index([('template_id', ASCENDING)])
+    db[TEMPLATE_RATINGS].create_index([('user_id', ASCENDING)])
+    print(f"[OK] {TEMPLATE_RATINGS} collection initialized")
 
     print("="*60)
     print("[OK] All MongoDB collections and indexes created successfully")

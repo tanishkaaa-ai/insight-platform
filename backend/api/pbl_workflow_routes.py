@@ -32,6 +32,12 @@ from models.database import (
     STUDENTS,
     TEACHERS,
     CLASSROOMS,
+    PROJECT_TASKS,
+    PROJECT_DELIVERABLES,
+    PEER_REVIEWS,
+    PROJECT_GRADES,
+    TEAM_ACHIEVEMENTS,
+    TEAM_PROGRESS,
     find_one,
     find_many,
     insert_one,
@@ -52,6 +58,20 @@ logger = get_logger(__name__)
 # ============================================================================
 # 5-STAGE PBL WORKFLOW CONSTANTS
 # ============================================================================
+
+ACHIEVEMENT_TYPES = {
+    'MILESTONE_COMPLETED': {'name': 'Milestone Completed', 'xp': 100, 'icon': '🎯'},
+    'FIRST_MILESTONE': {'name': 'Getting Started', 'xp': 50, 'icon': '🚀'},
+    'HALFWAY_POINT': {'name': 'Halfway There', 'xp': 150, 'icon': '⭐'},
+    'ALL_MILESTONES': {'name': 'Milestone Master', 'xp': 300, 'icon': '🏆'},
+    'EARLY_COMPLETION': {'name': 'Speed Demon', 'xp': 200, 'icon': '⚡'},
+    'PERFECT_ATTENDANCE': {'name': 'Team Player', 'xp': 100, 'icon': '🤝'},
+    'QUALITY_WORK': {'name': 'Excellence Award', 'xp': 250, 'icon': '💎'},
+    'STAGE_COMPLETE': {'name': 'Stage Master', 'xp': 150, 'icon': '✨'}
+}
+
+MILESTONE_XP_BASE = 100
+MILESTONE_BONUS_PER_LEVEL = 50
 
 PBL_STAGES = {
     'QUESTIONING': {
@@ -244,7 +264,7 @@ def get_project(project_id):
                     'milestone_id': m['_id'],
                     'title': m.get('title'),
                     'due_date': m.get('due_date').isoformat() if m.get('due_date') else None,
-                    'completed': m.get('completed', False)
+                    'is_completed': m.get('is_completed', False)
                 }
                 for m in milestones
             ],
@@ -383,6 +403,8 @@ def create_team(project_id):
         }
 
         team_id = insert_one(TEAMS, team_doc)
+
+        initialize_team_progress(team_id, project_id)
 
         logger.info(f"Team created | team_id: {team_id} | project_id: {project_id} | members: {team_size}")
 
@@ -525,7 +547,7 @@ def create_milestone(project_id):
             'description': data.get('description', ''),
             'due_date': datetime.fromisoformat(data['due_date']),
             'created_at': datetime.utcnow(),
-            'completed': False,
+            'is_completed': False,
             'completed_at': None,
             'deliverables': data.get('deliverables', [])
         }
@@ -994,7 +1016,7 @@ def submit_deliverable(project_id):
             'grade': None
         }
 
-        deliverable_id = insert_one('project_deliverables', deliverable_doc)
+        deliverable_id = insert_one(PROJECT_DELIVERABLES, deliverable_doc)
         logger.info(f"Deliverable submitted | project_id: {project_id} | team_id: {data['team_id']}")
 
         return jsonify({'deliverable_id': deliverable_id, 'message': 'Deliverable submitted successfully'}), 201
@@ -1021,7 +1043,7 @@ def grade_project(project_id):
             'graded_at': datetime.utcnow()
         }
 
-        grade_id = insert_one('project_grades', grade_doc)
+        grade_id = insert_one(PROJECT_GRADES, grade_doc)
         update_one(PROJECTS, {'_id': project_id}, {'$set': {'status': 'graded', 'final_grade': data['grade']}})
 
         logger.info(f"Project graded | project_id: {project_id} | grade: {data['grade']}")
@@ -1124,6 +1146,353 @@ def get_team_peer_reviews(team_id):
             })
 
         return jsonify({'team_id': team_id, 'reviews': result, 'total': len(result)}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+def award_achievement(team_id, achievement_type):
+    try:
+        if achievement_type not in ACHIEVEMENT_TYPES:
+            return None
+
+        achievement_info = ACHIEVEMENT_TYPES[achievement_type]
+
+        existing = find_one(TEAM_ACHIEVEMENTS, {
+            'team_id': team_id,
+            'achievement_type': achievement_type
+        })
+        if existing:
+            return None
+
+        achievement_doc = {
+            '_id': str(ObjectId()),
+            'team_id': team_id,
+            'achievement_type': achievement_type,
+            'name': achievement_info['name'],
+            'xp': achievement_info['xp'],
+            'icon': achievement_info['icon'],
+            'earned_at': datetime.utcnow()
+        }
+
+        achievement_id = insert_one(TEAM_ACHIEVEMENTS, achievement_doc)
+
+        progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+        if progress:
+            update_one(
+                TEAM_PROGRESS,
+                {'team_id': team_id},
+                {'$inc': {'total_xp': achievement_info['xp']}}
+            )
+
+        logger.info(f"Achievement awarded | team_id: {team_id} | type: {achievement_type} | xp: {achievement_info['xp']}")
+        return achievement_id
+    except Exception as e:
+        logger.error(f"Error awarding achievement | error: {str(e)}")
+        return None
+
+def initialize_team_progress(team_id, project_id):
+    try:
+        existing = find_one(TEAM_PROGRESS, {'team_id': team_id})
+        if existing:
+            return existing['_id']
+
+        progress_doc = {
+            '_id': str(ObjectId()),
+            'team_id': team_id,
+            'project_id': project_id,
+            'current_level': 1,
+            'total_xp': 0,
+            'milestones_completed': 0,
+            'current_milestone_index': 0,
+            'unlocked_milestones': [],
+            'locked_milestones': [],
+            'completion_percentage': 0,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+
+        progress_id = insert_one(TEAM_PROGRESS, progress_doc)
+        logger.info(f"Team progress initialized | team_id: {team_id} | project_id: {project_id}")
+        return progress_id
+    except Exception as e:
+        logger.error(f"Error initializing team progress | error: {str(e)}")
+        return None
+
+@pbl_workflow_bp.route('/projects/<project_id>/milestones/<milestone_id>/submit', methods=['POST'])
+def submit_milestone_for_approval(project_id, milestone_id):
+    try:
+        data = request.json
+        if 'team_id' not in data:
+            return jsonify({'error': 'Missing required field: team_id'}), 400
+
+        team_id = data['team_id']
+
+        milestone = find_one(PROJECT_MILESTONES, {'_id': milestone_id, 'project_id': project_id})
+        if not milestone:
+            return jsonify({'error': 'Milestone not found'}), 404
+
+        if milestone.get('is_completed'):
+            return jsonify({'error': 'Milestone already completed'}), 400
+
+        progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+        if not progress:
+            initialize_team_progress(team_id, project_id)
+            progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+
+        milestones = find_many(
+            PROJECT_MILESTONES,
+            {'project_id': project_id},
+            sort=[('due_date', 1)]
+        )
+
+        milestone_order = {m['_id']: idx for idx, m in enumerate(milestones)}
+        current_index = milestone_order.get(milestone_id, 0)
+
+        if current_index > 0:
+            prev_milestone = milestones[current_index - 1]
+            if not prev_milestone.get('is_completed'):
+                return jsonify({'error': 'Previous milestone must be completed first'}), 400
+
+        update_one(
+            PROJECT_MILESTONES,
+            {'_id': milestone_id},
+            {'$set': {
+                'pending_approval': True,
+                'submitted_by_team': team_id,
+                'submitted_at': datetime.utcnow(),
+                'submission_notes': data.get('notes', '')
+            }}
+        )
+
+        logger.info(f"Milestone submitted for approval | milestone_id: {milestone_id} | team_id: {team_id}")
+
+        return jsonify({
+            'message': 'Milestone submitted for teacher approval',
+            'milestone_id': milestone_id,
+            'status': 'pending_approval'
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@pbl_workflow_bp.route('/projects/<project_id>/milestones/<milestone_id>/approve', methods=['POST'])
+def approve_milestone(project_id, milestone_id):
+    try:
+        data = request.json
+        teacher_id = data.get('teacher_id')
+
+        if not teacher_id:
+            return jsonify({'error': 'Missing required field: teacher_id'}), 400
+
+        milestone = find_one(PROJECT_MILESTONES, {'_id': milestone_id, 'project_id': project_id})
+        if not milestone:
+            return jsonify({'error': 'Milestone not found'}), 404
+
+        if not milestone.get('pending_approval'):
+            return jsonify({'error': 'Milestone not pending approval'}), 400
+
+        team_id = milestone.get('submitted_by_team')
+        if not team_id:
+            return jsonify({'error': 'No team associated with this submission'}), 404
+
+        update_one(
+            PROJECT_MILESTONES,
+            {'_id': milestone_id},
+            {'$set': {
+                'is_completed': True,
+                'completed_at': datetime.utcnow(),
+                'approved_by': teacher_id,
+                'pending_approval': False,
+                'teacher_feedback': data.get('feedback', '')
+            }}
+        )
+
+        progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+        if not progress:
+            initialize_team_progress(team_id, project_id)
+            progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+
+        milestones = find_many(
+            PROJECT_MILESTONES,
+            {'project_id': project_id},
+            sort=[('due_date', 1)]
+        )
+
+        completed_count = sum(1 for m in milestones if m.get('is_completed'))
+        milestone_order = {m['_id']: idx for idx, m in enumerate(milestones)}
+        current_index = milestone_order.get(milestone_id, 0)
+
+        xp_earned = MILESTONE_XP_BASE + (current_index * MILESTONE_BONUS_PER_LEVEL)
+
+        new_level = (completed_count // 3) + 1
+        completion_pct = round((completed_count / len(milestones)) * 100, 1) if milestones else 0
+
+        unlocked = [m['_id'] for idx, m in enumerate(milestones) if idx <= current_index + 1]
+        locked = [m['_id'] for idx, m in enumerate(milestones) if idx > current_index + 1]
+
+        update_one(
+            TEAM_PROGRESS,
+            {'team_id': team_id},
+            {'$set': {
+                'current_level': new_level,
+                'milestones_completed': completed_count,
+                'current_milestone_index': current_index + 1,
+                'unlocked_milestones': unlocked,
+                'locked_milestones': locked,
+                'completion_percentage': completion_pct,
+                'updated_at': datetime.utcnow()
+            }, '$inc': {
+                'total_xp': xp_earned
+            }}
+        )
+
+        award_achievement(team_id, 'MILESTONE_COMPLETED')
+
+        if completed_count == 1:
+            award_achievement(team_id, 'FIRST_MILESTONE')
+
+        if completed_count == len(milestones) // 2:
+            award_achievement(team_id, 'HALFWAY_POINT')
+
+        if completed_count == len(milestones):
+            award_achievement(team_id, 'ALL_MILESTONES')
+
+        days_early = 0
+        if milestone.get('due_date'):
+            days_early = (milestone['due_date'] - datetime.utcnow()).days
+            if days_early > 2:
+                award_achievement(team_id, 'EARLY_COMPLETION')
+
+        logger.info(f"Milestone approved | milestone_id: {milestone_id} | team_id: {team_id} | xp: {xp_earned}")
+
+        return jsonify({
+            'message': 'Milestone approved successfully',
+            'milestone_id': milestone_id,
+            'xp_earned': xp_earned,
+            'team_level': new_level,
+            'completion_percentage': completion_pct,
+            'next_milestone_unlocked': current_index + 1 < len(milestones)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@pbl_workflow_bp.route('/projects/<project_id>/milestones/<milestone_id>/reject', methods=['POST'])
+def reject_milestone(project_id, milestone_id):
+    try:
+        data = request.json
+        teacher_id = data.get('teacher_id')
+
+        if not teacher_id:
+            return jsonify({'error': 'Missing required field: teacher_id'}), 400
+
+        milestone = find_one(PROJECT_MILESTONES, {'_id': milestone_id, 'project_id': project_id})
+        if not milestone:
+            return jsonify({'error': 'Milestone not found'}), 404
+
+        update_one(
+            PROJECT_MILESTONES,
+            {'_id': milestone_id},
+            {'$set': {
+                'pending_approval': False,
+                'rejected_at': datetime.utcnow(),
+                'rejected_by': teacher_id,
+                'rejection_reason': data.get('reason', 'Does not meet requirements'),
+                'teacher_feedback': data.get('feedback', '')
+            }}
+        )
+
+        logger.info(f"Milestone rejected | milestone_id: {milestone_id} | teacher_id: {teacher_id}")
+
+        return jsonify({
+            'message': 'Milestone rejected',
+            'milestone_id': milestone_id,
+            'feedback': data.get('feedback', '')
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@pbl_workflow_bp.route('/teams/<team_id>/progress', methods=['GET'])
+def get_team_progress(team_id):
+    try:
+        progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+        if not progress:
+            return jsonify({'error': 'Team progress not found'}), 404
+
+        achievements = find_many(TEAM_ACHIEVEMENTS, {'team_id': team_id}, sort=[('earned_at', -1)])
+
+        milestones = find_many(
+            PROJECT_MILESTONES,
+            {'project_id': progress['project_id']},
+            sort=[('due_date', 1)]
+        )
+
+        unlocked_data = []
+        locked_data = []
+
+        for idx, milestone in enumerate(milestones):
+            milestone_data = {
+                'milestone_id': milestone['_id'],
+                'title': milestone.get('title'),
+                'order': idx + 1,
+                'is_completed': milestone.get('is_completed', False),
+                'pending_approval': milestone.get('pending_approval', False),
+                'due_date': milestone.get('due_date').isoformat() if milestone.get('due_date') else None
+            }
+
+            if idx <= progress.get('current_milestone_index', 0):
+                unlocked_data.append(milestone_data)
+            else:
+                locked_data.append(milestone_data)
+
+        return jsonify({
+            'team_id': team_id,
+            'project_id': progress['project_id'],
+            'current_level': progress.get('current_level', 1),
+            'total_xp': progress.get('total_xp', 0),
+            'milestones_completed': progress.get('milestones_completed', 0),
+            'completion_percentage': progress.get('completion_percentage', 0),
+            'unlocked_milestones': unlocked_data,
+            'locked_milestones': locked_data,
+            'achievements': [
+                {
+                    'achievement_id': a['_id'],
+                    'name': a.get('name'),
+                    'icon': a.get('icon'),
+                    'xp': a.get('xp'),
+                    'earned_at': a.get('earned_at').isoformat() if a.get('earned_at') else None
+                }
+                for a in achievements
+            ]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@pbl_workflow_bp.route('/teams/<team_id>/achievements', methods=['GET'])
+def get_team_achievements(team_id):
+    try:
+        achievements = find_many(TEAM_ACHIEVEMENTS, {'team_id': team_id}, sort=[('earned_at', -1)])
+
+        total_xp = sum(a.get('xp', 0) for a in achievements)
+
+        return jsonify({
+            'team_id': team_id,
+            'total_achievements': len(achievements),
+            'total_xp': total_xp,
+            'achievements': [
+                {
+                    'achievement_id': a['_id'],
+                    'type': a.get('achievement_type'),
+                    'name': a.get('name'),
+                    'icon': a.get('icon'),
+                    'xp': a.get('xp'),
+                    'earned_at': a.get('earned_at').isoformat() if a.get('earned_at') else None
+                }
+                for a in achievements
+            ]
+        }), 200
+
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 

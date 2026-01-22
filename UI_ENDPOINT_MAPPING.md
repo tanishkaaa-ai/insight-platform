@@ -196,9 +196,21 @@ Complete backend API documentation with request/response formats.
 | `/teams/{team_id}/soft-skills-summary` | GET | - | `{team_id, team_summary, team_average_score}` |
 | `/stages` | GET | - | `{stages: {QUESTIONING, DEFINE, RESEARCH, CREATE_IMPROVE, PRESENT_EVALUATE}, total_stages}` |
 | `/dimensions` | GET | - | `{dimensions: {TEAM_DYNAMICS, TEAM_STRUCTURE, TEAM_MOTIVATION, TEAM_EXCELLENCE}, validation}` |
+| `/projects/{project_id}/milestones/{milestone_id}/submit` | POST | `{team_id, notes?}` | `{message, milestone_id, status}` |
+| `/projects/{project_id}/milestones/{milestone_id}/approve` | POST | `{teacher_id, feedback?}` | `{message, xp_earned, team_level, completion_percentage, next_milestone_unlocked}` |
+| `/projects/{project_id}/milestones/{milestone_id}/reject` | POST | `{teacher_id, reason?, feedback?}` | `{message, milestone_id, feedback}` |
+| `/teams/{team_id}/progress` | GET | - | `{team_id, project_id, current_level, total_xp, milestones_completed, completion_percentage, unlocked_milestones, locked_milestones, achievements}` |
+| `/teams/{team_id}/achievements` | GET | - | `{team_id, total_achievements, total_xp, achievements}` |
 
 **5 PBL Stages:** QUESTIONING → DEFINE → RESEARCH → CREATE_IMPROVE → PRESENT_EVALUATE
 **4D Soft Skills:** Team Dynamics, Team Structure, Team Motivation, Team Excellence (Cronbach α > 0.97)
+
+**Gamification System:**
+- **Achievement Badges:** 8 types (🎯 Milestone Completed, 🚀 First Milestone, ⭐ Halfway There, 🏆 Milestone Master, ⚡ Early Completion, 🤝 Team Player, 💎 Excellence Award, ✨ Stage Master)
+- **XP System:** Base 100 XP per milestone + 50 XP bonus per level
+- **Level Progression:** 1 level per 3 milestones completed
+- **Sequential Unlocking:** Teams must complete milestones in order (can't skip ahead)
+- **Teacher Approval:** All milestone completions require teacher approval before unlocking next milestone
 
 ---
 
@@ -206,14 +218,14 @@ Complete backend API documentation with request/response formats.
 
 ## Summary
 
-**Total Endpoints:** 140 endpoints across 11 blueprints (after consolidation)
+**Total Endpoints:** 145 endpoints across 11 blueprints (after gamification)
 
 **Blueprints:**
 1. `auth_routes.py` - 6 endpoints (authentication)
 2. `dashboard_routes.py` - 14 endpoints (teacher dashboard, interventions)
 3. `live_polling_routes.py` - 5 endpoints (live polling)
 4. `engagement_routes.py` - 11 endpoints (engagement tracking)
-5. `pbl_workflow_routes.py` - 23 endpoints (PBL workflows)
+5. `pbl_workflow_routes.py` - 28 endpoints (PBL workflows + gamification)
 6. `pbl_crud_extensions.py` - 17 endpoints (PBL CRUD)
 7. `polling_template_crud.py` - 14 endpoints (polling/template CRUD)
 8. `template_routes.py` - 7 endpoints (curriculum templates)
@@ -235,7 +247,7 @@ Complete backend API documentation with request/response formats.
 - ✅ 7 redundant endpoints merged for cleaner API
 - ✅ 100% workflow completeness achieved
 
-**Previous:** 138 endpoints with 88 issues (39% problematic) → 200+ after fixes → 140 after consolidation
-**Current:** 140 endpoints, fully functional, no duplicates
+**Previous:** 138 endpoints with 88 issues (39% problematic) → 200+ after fixes → 140 after consolidation → 145 after gamification
+**Current:** 145 endpoints, fully functional, no duplicates, with milestone progression gamification
 
 **See:** [CRITICAL_FIXES_SUMMARY.md](CRITICAL_FIXES_SUMMARY.md) for detailed implementation notes

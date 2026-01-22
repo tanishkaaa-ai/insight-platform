@@ -1,7 +1,11 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime, timedelta
 from bson import ObjectId
-from models.database import db, find_one, find_many, insert_one, update_one, delete_one
+from models.database import (
+    db, find_one, find_many, insert_one, update_one, delete_one,
+    CLASSROOM_NOTIFICATIONS,
+    DISENGAGEMENT_ALERTS
+)
 from utils.logger import get_logger
 
 poll_template_crud_bp = Blueprint('poll_template_crud', __name__)
@@ -11,6 +15,8 @@ POLLS = 'live_polls'
 POLL_RESPONSES = 'poll_responses'
 TEMPLATES = 'curriculum_templates'
 TEMPLATE_RATINGS = 'template_ratings'
+TEMPLATE_USAGE = 'template_usage'
+INTERVENTIONS = 'interventions'
 
 @poll_template_crud_bp.route('/polls/<poll_id>', methods=['PUT'])
 def update_poll(poll_id):
@@ -165,7 +171,7 @@ def use_template(template_id):
             'assignment_id': data.get('assignment_id'),
             'used_at': datetime.utcnow()
         }
-        insert_one('template_usage', usage_doc)
+        insert_one(TEMPLATE_USAGE, usage_doc)
 
         updated_template = find_one(TEMPLATES, {'_id': template_id})
         return jsonify({
@@ -198,7 +204,7 @@ def delete_rating(template_id, rating_id):
 @poll_template_crud_bp.route('/interventions/<intervention_id>', methods=['GET'])
 def get_intervention(intervention_id):
     try:
-        intervention = find_one('interventions', {'_id': intervention_id})
+        intervention = find_one(INTERVENTIONS, {'_id': intervention_id})
         if not intervention:
             return jsonify({'error': 'Intervention not found'}), 404
 
@@ -219,7 +225,7 @@ def get_intervention(intervention_id):
 def update_intervention(intervention_id):
     try:
         data = request.json
-        intervention = find_one('interventions', {'_id': intervention_id})
+        intervention = find_one(INTERVENTIONS, {'_id': intervention_id})
         if not intervention:
             return jsonify({'error': 'Intervention not found'}), 404
 
@@ -239,7 +245,7 @@ def update_intervention(intervention_id):
             update_data['outcome_notes'] = data['outcome_notes']
 
         if update_data:
-            update_one('interventions', {'_id': intervention_id}, {'$set': update_data})
+            update_one(INTERVENTIONS, {'_id': intervention_id}, {'$set': update_data})
             return jsonify({'message': 'Intervention updated successfully'}), 200
 
         return jsonify({'error': 'No valid fields to update'}), 400
@@ -249,11 +255,11 @@ def update_intervention(intervention_id):
 @poll_template_crud_bp.route('/interventions/<intervention_id>', methods=['DELETE'])
 def delete_intervention(intervention_id):
     try:
-        intervention = find_one('interventions', {'_id': intervention_id})
+        intervention = find_one(INTERVENTIONS, {'_id': intervention_id})
         if not intervention:
             return jsonify({'error': 'Intervention not found'}), 404
 
-        delete_one('interventions', {'_id': intervention_id})
+        delete_one(INTERVENTIONS, {'_id': intervention_id})
         return jsonify({'message': 'Intervention deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
@@ -279,7 +285,7 @@ def create_notification():
             'read_at': None
         }
 
-        notification_id = insert_one('classroom_notifications', notification_doc)
+        notification_id = insert_one(CLASSROOM_NOTIFICATIONS, notification_doc)
         return jsonify({'notification_id': notification_id, 'message': 'Notification created successfully'}), 201
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
@@ -292,10 +298,10 @@ def delete_notifications():
         older_than_days = request.args.get('older_than_days')
 
         if notification_id:
-            notification = find_one('classroom_notifications', {'_id': notification_id})
+            notification = find_one(CLASSROOM_NOTIFICATIONS, {'_id': notification_id})
             if not notification:
                 return jsonify({'error': 'Notification not found'}), 404
-            delete_one('classroom_notifications', {'_id': notification_id})
+            delete_one(CLASSROOM_NOTIFICATIONS, {'_id': notification_id})
             return jsonify({'message': 'Notification deleted successfully'}), 200
 
         if user_id and older_than_days:
@@ -331,7 +337,7 @@ def create_alert():
             'acknowledged': False
         }
 
-        alert_id = insert_one('disengagement_alerts', alert_doc)
+        alert_id = insert_one(DISENGAGEMENT_ALERTS, alert_doc)
         return jsonify({'alert_id': alert_id, 'message': 'Alert created successfully'}), 201
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
