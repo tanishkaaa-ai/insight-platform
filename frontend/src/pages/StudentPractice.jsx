@@ -85,7 +85,7 @@ const StudentPractice = () => {
                     status: err.response?.status,
                     student_id: STUDENT_ID
                 });
-                setError("Failed to load your mastery path.");
+                setError(`Failed to load mastery path: ${err.message}`);
             } finally {
                 setLoading(false);
             }

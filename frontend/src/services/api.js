@@ -147,6 +147,19 @@ export const templatesAPI = {
   getPopular: (limit) => api.get('/templates/templates/popular', { params: { limit } }),
 };
 
+export const conceptsAPI = {
+  getConcepts: (params) => api.get('/concepts', { params }),
+  createConcept: (data) => api.post('/concepts', data),
+  getConcept: (conceptId) => api.get(`/concepts/${conceptId}`),
+  updateConcept: (conceptId, data) => api.put(`/concepts/${conceptId}`, data),
+  deleteConcept: (conceptId) => api.delete(`/concepts/${conceptId}`),
+  getItems: (params) => api.get('/items', { params }),
+  createItem: (data) => api.post('/items', data),
+  getItem: (itemId) => api.get(`/items/${itemId}`),
+  updateItem: (itemId, data) => api.put(`/items/${itemId}`, data),
+  deleteItem: (itemId) => api.delete(`/items/${itemId}`),
+};
+
 export const dashboardAPI = {
   getClassEngagement: (classId) => api.get(`/dashboard/class-engagement/${classId}`),
   getAttentionMap: (classId) => api.get(`/dashboard/attention-map/${classId}`),

@@ -21,6 +21,7 @@ import StudentProjects from './pages/StudentProjects';
 import StudentPolls from './pages/StudentPolls';
 import ProtectedRoute from './components/ProtectedRoute';
 import TeacherClassDetails from './pages/TeacherClassDetails';
+import TeacherCurriculum from './pages/TeacherCurriculum';
 
 function MainLayout({ isConnected }) {
   const location = useLocation();
@@ -36,6 +37,7 @@ function MainLayout({ isConnected }) {
 
           <ul className="nav-links">
             <li><Link to="/teacher">Dashboard</Link></li>
+            <li><Link to="/teacher/curriculum">Curriculum</Link></li>
             <li><Link to="/polling">Live Polling</Link></li>
             <li><Link to="/projects">Projects</Link></li>
             <li><Link to="/soft-skills">Soft Skills</Link></li>
@@ -59,7 +61,7 @@ function MainLayout({ isConnected }) {
         <Route path="/teacher/analytics" element={<ProtectedRoute requiredRole="teacher"><TeacherAnalytics /></ProtectedRoute>} />
         <Route path="/teacher/polls" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
         <Route path="/teacher/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
-        <Route path="/teacher/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
+        <Route path="/teacher/curriculum" element={<ProtectedRoute requiredRole="teacher"><TeacherCurriculum /></ProtectedRoute>} />
         <Route path="/teacher/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
 
         <Route path="/polling" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
