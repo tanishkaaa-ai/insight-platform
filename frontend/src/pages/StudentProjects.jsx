@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle, Target, ChevronDown } from 'lucide-react';
+import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle, Target, ChevronDown, Trophy, Star, Award, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -233,6 +233,58 @@ const UploadModal = ({ onClose, projectId, teamId, studentId }) => {
     );
 };
 
+const AchievementsModal = ({ onClose, achievements = [] }) => {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-yellow-50 to-orange-50">
+                    <h3 className="font-bold text-xl text-yellow-800 flex items-center gap-2">
+                        <Trophy className="text-yellow-600" /> Team Achievements
+                    </h3>
+                    <button onClick={onClose}><AlertCircle className="rotate-45" size={24} /></button>
+                </div>
+                <div className="p-8 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {achievements.length === 0 ? (
+                        <div className="col-span-2 text-center py-12 text-gray-400">
+                            <Trophy size={48} className="mx-auto mb-4 opacity-20" />
+                            <p>No achievements unlocked yet. Keep working!</p>
+                        </div>
+                    ) : (
+                        achievements.map((achievement) => (
+                            <motion.div
+                                key={achievement.achievement_id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white border-2 border-yellow-100 rounded-xl p-4 flex items-center gap-4 shadow-sm"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-2xl">
+                                    {achievement.icon || '🏆'}
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-800">{achievement.name}</h4>
+                                    <div className="text-xs font-bold text-yellow-600 uppercase tracking-wider flex items-center gap-1">
+                                        <Zap size={10} /> {achievement.xp} XP
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-1">
+                                        Unlocked {new Date(achievement.earned_at).toLocaleDateString()}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))
+                    )}
+                </div>
+                <div className="p-6 border-t border-gray-100 flex justify-end">
+                    <button onClick={onClose} className="px-6 py-2 bg-yellow-500 text-white rounded-xl font-bold hover:bg-yellow-600">Close</button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 const StudentProjects = () => {
     const { getUserId } = useAuth();
     const navigate = useNavigate();
@@ -245,6 +297,11 @@ const StudentProjects = () => {
     const [showPeerReview, setShowPeerReview] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
     const [showProjectMenu, setShowProjectMenu] = useState(false);
+    const [showAchievements, setShowAchievements] = useState(false);
+
+    // Gamification State
+    const [teamProgress, setTeamProgress] = useState(null);
+    const [achievements, setAchievements] = useState([]);
 
     const STUDENT_ID = getUserId();
 
@@ -308,6 +365,16 @@ const StudentProjects = () => {
 
                 const tasksRes = await projectsAPI.getTeamTasks(activeTeam.team_id || activeTeam._id);
                 setTasks(Array.isArray(tasksRes.data?.tasks) ? tasksRes.data.tasks : (Array.isArray(tasksRes.data) ? tasksRes.data : []));
+
+                // Fetch Gamification Data
+                const [progressRes, achievementsRes] = await Promise.allSettled([
+                    projectsAPI.getTeamProgress(activeTeam.team_id || activeTeam._id),
+                    projectsAPI.getTeamAchievements(activeTeam.team_id || activeTeam._id)
+                ]);
+
+                if (progressRes.status === 'fulfilled') setTeamProgress(progressRes.value.data);
+                if (achievementsRes.status === 'fulfilled') setAchievements(achievementsRes.value.data.achievements || []);
+
             } catch (err) {
                 console.error('[STUDENT_PROJECTS] Error fetching team data:', err);
                 // Don't set global error here, as main loading succeeded. Just maybe show a toast or empty tasks.
@@ -430,13 +497,20 @@ const StudentProjects = () => {
                             ))}
                         </div>
                         <button
+                            onClick={() => setShowAchievements(true)}
+                            className="bg-white border-2 border-yellow-200 text-yellow-700 px-4 py-2 rounded-xl font-bold hover:bg-yellow-50 transition-colors flex items-center gap-2"
+                        >
+                            <Trophy size={18} />
+                            {teamProgress ? `Lvl ${teamProgress.current_level}` : 'Achievements'}
+                        </button>
+                        <button
                             onClick={() => navigate('/student/milestones', {
                                 state: {
                                     selectedTeamId: activeTeam.team_id || activeTeam._id,
                                     selectedProjectId: activeTeam.project_id
                                 }
                             })}
-                            className="bg-white border-2 border-yellow-200 text-yellow-700 px-4 py-2 rounded-xl font-bold hover:bg-yellow-50 transition-colors flex items-center gap-2"
+                            className="bg-white border-2 border-blue-200 text-blue-700 px-4 py-2 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center gap-2"
                         >
                             <Target size={18} /> Milestones
                         </button>
@@ -444,16 +518,42 @@ const StudentProjects = () => {
                             onClick={() => setShowUpload(true)}
                             className="bg-white border-2 border-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition-colors"
                         >
-                            Upload Deliverable
+                            Upload
                         </button>
                         <button
                             onClick={() => setShowPeerReview(true)}
                             className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-700 transition-colors"
                         >
-                            Submit Peer Review
+                            Review
                         </button>
                     </div>
                 </div>
+
+                {/* Team XP Progress Bar */}
+                {teamProgress && (
+                    <div className="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 font-bold text-xl border-4 border-white shadow-sm">
+                            {teamProgress.current_level}
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1">
+                                <span className="text-gray-500">Team Experience</span>
+                                <span className="text-yellow-600">{teamProgress.total_xp} XP</span>
+                            </div>
+                            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min((teamProgress.completion_percentage || 0), 100)}%` }} // Using completion % as proxy for level progress for MVP
+                                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Next Level</div>
+                            <div className="font-bold text-gray-700">1000 XP</div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Kanban Board */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 overflow-hidden pb-2">
@@ -485,6 +585,7 @@ const StudentProjects = () => {
             </div>
 
             {showPeerReview && <PeerReviewModal team={activeTeam} onClose={() => setShowPeerReview(false)} currentUserId={STUDENT_ID} />}
+            {showAchievements && <AchievementsModal achievements={achievements} onClose={() => setShowAchievements(false)} />}
             {
                 showUpload && <UploadModal
                     onClose={() => setShowUpload(false)}

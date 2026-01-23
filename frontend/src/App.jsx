@@ -28,6 +28,7 @@ import TeacherCurriculum from './pages/TeacherCurriculum';
 import TeacherAssignment from './pages/TeacherAssignment';
 import StudentProjectMilestones from './pages/StudentProjectMilestones';
 import TeacherProjectReview from './pages/TeacherProjectReview';
+import TeacherProjectGrading from './pages/TeacherProjectGrading';
 import StudentPeerReview from './pages/StudentPeerReview';
 
 function MainLayout({ isConnected }) {
@@ -70,6 +71,7 @@ function MainLayout({ isConnected }) {
         <Route path="/teacher/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
         <Route path="/teacher/curriculum" element={<ProtectedRoute requiredRole="teacher"><TeacherCurriculum /></ProtectedRoute>} />
         <Route path="/teacher/project-review" element={<ProtectedRoute requiredRole="teacher"><TeacherProjectReview /></ProtectedRoute>} />
+        <Route path="/teacher/grading" element={<ProtectedRoute requiredRole="teacher"><TeacherProjectGrading /></ProtectedRoute>} />
         <Route path="/teacher/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
 
         <Route path="/polling" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />

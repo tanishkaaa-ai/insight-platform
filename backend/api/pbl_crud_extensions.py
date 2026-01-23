@@ -9,7 +9,9 @@ from models.database import (
     PROJECT_DELIVERABLES,
     PROJECT_TASKS,
     PEER_REVIEWS,
-    PROJECT_GRADES
+    PEER_REVIEWS,
+    PROJECT_GRADES,
+    TEAM_ACHIEVEMENTS
 )
 from utils.logger import get_logger
 
@@ -322,3 +324,5 @@ def delete_task(task_id):
         return jsonify({'message': 'Task deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+

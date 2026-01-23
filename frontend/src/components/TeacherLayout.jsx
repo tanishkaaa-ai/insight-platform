@@ -13,7 +13,9 @@ import {
     ChevronRight,
     ChevronLeft,
     BookOpen,
-    CheckCircle
+
+    CheckCircle,
+    Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -68,6 +70,7 @@ const TeacherLayout = ({ children }) => {
         { icon: Radio, text: 'Live Sessions', to: '/teacher/polls' }, // Reusing/Aliasing Polling
         { icon: MapIcon, text: 'Projects (PBL)', to: '/teacher/projects' },
         { icon: CheckCircle, text: 'Approvals', to: '/teacher/project-review' },
+        { icon: Award, text: 'Grading', to: '/teacher/grading' },
         { icon: BookOpen, text: 'Curriculum', to: '/teacher/curriculum' },
         { icon: Library, text: 'Templates', to: '/teacher/templates' },
     ];
