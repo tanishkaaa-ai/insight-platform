@@ -355,10 +355,23 @@ def generate_practice_session():
             else:
                 # Fallback to placeholders if no real items
                 for i in range(3):
+                    # Safe difficulty conversion for fallback items
+                    diff_val = concept.get('difficulty_level', 0.5)
+                    try:
+                         if isinstance(diff_val, str):
+                             if diff_val.lower() == 'easy': diff_val = 0.3
+                             elif diff_val.lower() == 'medium': diff_val = 0.5
+                             elif diff_val.lower() == 'hard': diff_val = 0.7
+                             else: diff_val = float(diff_val)
+                         else:
+                             diff_val = float(diff_val)
+                    except:
+                        diff_val = 0.5
+
                     item = ContentItem(
                         item_id=f"{str(concept['_id'])}_q{i}",
                         concept_id=str(concept['_id']),
-                        difficulty=float(concept.get('difficulty_level', 0.5)),
+                        difficulty=diff_val,
                         weight=float(concept.get('weight', 1.0)),
                     estimated_time=5,
                     question=f"Question about {concept.get('concept_name', 'topic')} - Part {i+1}",
