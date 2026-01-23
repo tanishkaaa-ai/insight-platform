@@ -11,7 +11,9 @@ import {
     Menu,
     X,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Users,
+    Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,7 +66,10 @@ const DashboardLayout = ({ children }) => {
         { icon: BookOpen, text: 'My Classes', to: '/student/classes' },
         { icon: Target, text: 'Practice Zone', to: '/student/practice' },
         { icon: MapIcon, text: 'Projects', to: '/student/projects' },
-        // { icon: Radio, text: 'Live Polls', to: '/student/polls' }, // Hidden until linked
+        { icon: Target, text: 'Milestones', to: '/student/milestones' },
+        { icon: Users, text: 'Peer Review', to: '/student/peer-review' },
+        { icon: Radio, text: 'Live Polls', to: '/student/polls' },
+        { icon: Trophy, text: 'Achievements', to: '/student/achievements' },
     ];
 
     return (

@@ -30,6 +30,7 @@ import TeacherAssignment from './pages/TeacherAssignment';
 import StudentProjectMilestones from './pages/StudentProjectMilestones';
 import TeacherProjectGrading from './pages/TeacherProjectGrading';
 import StudentPeerReview from './pages/StudentPeerReview';
+import StudentAchievements from './pages/StudentAchievements';
 
 function MainLayout({ isConnected }) {
   const location = useLocation();
@@ -87,6 +88,7 @@ function MainLayout({ isConnected }) {
         <Route path="/student/projects" element={<ProtectedRoute requiredRole="student"><StudentProjects /></ProtectedRoute>} />
         <Route path="/student/milestones" element={<ProtectedRoute requiredRole="student"><StudentProjectMilestones /></ProtectedRoute>} />
         <Route path="/student/peer-review" element={<ProtectedRoute requiredRole="student"><StudentPeerReview /></ProtectedRoute>} />
+        <Route path="/student/achievements" element={<ProtectedRoute requiredRole="student"><StudentAchievements /></ProtectedRoute>} />
         <Route path="/student/polls" element={<ProtectedRoute requiredRole="student"><StudentPolls /></ProtectedRoute>} />
       </Routes>
     </>

@@ -366,7 +366,7 @@ const StudentDashboard = () => {
                         <div className="border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center p-3 text-gray-400 font-medium text-xs text-center mt-3">
                             Next: <br /> Speedster
                         </div>
-                        <Link to="/student/practice" className="w-full mt-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all flex justify-center items-center">
+                        <Link to="/student/achievements" className="w-full mt-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all flex justify-center items-center">
                             View Trophy Case
                         </Link>
                     </div>

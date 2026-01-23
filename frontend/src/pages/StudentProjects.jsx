@@ -64,102 +64,13 @@ const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask }) =>
     );
 };
 
-const PeerReviewModal = ({ team, onClose, currentUserId }) => {
-    // Filter out current user from members to review
-    const members = team?.members?.filter(m => m.student_id !== currentUserId) || [];
-    const [reviews, setReviews] = useState({});
 
-    const handleRatingChange = (memberId, skill, value) => {
-        setReviews(prev => ({
-            ...prev,
-            [memberId]: {
-                ...prev[memberId],
-                [skill]: value
-            }
-        }));
-    };
-
-    const handleSubmit = async () => {
-        try {
-            console.log("Submitting reviews:", reviews);
-
-            // Format reviews for API
-            const reviewPromises = Object.entries(reviews).map(([memberId, ratings]) => {
-                return projectsAPI.submitPeerReview(team.team_id || team._id, {
-                    reviewer_id: currentUserId,
-                    reviewee_id: memberId,
-                    review_type: 'mid-project', // Default to mid-project for now, could be dynamic
-                    ratings: {
-                        'TEAM_DYNAMICS': ratings['Collaboration'] || 3,
-                        'TEAM_STRUCTURE': ratings['Critical Thinking'] || 3, // Mapping roughly to dimensions
-                        'TEAM_MOTIVATION': ratings['Effort'] || 3,
-                        'TEAM_EXCELLENCE': ratings['Communication'] || 3
-                    },
-                    comments: {}
-                });
-            });
-
-            await Promise.all(reviewPromises);
-            toast.success("Peer reviews submitted successfully!");
-            onClose();
-        } catch (error) {
-            console.error("Error submitting reviews:", error);
-            toast.error("Failed to submit reviews. Please try again.");
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                    <h3 className="font-bold text-xl text-gray-800">Peer Review</h3>
-                    <button onClick={onClose}><AlertCircle className="rotate-45" size={24} /></button>
-                </div>
-                <div className="p-6 overflow-y-auto">
-                    <p className="text-gray-500 mb-6">Rate your team members on their soft skills contribution.</p>
-                    {members.map(member => (
-                        <div key={member.student_id} className="mb-8 border-b border-gray-100 pb-6 last:border-0">
-                            <h4 className="font-bold text-lg text-gray-800 mb-4">{member.student_name || 'Team Member'}</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {['Collaboration', 'Communication', 'Critical Thinking', 'Effort'].map(skill => (
-                                    <div key={skill}>
-                                        <label className="block text-sm font-medium text-gray-600 mb-1">{skill}</label>
-                                        <div className="flex gap-2">
-                                            {[1, 2, 3, 4, 5].map(rating => (
-                                                <button
-                                                    key={rating}
-                                                    onClick={() => handleRatingChange(member.student_id, skill, rating)}
-                                                    className={`w-8 h-8 rounded-lg text-sm font-bold transition-colors
-                                                        ${reviews[member.student_id]?.[skill] === rating
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                                                >
-                                                    {rating}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className="p-6 border-t border-gray-100 flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
-                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">Submit Reviews</button>
-                </div>
-            </motion.div>
-        </div>
-    );
-};
 
 const UploadModal = ({ onClose, projectId, teamId, studentId }) => {
     const [file, setFile] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [deliverableType, setDeliverableType] = useState('final_report');
+    const [description, setDescription] = useState('');
 
     const handleUpload = async () => {
         if (!file) return;
@@ -173,10 +84,10 @@ const UploadModal = ({ onClose, projectId, teamId, studentId }) => {
             await projectsAPI.submitDeliverable(projectId, {
                 team_id: teamId,
                 submitted_by: studentId,
-                deliverable_type: 'final_report', // Could be dynamic
+                deliverable_type: deliverableType,
                 file_url: fakeFileUrl,
                 title: file.name,
-                description: 'Student uploaded deliverable'
+                description: description || 'Student uploaded deliverable'
             });
 
             toast.success("Deliverable uploaded successfully!");
@@ -197,28 +108,57 @@ const UploadModal = ({ onClose, projectId, teamId, studentId }) => {
                 className="bg-white rounded-2xl w-full max-w-md shadow-xl p-6"
             >
                 <h3 className="font-bold text-xl text-gray-800 mb-4">Upload Project Deliverable</h3>
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center bg-gray-50 mb-6">
-                    <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        onChange={(e) => setFile(e.target.files[0])}
-                    />
-                    <label htmlFor="file-upload" className="cursor-pointer block">
-                        {file ? (
-                            <div className="text-blue-600 font-bold flex items-center justify-center gap-2">
-                                <CheckCircle size={20} /> {file.name}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2">
-                                    <Plus size={24} />
+
+                <div className="space-y-4 mb-6">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Deliverable Type</label>
+                        <select
+                            value={deliverableType}
+                            onChange={(e) => setDeliverableType(e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="final_report">Final Report</option>
+                            <option value="prototype">Prototype / Demo</option>
+                            <option value="presentation">Presentation Slides</option>
+                            <option value="research">Research Findings</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Briefly describe what you are uploading..."
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm h-20 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors">
+                        <input
+                            type="file"
+                            id="file-upload"
+                            className="hidden"
+                            onChange={(e) => setFile(e.target.files[0])}
+                        />
+                        <label htmlFor="file-upload" className="cursor-pointer block">
+                            {file ? (
+                                <div className="text-blue-600 font-bold flex items-center justify-center gap-2">
+                                    <CheckCircle size={20} /> {file.name}
                                 </div>
-                                <span className="text-gray-500 font-medium">Click to upload file</span>
-                            </>
-                        )}
-                    </label>
+                            ) : (
+                                <>
+                                    <div className="mx-auto w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2">
+                                        <Plus size={20} />
+                                    </div>
+                                    <span className="text-gray-500 font-medium text-sm">Click to select file</span>
+                                </>
+                            )}
+                        </label>
+                    </div>
                 </div>
+
                 <div className="flex gap-2">
                     <button onClick={onClose} className="flex-1 py-3 text-gray-500 font-bold rounded-xl hover:bg-gray-50">Cancel</button>
                     <button
@@ -295,7 +235,6 @@ const StudentProjects = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const [showPeerReview, setShowPeerReview] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
     const [showProjectMenu, setShowProjectMenu] = useState(false);
     const [showAchievements, setShowAchievements] = useState(false);
@@ -534,7 +473,7 @@ const StudentProjects = () => {
                             Upload
                         </button>
                         <button
-                            onClick={() => setShowPeerReview(true)}
+                            onClick={() => navigate('/student/peer-review')}
                             className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-blue-700 transition-colors"
                         >
                             Review
@@ -597,7 +536,7 @@ const StudentProjects = () => {
                 </div>
             </div>
 
-            {showPeerReview && <PeerReviewModal team={activeTeam} onClose={() => setShowPeerReview(false)} currentUserId={STUDENT_ID} />}
+            {/* {showPeerReview && <PeerReviewModal team={activeTeam} onClose={() => setShowPeerReview(false)} currentUserId={STUDENT_ID} />} - Removed in favor of dedicated page */}
             {showAchievements && <AchievementsModal achievements={achievements} onClose={() => setShowAchievements(false)} />}
             {
                 showUpload && <UploadModal
