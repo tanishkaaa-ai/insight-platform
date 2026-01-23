@@ -136,7 +136,7 @@ const StudentPractice = () => {
 
     const handleAnswerSubmit = async (answer, isCorrect) => {
         const responseTime = Date.now() - questionStartTime;
-        const currentItem = currentSession.recommended_items[currentQuestionIndex];
+        const currentItem = currentSession.content_items[currentQuestionIndex];
 
         console.info('[PRACTICE] Submitting answer:', {
             concept_id: currentItem.concept_id,
@@ -180,7 +180,7 @@ const StudentPractice = () => {
     };
 
     const handleNextQuestion = () => {
-        if (currentQuestionIndex < currentSession.recommended_items.length - 1) {
+        if (currentQuestionIndex < currentSession.content_items.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
             setQuestionStartTime(Date.now());
         } else {
@@ -209,11 +209,11 @@ const StudentPractice = () => {
 
             console.info('[PRACTICE] Session generated:', {
                 session_id: response.data.session_id,
-                item_count: response.data.recommended_items.length,
+                item_count: response.data.content_items.length,
                 duration: response.data.estimated_duration
             });
 
-            if (response.data.recommended_items && response.data.recommended_items.length > 0) {
+            if (response.data.content_items && response.data.content_items.length > 0) {
                 setCurrentSession(response.data);
                 setCurrentQuestionIndex(0);
                 setQuestionStartTime(Date.now());
@@ -526,7 +526,7 @@ const ConceptHistoryModal = ({ studentId, concept, onClose }) => {
 };
 
 const PracticeSessionModal = ({ session, questionIndex, onClose, onAnswer, onNext }) => {
-    const currentItem = session.recommended_items[questionIndex];
+    const currentItem = session.content_items[questionIndex];
     const [selectedAnswer, setSelectedAnswer] = useState('');
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
@@ -572,7 +572,7 @@ const PracticeSessionModal = ({ session, questionIndex, onClose, onAnswer, onNex
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                     <div>
                         <h3 className="text-xl font-bold text-gray-800">Practice Session</h3>
-                        <p className="text-sm text-gray-500">Question {questionIndex + 1} of {session.recommended_items.length}</p>
+                        <p className="text-sm text-gray-500">Question {questionIndex + 1} of {session.content_items.length}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full text-gray-500">
                         <X size={24} />

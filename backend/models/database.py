@@ -99,6 +99,7 @@ PROJECT_ARTIFACTS = 'project_artifacts'
 CURRICULUM_TEMPLATES = 'curriculum_templates'
 INSTITUTIONAL_METRICS = 'institutional_metrics'
 TEACHER_INTERVENTIONS = 'teacher_interventions'
+PRACTICE_ITEMS = 'practice_items'
 
 # Classroom Management Collections
 CLASSROOMS = 'classrooms'

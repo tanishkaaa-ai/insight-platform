@@ -152,6 +152,10 @@ class ContentItemResponse(BaseModel):
     concept_id: str
     difficulty: float
     estimated_time: int
+    question: Optional[str] = None
+    options: Optional[List[str]] = None
+    correct_answer: Optional[str] = None
+    explanation: Optional[str] = None
 
 class PracticeSessionResponse(BaseModel):
     """BR2, BR3: Generated practice session"""

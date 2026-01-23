@@ -48,6 +48,10 @@ class ContentItem:
     estimated_time: int = 5  # Minutes
     scaffolding_available: bool = True
     prerequisites: List[str] = None
+    question: Optional[str] = None
+    options: Optional[List[str]] = None
+    correct_answer: Optional[str] = None
+    explanation: Optional[str] = None
 
     def __post_init__(self):
         if self.prerequisites is None:
@@ -334,7 +338,11 @@ class AdaptivePracticeEngine:
                     'item_id': item.item_id,
                     'concept_id': item.concept_id,
                     'difficulty': item.difficulty,
-                    'estimated_time': item.estimated_time
+                    'estimated_time': item.estimated_time,
+                    'question': item.question,
+                    'options': item.options,
+                    'correct_answer': item.correct_answer,
+                    'explanation': item.explanation
                 }
                 for item in selected_content
             ],

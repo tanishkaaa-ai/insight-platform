@@ -15,6 +15,8 @@ from models.database import (
     STUDENT_CONCEPT_MASTERY,
     STUDENT_RESPONSES,
     CONCEPTS,
+    PRACTICE_ITEMS,
+    CONCEPTS,
     find_one,
     find_many,
     insert_one,
@@ -315,19 +317,54 @@ def generate_practice_session():
                 'concepts_covered': {}
             }), 200
 
+
+
         available_content = []
 
         for concept in concepts:
-            # Check if concept has items, if not, create mock ones or skip
-            # For now, we generate placeholder items if no items DB exists
-            # In production, we'd query ITEM collection
-            for i in range(3):
-                item = ContentItem(
-                    item_id=f"{str(concept['_id'])}_q{i}",
-                    concept_id=str(concept['_id']),
-                    difficulty=concept.get('difficulty_level', 0.5),
-                    weight=concept.get('weight', 1.0),
-                    estimated_time=5
+            # Try to find real items first
+            real_items = find_many(PRACTICE_ITEMS, {'concept_id': str(concept['_id'])})
+            
+            if real_items:
+                for item_doc in real_items:
+                    # Handle difficulty conversion safely
+                    diff_val = item_doc.get('difficulty', 0.5)
+                    try:
+                         if isinstance(diff_val, str):
+                             if diff_val.lower() == 'easy': diff_val = 0.3
+                             elif diff_val.lower() == 'medium': diff_val = 0.5
+                             elif diff_val.lower() == 'hard': diff_val = 0.7
+                             else: diff_val = float(diff_val)
+                         else:
+                             diff_val = float(diff_val)
+                    except:
+                        diff_val = 0.5
+
+                    item = ContentItem(
+                        item_id=str(item_doc['_id']),
+                        concept_id=str(concept['_id']),
+                        difficulty=diff_val,
+                        weight=float(concept.get('weight', 1.0)),
+                        estimated_time=5,
+                        question=item_doc.get('question', 'Question text missing'),
+                        options=item_doc.get('options', []),
+                        correct_answer=item_doc.get('correct_answer'),
+                        explanation=item_doc.get('explanation')
+                    )
+                    available_content.append(item)
+            else:
+                # Fallback to placeholders if no real items
+                for i in range(3):
+                    item = ContentItem(
+                        item_id=f"{str(concept['_id'])}_q{i}",
+                        concept_id=str(concept['_id']),
+                        difficulty=float(concept.get('difficulty_level', 0.5)),
+                        weight=float(concept.get('weight', 1.0)),
+                    estimated_time=5,
+                    question=f"Question about {concept.get('concept_name', 'topic')} - Part {i+1}",
+                    options=["Option A", "Option B", "Option C", "Option D"],
+                    correct_answer="Option A",
+                    explanation="This is a placeholder explanation for the correct answer."
                 )
                 available_content.append(item)
         logger.info(f"[GENERATE_PRACTICE] Content items created | count: {len(available_content)}")
