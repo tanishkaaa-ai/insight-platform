@@ -295,6 +295,7 @@ const PBLWorkspace = () => {
   const [students, setStudents] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
 
   // ... (inside PBLWorkspace component)
 
@@ -346,15 +347,24 @@ const PBLWorkspace = () => {
       setProjects(fetchedProjects);
 
       if (fetchedProjects.length > 0) {
-        // Fetch full details of the first project
-        const detailRes = await projectsAPI.getProjectDetails(fetchedProjects[0].project_id);
-        const transformedProject = transformBackendData(detailRes.data);
-        setProject(transformedProject);
-        // Teams and Milestones are included in details usually, but let's sync local state if needed
-        setTeams(detailRes.data.teams || []);
+        // If we already have a selected project, keep it (refresh)
+        // Otherwise, do NOT auto-select, let user choose from list
+        if (selectedProjectId && fetchedProjects.find(p => p.project_id === selectedProjectId)) {
+          // Refetch details for the selected one
+          const detailRes = await projectsAPI.getProjectDetails(selectedProjectId);
+          const transformedProject = transformBackendData(detailRes.data);
+          setProject(transformedProject);
+          setTeams(detailRes.data.teams || []);
+        } else {
+          // List view mode
+          setProject(null);
+          setTeams([]);
+          setSelectedProjectId('');
+        }
       } else {
         setProject(null);
         setTeams([]);
+        setSelectedProjectId('');
       }
     } catch (err) {
       console.error("Error fetching projects:", err);
@@ -362,6 +372,27 @@ const PBLWorkspace = () => {
       setLoading(false);
     }
 
+  };
+
+  const handleProjectSelect = async (projectId) => {
+    setLoading(true);
+    try {
+      setSelectedProjectId(projectId);
+      const detailRes = await projectsAPI.getProjectDetails(projectId);
+      const transformedProject = transformBackendData(detailRes.data);
+      setProject(transformedProject);
+      setTeams(detailRes.data.teams || []);
+    } catch (err) {
+      console.error("Error selecting project:", err);
+      toast.error("Failed to load project details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToProjects = () => {
+    setProject(null);
+    setSelectedProjectId('');
   };
 
   const fetchTeams = async (projectId) => {
@@ -448,6 +479,7 @@ const PBLWorkspace = () => {
             >
               {classes.map(c => <option key={c.classroom_id} value={c.classroom_id}>{c.class_name}</option>)}
             </select>
+
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-teal-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-teal-700 transition-colors flex items-center gap-2"
@@ -458,19 +490,67 @@ const PBLWorkspace = () => {
         </div>
 
         {!project ? (
-          <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center">
-            <Workflow className="mx-auto text-gray-300 mb-4" size={64} />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">No Active Projects</h3>
-            <p className="text-gray-500 mb-6">Start a new Project-Based Learning module for this class.</p>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors"
-            >
-              <Plus size={20} /> Create First Project
-            </button>
+          <div className="space-y-6">
+            {projects.length === 0 ? (
+              <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center">
+                <Workflow className="mx-auto text-gray-300 mb-4" size={64} />
+                <h3 className="text-xl font-bold text-gray-800 mb-2">No Active Projects</h3>
+                <p className="text-gray-500 mb-6">Start a new Project-Based Learning module for this class.</p>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors"
+                >
+                  <Plus size={20} /> Create First Project
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projects.map((p) => (
+                  <div
+                    key={p.project_id}
+                    onClick={() => handleProjectSelect(p.project_id)}
+                    className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all cursor-pointer group"
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div className={`p-2 rounded-lg ${p.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                        <Workflow size={24} />
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${p.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {p.status}
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">{p.title}</h3>
+
+                    <div className="space-y-2 mt-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Gauge size={16} />
+                        <span className="font-semibold">{p.stage || 'Planning'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Calendar size={16} />
+                        <span>Due: {p.deadline ? new Date(p.deadline).toLocaleDateString() : 'No Deadline'}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-sm">
+                      <span className="text-gray-500 font-medium">View Details</span>
+                      <div className="p-2 bg-gray-50 rounded-full group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                        <ChevronRight size={16} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <>
+            <button
+              onClick={handleBackToProjects}
+              className="flex items-center gap-2 text-gray-500 hover:text-teal-600 font-bold mb-4 transition-colors"
+            >
+              <ChevronRight size={20} className="rotate-180" /> Back to Projects
+            </button>
             {/* Tabs */}
             <div className="flex gap-4 mb-8 overflow-x-auto pb-2 border-b border-gray-200">
               {[
