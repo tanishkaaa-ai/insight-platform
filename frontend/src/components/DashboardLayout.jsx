@@ -13,7 +13,8 @@ import {
     ChevronRight,
     ChevronLeft,
     Users,
-    Trophy
+    Trophy,
+    Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -125,6 +126,13 @@ const DashboardLayout = ({ children }) => {
 
                 {/* User Footer */}
                 <div className="p-3 border-t border-orange-100">
+                    <NavLink
+                        to="/student/profile"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-800 font-medium mb-1 ${isCollapsed ? 'justify-center' : ''}`}
+                    >
+                        <Settings size={24} />
+                        {!isCollapsed && <span>Settings</span>}
+                    </NavLink>
                     <button
                         onClick={handleLogout}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-red-500 hover:bg-red-50 hover:text-red-600 font-medium ${isCollapsed ? 'justify-center' : ''}`}
