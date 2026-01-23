@@ -497,16 +497,7 @@ const StudentProjects = () => {
                             ))}
                         </div>
                         <button
-<<<<<<< Updated upstream
-                            onClick={() => navigate('/student/milestones', {
-                                state: {
-                                    selectedTeamId: activeTeam.team_id || activeTeam._id,
-                                    selectedProjectId: activeTeam.project_id
-                                }
-                            })}
-=======
                             onClick={() => setShowAchievements(true)}
->>>>>>> Stashed changes
                             className="bg-white border-2 border-yellow-200 text-yellow-700 px-4 py-2 rounded-xl font-bold hover:bg-yellow-50 transition-colors flex items-center gap-2"
                         >
                             <Trophy size={18} />

@@ -322,6 +322,7 @@ def delete_task(task_id):
 
         delete_one(PROJECT_TASKS, {'_id': task_id})
         return jsonify({'message': 'Task deleted successfully'}), 200
+    except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
