@@ -49,8 +49,8 @@ def create_app(config_class=Config):
     # Initialize SocketIO
     socketio = SocketIO(
         app,
-        cors_allowed_origins=app.config["CORS_ORIGINS"],
-        async_mode="threading"  # safer than eventlet unless explicitly installed
+        cors_allowed_origins=app.config["CORS_ORIGINS"]
+        # async_mode="threading"  # Let it auto-detect (prefers eventlet if installed)
     )
     logger.info("SocketIO initialized with threading mode")
 

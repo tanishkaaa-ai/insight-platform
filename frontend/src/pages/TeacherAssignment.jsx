@@ -5,7 +5,7 @@ import { classroomAPI } from '../services/api';
 import { ArrowLeft, Loader, Check, X, FileText, User, Calendar, Award } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-const RubricGrading = ({ onGradeChange, currentGrade }) => {
+const RubricGrading = ({ onGradeChange, currentGrade, maxPoints }) => {
     const rubric = [
         {
             id: 1, name: "Content Accuracy", weight: 40, levels: [
@@ -45,7 +45,12 @@ const RubricGrading = ({ onGradeChange, currentGrade }) => {
             const s = newScores[c.id] || 0;
             total += (s / 10) * c.weight;
         });
-        onGradeChange(Math.round(total));
+
+        // Scale based on maxPoints (default to 100 if not provided)
+        const max = maxPoints || 100;
+        const scaledTotal = (total / 100) * max;
+
+        onGradeChange(Math.round(scaledTotal));
     };
 
     return (
@@ -267,7 +272,7 @@ const TeacherAssignment = () => {
 
                                     <div>
                                         <h3 className="text-sm font-bold text-gray-500 mb-2">Rubric Grading</h3>
-                                        <RubricGrading onGradeChange={setGrade} currentGrade={grade} />
+                                        <RubricGrading onGradeChange={setGrade} currentGrade={grade} maxPoints={assignment.points} />
                                     </div>
 
                                     <div>

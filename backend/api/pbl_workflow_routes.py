@@ -776,16 +776,20 @@ def get_student_soft_skills(student_id):
         team_id = request.args.get('team_id')
 
         if not team_id:
-            return jsonify({'error': 'Missing required parameter: team_id'}), 400
-
-        # Get all peer reviews for this student (as reviewee)
-        reviews = find_many(
-            PEER_REVIEWS,
-            {
+            # If no team_id provided, get aggregate across all teams
+            query = {'reviewee_id': student_id}
+            
+            # Find all projects/teams this student is part of
+            # This is optional context, but good for logging
+            pass
+        else:
+            query = {
                 'team_id': team_id,
                 'reviewee_id': student_id
             }
-        )
+
+        # Get all peer reviews for this student (as reviewee)
+        reviews = find_many(PEER_REVIEWS, query)
 
         if not reviews:
             return jsonify({
@@ -827,14 +831,18 @@ def get_student_soft_skills(student_id):
         overall_score = sum(d['rating_out_of_100'] for d in dimension_scores.values()) / len(dimension_scores) if dimension_scores else 0
 
         # Get self-review for comparison
-        self_review = find_one(
-            PEER_REVIEWS,
-            {
-                'team_id': team_id,
-                'reviewer_id': student_id,
-                'reviewee_id': student_id
-            }
-        )
+        self_query = {
+            'reviewer_id': student_id,
+            'reviewee_id': student_id
+        }
+        if team_id:
+            self_query['team_id'] = team_id
+            
+        self_reviews = find_many(PEER_REVIEWS, self_query)
+        
+        # If multiple self-reviews (cross-team), average them or pick most recent?
+        # For simplicity, let's take the most recent one to compare against current perception
+        self_review = self_reviews[-1] if self_reviews else None
 
         response = {
             'student_id': student_id,

@@ -84,6 +84,7 @@ export const classroomAPI = {
   createPost: (classroomId, data) => api.post(`/classroom/classrooms/${classroomId}/posts`, data),
   getAssignmentSubmissions: (assignmentId, status) => api.get(`/classroom/assignments/${assignmentId}/submissions`, { params: { status } }),
   gradeSubmission: (submissionId, data) => api.post(`/classroom/submissions/${submissionId}/grade`, data),
+  deleteClassroom: (classroomId) => api.delete(`/classroom/classrooms/${classroomId}`),
 };
 
 export const engagementAPI = {

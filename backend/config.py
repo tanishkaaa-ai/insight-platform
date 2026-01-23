@@ -83,7 +83,7 @@ class Config:
     
     CORS_ORIGINS = os.getenv(
         'CORS_ORIGINS',
-        'http://localhost:5173,http://localhost:3000'
+        'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000'
     ).split(',')
     
     CORS_HEADERS = ['Content-Type', 'Authorization']

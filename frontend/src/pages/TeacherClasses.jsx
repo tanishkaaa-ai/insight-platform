@@ -12,11 +12,13 @@ import {
     Calendar,
     ArrowRight,
     Loader,
-    X
+    X,
+    Trash2,
+    AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ClassCard = ({ cls }) => (
+const ClassCard = ({ cls, onDelete }) => (
     <motion.div
         whileHover={{ y: -5, rotate: 1 }}
         className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex flex-col h-full transition-shadow hover:shadow-lg"
@@ -25,6 +27,18 @@ const ClassCard = ({ cls }) => (
             <div className="absolute top-4 right-4">
                 <button className="text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-colors">
                     <MoreVertical size={20} />
+                </button>
+            </div>
+            <div className="absolute top-4 right-14">
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onDelete && onDelete(cls);
+                    }}
+                    className="text-white/80 hover:text-red-200 hover:bg-red-500/20 p-1.5 rounded-lg transition-colors"
+                >
+                    <Trash2 size={20} />
                 </button>
             </div>
             <div className="absolute bottom-6 left-6">
@@ -59,7 +73,7 @@ const ClassCard = ({ cls }) => (
                 </NavLink>
             </div>
         </div>
-    </motion.div>
+    </motion.div >
 );
 
 const CreateClassModal = ({ isOpen, onClose, onClassCreated, userId }) => {
@@ -273,7 +287,7 @@ const TeacherClasses = () => {
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredClasses.map(cls => (
-                        <ClassCard key={cls.classroom_id} cls={cls} />
+                        <ClassCard key={cls.classroom_id} cls={cls} onDelete={handleDeleteClick} />
                     ))}
 
                     {/* Add New Placeholder - now clickable */}
@@ -301,6 +315,45 @@ const TeacherClasses = () => {
                         }}
                         userId={getUserId()}
                     />
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6"
+                        >
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-bold text-xl text-gray-800">Delete Class?</h3>
+                                <button onClick={() => setDeleteModalOpen(false)}><div className="bg-gray-100 p-1 rounded-full"><X size={16} className="text-gray-500" /></div></button>
+                            </div>
+
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete <span className="font-bold text-gray-800">{classToDelete?.class_name}</span>?
+                                This action cannot be undone and will archive all associated data.
+                            </p>
+
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setDeleteModalOpen(false)}
+                                    className="flex-1 py-3 text-gray-500 font-bold rounded-xl hover:bg-gray-50 bg-white border border-gray-100"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </TeacherLayout>

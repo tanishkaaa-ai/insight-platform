@@ -1214,7 +1214,7 @@ def get_student_assignments(student_id):
                         'classroom_id': classroom.get('_id') if classroom else None,
                         'class_name': classroom.get('class_name') if classroom else 'Unknown'
                     },
-                    'due_date': details.get('due_date').isoformat() if details.get('due_date') else None,
+                    'due_date': details.get('due_date').isoformat() if hasattr(details.get('due_date'), 'isoformat') else details.get('due_date'),
                     'points': details.get('points'),
                     'status': submission.get('status'),
                     'grade': submission.get('grade'),

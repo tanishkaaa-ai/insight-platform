@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Lightbulb,
   Megaphone,
-  Loader
+  Loader,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -212,6 +213,37 @@ const TeacherDashboard = () => {
     setSelectedAlert(null);
   };
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState(null);
+
+  const handleDeleteClick = (e, cls) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation();
+    setClassToDelete(cls);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!classToDelete) return;
+    try {
+      await classroomAPI.deleteClassroom(classToDelete.classroom_id);
+
+      // Update state
+      setTodaysClasses(prev => prev.filter(c => c.classroom_id !== classToDelete.classroom_id));
+
+      // Close modal
+      setDeleteModalOpen(false);
+      setClassToDelete(null);
+
+      // Show success (using simple alert for now if toast not imported, or just console)
+      // If toast available use it, otherwise console
+      console.log('Class deleted successfully');
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      alert("Failed to delete class");
+    }
+  };
+
   if (loading) {
     return (
       <TeacherLayout>
@@ -309,14 +341,14 @@ const TeacherDashboard = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-6">
-                          <div className="text-right hidden md:block">
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</p>
-                            <span className={`font-bold ${cls.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                              {cls.is_active ? 'Active' : 'Archived'}
-                            </span>
-                          </div>
-
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            onClick={(e) => handleDeleteClick(e, cls)}
+                            title="Delete Class"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                           <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                             <MoreHorizontal size={20} />
                           </button>
@@ -417,6 +449,41 @@ const TeacherDashboard = () => {
           onClose={() => setSelectedAlert(null)}
           onAssign={handleAssignIntervention}
         />
+      )}
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-xl text-gray-800">Delete Class?</h3>
+              <button onClick={() => setDeleteModalOpen(false)}><div className="bg-gray-100 p-1 rounded-full"><AlertTriangle size={16} className="text-gray-500" /></div></button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <span className="font-bold text-gray-800">{classToDelete?.class_name}</span>?
+              This action cannot be undone and will archive all associated data.
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="flex-1 py-3 text-gray-500 font-bold rounded-xl hover:bg-gray-50 bg-white border border-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </TeacherLayout>
   );
