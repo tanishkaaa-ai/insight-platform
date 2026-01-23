@@ -111,6 +111,13 @@ Complete backend API documentation with request/response formats.
 
 **Note:** Poll question/options can only be updated when closed. Use `{is_active: false}` to close, `{is_active: true}` to reopen.
 
+**Additional Engagement Polling Routes (registered under `/api/engagement`):**
+| Endpoint | Method | Request | Response |
+|----------|--------|---------|----------|
+| `/polls/create` | POST | `{teacher_id, classroom_id, question, poll_type, options}` | `{poll_id, message, is_active}` |
+| `/polls/{poll_id}` | GET | - | `{poll_id, question, poll_type, options, is_active, response_count}` |
+| `/polls/{poll_id}/respond` | POST | `{student_id, response}` | `{message, is_correct}` |
+
 ---
 
 ## 6. Curriculum Templates (`/api/templates`)
@@ -223,20 +230,20 @@ Complete backend API documentation with request/response formats.
 
 ## Summary
 
-**Total Endpoints:** 150 endpoints across 11 blueprints
+**Total Endpoints:** 148 endpoints across 11 blueprints
 
 **Blueprints:**
-1. `auth_routes.py` - 4 endpoints (authentication, excluding test endpoints)
-2. `dashboard_routes.py` - 17 endpoints (dashboards, interventions, analytics)
-3. `live_polling_routes.py` - 5 endpoints (live polling)
-4. `engagement_routes.py` - 12 endpoints (engagement tracking, gamification)
-5. `pbl_workflow_routes.py` - 29 endpoints (PBL workflows + gamification)
-6. `pbl_crud_extensions.py` - 18 endpoints (PBL CRUD)
-7. `polling_template_crud.py` - 14 endpoints (polling/template CRUD)
-8. `template_routes.py` - 8 endpoints (curriculum templates)
-9. `classroom_routes.py` - 26 endpoints (classroom management)
-10. `mastery_concepts_routes.py` - 10 endpoints (mastery concepts/items)
-11. `mastery_routes.py` - 7 endpoints (mastery system)
+1. `auth_routes.py` - 4 endpoints (authentication)
+2. `mastery_routes.py` - 7 endpoints (mastery calculation, practice generation)
+3. `mastery_concepts_routes.py` - 10 endpoints (concepts & practice items - registered under `/api/mastery`)
+4. `engagement_routes.py` - 12 endpoints (engagement detection, alerts, gamification)
+5. `classroom_routes.py` - 27 endpoints (classroom management, assignments, notifications)
+6. `live_polling_routes.py` - 6 endpoints (live polling - registered under `/api/polling`)
+7. `polling_template_crud.py` - 14 endpoints (CRUD extensions - registered under `/api/polling`)
+8. `template_routes.py` - 7 endpoints (curriculum templates)
+9. `dashboard_routes.py` - 16 endpoints (analytics, interventions, institutional metrics)
+10. `pbl_workflow_routes.py` - 28 endpoints (PBL 5-stage workflow + gamification)
+11. `pbl_crud_extensions.py` - 17 endpoints (PBL CRUD operations - registered under `/api/pbl`)
 
 **Recent Consolidations (Merged 7 endpoints):**
 - ✅ Task status merged into task update (removed `/tasks/{id}/status`)
@@ -252,7 +259,7 @@ Complete backend API documentation with request/response formats.
 - ✅ 7 redundant endpoints merged for cleaner API
 - ✅ 100% workflow completeness achieved
 
-**Previous:** 138 endpoints with 88 issues (39% problematic) → 200+ after fixes → 140 after consolidation → 145 after gamification → 150 after adding missing endpoints
-**Current:** 150 endpoints, fully functional, no duplicates, with milestone progression gamification
+**Previous:** 138 endpoints with 88 issues (39% problematic) → 200+ after fixes → 140 after consolidation → 145 after gamification → 148 current
+**Current:** 148 endpoints, fully functional, no duplicates, with complete gamification system
 
 **See:** [CRITICAL_FIXES_SUMMARY.md](CRITICAL_FIXES_SUMMARY.md) for detailed implementation notes
