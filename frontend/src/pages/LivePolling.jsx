@@ -511,6 +511,7 @@ const LivePollingSystem = () => {
             </div>
           </div>
         </div>
+      </div>
     </TeacherLayout>
   );
 };
