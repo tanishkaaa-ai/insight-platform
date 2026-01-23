@@ -71,6 +71,17 @@ const ClassCard = ({ cls, onDelete }) => (
                 >
                     Open <ArrowRight size={14} />
                 </NavLink>
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onDelete && onDelete(cls);
+                    }}
+                    className="px-3 py-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
+                    title="Delete Class"
+                >
+                    <Trash2 size={18} />
+                </button>
             </div>
         </div>
     </motion.div >
@@ -228,6 +239,27 @@ const TeacherClasses = () => {
         cls.class_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cls.section?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [classToDelete, setClassToDelete] = useState(null);
+
+    const handleDeleteClick = (cls) => {
+        setClassToDelete(cls);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!classToDelete) return;
+        try {
+            await classroomAPI.deleteClassroom(classToDelete.classroom_id);
+            setClasses(prev => prev.filter(c => c.classroom_id !== classToDelete.classroom_id));
+            setDeleteModalOpen(false);
+            setClassToDelete(null);
+        } catch (error) {
+            console.error("Error deleting class:", error);
+            // alert("Failed to delete class");
+        }
+    };
 
     if (loading) {
         return (
