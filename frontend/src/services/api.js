@@ -132,6 +132,7 @@ export const projectsAPI = {
   getTeamPeerReviews: (teamId) => api.get(`/pbl/teams/${teamId}/peer-reviews`),
   getStudentSoftSkills: (studentId, teamId) => api.get(`/pbl/students/${studentId}/soft-skills`, { params: { team_id: teamId } }),
   getTeamSoftSkillsSummary: (teamId) => api.get(`/pbl/teams/${teamId}/soft-skills-summary`),
+  getClassroomSoftSkills: (classroomId) => api.get(`/pbl/classrooms/${classroomId}/soft-skills-summary`),
   getStages: () => api.get('/pbl/stages'),
   getDimensions: () => api.get('/pbl/dimensions'),
   // CRUD Extensions

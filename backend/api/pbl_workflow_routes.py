@@ -939,6 +939,78 @@ def get_team_soft_skills_summary(team_id):
         }), 500
 
 
+@pbl_workflow_bp.route('/classrooms/<classroom_id>/soft-skills-summary', methods=['GET'])
+def get_classroom_soft_skills_summary(classroom_id):
+    """
+    BR5: Get aggregate soft skills summary for an entire classroom
+    
+    GET /api/pbl-workflow/classrooms/{classroom_id}/soft-skills-summary
+    """
+    try:
+        # Get classroom
+        classroom = find_one(CLASSROOMS, {'_id': classroom_id})
+        if not classroom:
+            return jsonify({'error': 'Classroom not found'}), 404
+            
+        # Get all projects for this classroom
+        projects = find_many(PROJECTS, {'classroom_id': classroom_id})
+        project_ids = [p['_id'] for p in projects]
+        
+        # Get all teams in these projects
+        teams = find_many(TEAMS, {'project_id': {'$in': project_ids}})
+        team_ids = [t['_id'] for t in teams]
+        
+        # Get all peer reviews for these teams
+        all_reviews = find_many(PEER_REVIEWS, {'team_id': {'$in': team_ids}})
+        
+        # Aggregate scores by dimension
+        dimension_totals = {}
+        dimension_counts = {}
+        
+        for dimension in SOFT_SKILL_DIMENSIONS.keys():
+            dimension_totals[dimension] = 0
+            dimension_counts[dimension] = 0
+            
+        for review in all_reviews:
+            ratings = review.get('ratings', {})
+            for dim, score in ratings.items():
+                if dim in dimension_totals:
+                    dimension_totals[dim] += score
+                    dimension_counts[dim] += 1
+        
+        # Calculate averages (out of 100)
+        dimension_scores = []
+        for dim, total in dimension_totals.items():
+            count = dimension_counts[dim]
+            avg_rating = total / count if count > 0 else 0
+            score_out_of_100 = round((avg_rating / 5) * 100, 1)
+            
+            dimension_scores.append({
+                'skill': SOFT_SKILL_DIMENSIONS[dim]['name'],
+                'dimension': dim,
+                'score': score_out_of_100,
+                'review_count': count,
+                'color': SOFT_SKILL_DIMENSIONS[dim].get('color', 'text-gray-500')
+            })
+            
+        # Add class average score
+        class_average = sum(d['score'] for d in dimension_scores) / len(dimension_scores) if dimension_scores else 0
+
+        return jsonify({
+            'classroom_id': classroom_id,
+            'total_reviews': len(all_reviews),
+            'dimension_scores': dimension_scores,
+            'class_average_score': round(class_average, 1)
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error fetching classroom soft skills | classroom_id: {classroom_id} | error: {str(e)}")
+        return jsonify({
+            'error': 'Internal server error',
+            'detail': str(e)
+        }), 500
+
+
 # ============================================================================
 # PBL STAGE INFORMATION
 # ============================================================================

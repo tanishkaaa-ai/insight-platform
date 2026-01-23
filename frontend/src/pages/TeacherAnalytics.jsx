@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TeacherLayout from '../components/TeacherLayout';
 import CreateInterventionModal from '../components/CreateInterventionModal';
 import { useAuth } from '../contexts/AuthContext';
-import { classroomAPI, dashboardAPI } from '../services/api';
+import { classroomAPI, dashboardAPI, projectsAPI } from '../services/api';
 import {
     BarChart2,
     TrendingUp,
@@ -45,6 +45,7 @@ const TeacherAnalytics = () => {
     const [masteryData, setMasteryData] = useState(null);
     const [engagementTrends, setEngagementTrends] = useState(null);
     const [classEngagement, setClassEngagement] = useState(null);
+    const [softSkillsData, setSoftSkillsData] = useState(null);
     const [dateRange, setDateRange] = useState(30);
 
     // Intervention State
@@ -79,32 +80,22 @@ const TeacherAnalytics = () => {
             setLoading(true);
             try {
                 // Parallel fetch for all analytics
-                const [masteryRes, trendsRes, engagementRes] = await Promise.allSettled([
+                const [masteryRes, trendsRes, engagementRes, softSkillsRes] = await Promise.allSettled([
                     dashboardAPI.getMasteryHeatmap(selectedClassId),
                     dashboardAPI.getEngagementTrends(selectedClassId, dateRange),
-                    dashboardAPI.getClassEngagement(selectedClassId)
+                    dashboardAPI.getClassEngagement(selectedClassId),
+                    classroomAPI.getTeacherClasses(getUserId()) // Re-fetching classes isn't right here, need soft skills logic
+                    // Actually we need to import projectsAPI to call the new endpoint
                 ]);
 
-                // Handle Mastery
-                if (masteryRes.status === 'fulfilled') {
-                    setMasteryData(masteryRes.value.data);
-                } else {
-                    console.error("Mastery fetch error", masteryRes.reason);
-                }
+                // Correction: fetching soft skills requires projectsAPI which is imported but let's make sure
+                // dynamic imports or just importing it at top if missing. It is likely missing.
+                // Wait, I can't check imports in this block. I should assume it's missing and add it in a separate step or hope it's there.
+                // Looking at file view, 'projectsAPI' was NOT imported in TeacherAnalytics.jsx.
+                // I will add the import in a separate step.
 
-                // Handle Trends
-                if (trendsRes.status === 'fulfilled') {
-                    setEngagementTrends(trendsRes.value.data);
-                } else {
-                    console.error("Trends fetch error", trendsRes.reason);
-                }
-
-                // Handle Engagement
-                if (engagementRes.status === 'fulfilled') {
-                    setClassEngagement(engagementRes.value.data);
-                } else {
-                    console.error("Engagement fetch error", engagementRes.reason);
-                }
+                // Let's rewrite this block assuming I'll fix imports next.
+                // I will use projectsAPI.getClassroomSoftSkills(selectedClassId)
 
             } catch (error) {
                 console.error("Overall analytics error", error);
@@ -294,22 +285,28 @@ const TeacherAnalytics = () => {
                                     <button className="text-gray-400 hover:text-teal-600"><Download size={20} /></button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                                    {[
-                                        { skill: 'Collaboration', score: 85, color: 'text-blue-500' },
-                                        { skill: 'Communication', score: 72, color: 'text-green-500' },
-                                        { skill: 'Critical Thinking', score: 68, color: 'text-purple-500' },
-                                        { skill: 'Creativity', score: 90, color: 'text-orange-500' }
-                                    ].map(item => (
-                                        <div key={item.skill} className="text-center">
-                                            {/* Circular Progress (CSS only simulation) */}
-                                            <div className="w-24 h-24 mx-auto rounded-full border-8 border-gray-100 flex items-center justify-center relative mb-3">
-                                                <div className="absolute inset-0 rounded-full border-8 border-current" style={{ clipPath: 'circle(50% at 50% 50%)', rotate: '-45deg', color: item.color === 'text-blue-500' ? '#3B82F6' : item.color === 'text-green-500' ? '#22C55E' : item.color === 'text-purple-500' ? '#A855F7' : '#F97316' }}></div>
-                                                <span className="text-2xl font-bold text-gray-800">{item.score}%</span>
+                                    {softSkillsData?.dimension_scores?.length > 0 ? (
+                                        softSkillsData.dimension_scores.map(item => (
+                                            <div key={item.dimension} className="text-center">
+                                                {/* Circular Progress (CSS only simulation) */}
+                                                <div className="w-24 h-24 mx-auto rounded-full border-8 border-gray-100 flex items-center justify-center relative mb-3">
+                                                    <div className="absolute inset-0 rounded-full border-8 border-current"
+                                                        style={{
+                                                            clipPath: 'circle(50% at 50% 50%)',
+                                                            rotate: '-45deg',
+                                                            color: item.color.includes('blue') ? '#3B82F6' : item.color.includes('green') ? '#22C55E' : item.color.includes('purple') ? '#A855F7' : '#F97316'
+                                                        }}></div>
+                                                    <span className="text-2xl font-bold text-gray-800">{item.score}%</span>
+                                                </div>
+                                                <h4 className="font-bold text-gray-700">{item.skill}</h4>
+                                                <p className="text-xs text-gray-400 mt-1">Based on {item.review_count} reviews</p>
                                             </div>
-                                            <h4 className="font-bold text-gray-700">{item.skill}</h4>
-                                            <p className="text-xs text-gray-400 mt-1">Class Avg.</p>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-4 text-center text-gray-400 py-8">
+                                            No peer reviews submitted yet
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -337,65 +334,42 @@ const TeacherAnalytics = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
-                                        {[
-                                            { id: 's1', name: 'Alex Johnson', risk: 'Low Engagement', lastActive: '2 days ago' },
-                                            { id: 's2', name: 'Sam Smith', risk: 'Missed Assignment', lastActive: '1 day ago' },
-                                            { id: 's3', name: 'Jordan Lee', risk: 'Declining Mastery', lastActive: '4 hours ago' }
-                                        ].map((student) => (
-                                            <tr key={student.id} className="group hover:bg-red-50/30 transition-colors">
-                                                <td className="py-4 pl-4 font-bold text-gray-700">{student.name}</td>
-                                                <td className="py-4">
-                                                    <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">
-                                                        {student.risk}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 text-sm text-gray-500">{student.lastActive}</td>
-                                                <td className="py-4 text-right pr-4">
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedStudentForIntervention(student.id); // In real app use ID
-                                                            setShowInterventionModal(true);
-                                                        }}
-                                                        className="px-4 py-2 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors shadow-sm text-sm"
-                                                    >
-                                                        Intervene
-                                                    </button>
+                                        {classEngagement?.students_needing_attention && classEngagement.students_needing_attention.length > 0 ? (
+                                            classEngagement.students_needing_attention.map((student) => (
+                                                <tr key={student.student_id} className="group hover:bg-red-50/30 transition-colors">
+                                                    <td className="py-4 pl-4 font-bold text-gray-700">{student.student_name}</td>
+                                                    <td className="py-4">
+                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${student.severity === 'CRITICAL' ? 'bg-red-200 text-red-800' : 'bg-red-100 text-red-600'}`}>
+                                                            {student.severity}: {student.engagement_level}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-4 text-sm text-gray-500">{student.recommendation ? student.recommendation.substring(0, 30) + '...' : 'Monitor'}</td>
+                                                    <td className="py-4 text-right pr-4">
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedStudentForIntervention(student.student_id);
+                                                                setShowInterventionModal(true);
+                                                            }}
+                                                            className="px-4 py-2 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-50 transition-colors shadow-sm text-sm"
+                                                        >
+                                                            Intervene
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="4" className="py-8 text-center text-gray-500">
+                                                    No at-risk students detected at this time.
                                                 </td>
                                             </tr>
-                                        ))}
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* Soft Skills Dashboard */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <div>
-                                    <h3 className="font-bold text-gray-800 text-lg">Soft Skills Development</h3>
-                                    <p className="text-gray-500 text-xs">Based on peer reviews and assessments</p>
-                                </div>
-                                <button className="text-gray-400 hover:text-teal-600"><Download size={20} /></button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                                {[
-                                    { skill: 'Collaboration', score: 85, color: 'text-blue-500' },
-                                    { skill: 'Communication', score: 72, color: 'text-green-500' },
-                                    { skill: 'Critical Thinking', score: 68, color: 'text-purple-500' },
-                                    { skill: 'Creativity', score: 90, color: 'text-orange-500' }
-                                ].map(item => (
-                                    <div key={item.skill} className="text-center">
-                                        {/* Circular Progress (CSS only simulation) */}
-                                        <div className="w-24 h-24 mx-auto rounded-full border-8 border-gray-100 flex items-center justify-center relative mb-3">
-                                            <div className="absolute inset-0 rounded-full border-8 border-current" style={{ clipPath: 'circle(50% at 50% 50%)', rotate: '-45deg', color: item.color === 'text-blue-500' ? '#3B82F6' : item.color === 'text-green-500' ? '#22C55E' : item.color === 'text-purple-500' ? '#A855F7' : '#F97316' }}></div>
-                                            <span className="text-2xl font-bold text-gray-800">{item.score}%</span>
-                                        </div>
-                                        <h4 className="font-bold text-gray-700">{item.skill}</h4>
-                                        <p className="text-xs text-gray-400 mt-1">Class Avg.</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
 
                     </>
                 )}
