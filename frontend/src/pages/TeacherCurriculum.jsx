@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
+import TeacherLayout from '../components/TeacherLayout';
 import { BookOpen, Plus, Search, Edit2, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { conceptsAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -94,7 +94,7 @@ const TeacherCurriculum = () => {
     };
 
     return (
-        <DashboardLayout>
+        <TeacherLayout>
             <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <div>
@@ -176,8 +176,8 @@ const TeacherCurriculum = () => {
                                                         <div className="flex justify-between">
                                                             <span className="font-medium text-gray-800">{item.question}</span>
                                                             <span className={`text-xs px-2 py-0.5 rounded ${item.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
-                                                                    item.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                                        'bg-green-100 text-green-700'
+                                                                item.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-green-100 text-green-700'
                                                                 }`}>{item.difficulty}</span>
                                                         </div>
                                                         <div className="mt-2 text-gray-500 text-xs">
@@ -319,7 +319,7 @@ const TeacherCurriculum = () => {
                 )}
 
             </div>
-        </DashboardLayout>
+        </TeacherLayout>
     );
 };
 

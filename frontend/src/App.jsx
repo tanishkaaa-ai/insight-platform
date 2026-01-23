@@ -37,7 +37,6 @@ function MainLayout({ isConnected }) {
 
           <ul className="nav-links">
             <li><Link to="/teacher">Dashboard</Link></li>
-            <li><Link to="/teacher/curriculum">Curriculum</Link></li>
             <li><Link to="/polling">Live Polling</Link></li>
             <li><Link to="/projects">Projects</Link></li>
             <li><Link to="/soft-skills">Soft Skills</Link></li>

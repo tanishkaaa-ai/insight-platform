@@ -11,7 +11,9 @@ import {
     Menu,
     X,
     ChevronRight,
-    ChevronLeft
+    ChevronRight,
+    ChevronLeft,
+    BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -65,6 +67,7 @@ const TeacherLayout = ({ children }) => {
         { icon: BarChart2, text: 'Analytics Hub', to: '/teacher/analytics' },
         { icon: Radio, text: 'Live Sessions', to: '/teacher/polls' }, // Reusing/Aliasing Polling
         { icon: MapIcon, text: 'Projects (PBL)', to: '/teacher/projects' },
+        { icon: BookOpen, text: 'Curriculum', to: '/teacher/curriculum' },
         { icon: Library, text: 'Templates', to: '/teacher/templates' },
     ];
 
