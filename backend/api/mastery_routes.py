@@ -149,14 +149,23 @@ def get_student_mastery(student_id):
                 record = mastery_map.get(concept['_id'], {})
                 
                 # Filter by min_mastery if requested
-                if min_mastery and record.get('mastery_score', 0) < min_mastery:
+                mastery_score = record.get('mastery_score', 0)
+                if min_mastery and mastery_score < min_mastery:
                     continue
+
+                # Determine status
+                status = 'available'
+                if mastery_score >= 85:
+                    status = 'mastered'
+                elif mastery_score > 0:
+                    status = 'in_progress'
 
                 concepts_data.append({
                     'concept_id': concept['_id'],
-                    'concept_name': concept.get('name', 'Unknown'), # Changed from concept_name to name
+                    'concept_name': concept.get('concept_name', concept.get('name', 'Unknown')), 
                     'classroom_id': concept.get('classroom_id'),
-                    'mastery_score': record.get('mastery_score', 0),
+                    'mastery_score': mastery_score,
+                    'status': status,
                     'last_assessed': (record.get('last_assessed').isoformat() if hasattr(record.get('last_assessed'), 'isoformat') else record.get('last_assessed')) if record.get('last_assessed') else None,
                     'times_assessed': record.get('times_assessed', 0),
                     'learning_velocity': record.get('learning_velocity', 0)
