@@ -14,7 +14,7 @@ import {
     ChevronLeft,
     Users,
     Trophy,
-    Award
+    Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -67,7 +67,8 @@ const DashboardLayout = ({ children }) => {
         { icon: BookOpen, text: 'My Classes', to: '/student/classes' },
         { icon: Target, text: 'Practice Zone', to: '/student/practice' },
         { icon: MapIcon, text: 'Projects', to: '/student/projects' },
-        { icon: Award, text: 'Soft Skills', to: '/student/soft-skills' },
+        { icon: Target, text: 'Milestones', to: '/student/milestones' },
+        { icon: Users, text: 'Peer Review', to: '/student/peer-review' },
         { icon: Radio, text: 'Live Polls', to: '/student/polls' },
         { icon: Trophy, text: 'Achievements', to: '/student/achievements' },
     ];
@@ -125,6 +126,13 @@ const DashboardLayout = ({ children }) => {
 
                 {/* User Footer */}
                 <div className="p-3 border-t border-orange-100">
+                    <NavLink
+                        to="/student/profile"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-800 font-medium mb-1 ${isCollapsed ? 'justify-center' : ''}`}
+                    >
+                        <Settings size={24} />
+                        {!isCollapsed && <span>Settings</span>}
+                    </NavLink>
                     <button
                         onClick={handleLogout}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-red-500 hover:bg-red-50 hover:text-red-600 font-medium ${isCollapsed ? 'justify-center' : ''}`}
