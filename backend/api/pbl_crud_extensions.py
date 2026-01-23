@@ -22,6 +22,12 @@ def get_project_milestones(project_id):
         milestones = find_many(PROJECT_MILESTONES, {'project_id': project_id}, sort=[('due_date', 1)])
         result = []
         for milestone in milestones:
+            team_name = None
+            if milestone.get('submitted_by_team'):
+                team = find_one(TEAMS, {'_id': milestone.get('submitted_by_team')})
+                if team:
+                    team_name = team.get('team_name')
+
             result.append({
                 'milestone_id': milestone['_id'],
                 'project_id': milestone.get('project_id'),
@@ -29,7 +35,12 @@ def get_project_milestones(project_id):
                 'description': milestone.get('description'),
                 'due_date': milestone.get('due_date').isoformat() if milestone.get('due_date') else None,
                 'is_completed': milestone.get('is_completed', False),
-                'completed_at': milestone.get('completed_at').isoformat() if milestone.get('completed_at') else None
+                'completed_at': milestone.get('completed_at').isoformat() if milestone.get('completed_at') else None,
+                'pending_approval': milestone.get('pending_approval', False),
+                'submitted_by_team': milestone.get('submitted_by_team'),
+                'team_name': team_name,
+                'submission_notes': milestone.get('submission_notes', ''),
+                'submitted_at': milestone.get('submitted_at').isoformat() if milestone.get('submitted_at') else None
             })
         return jsonify(result), 200
     except Exception as e:
