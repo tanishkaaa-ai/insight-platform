@@ -15,6 +15,8 @@ const StudentAssignment = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
     const [submissionText, setSubmissionText] = useState('');
+    const [attachment, setAttachment] = useState(null);
+    const [uploading, setUploading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
@@ -42,20 +44,54 @@ const StudentAssignment = () => {
         }
     }, [assignmentId]);
 
+    const uploadFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+            const res = await fetch(`${apiBaseUrl}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Upload failed');
+            return data.file_url;
+        } catch (e) {
+            console.error("Upload error:", e);
+            return null;
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!submissionText.trim()) return;
+        if (!submissionText.trim() && !attachment) return;
 
         try {
             setSubmitting(true);
+            let attachmentUrl = null;
+
+            if (attachment) {
+                attachmentUrl = await uploadFile(attachment);
+                if (!attachmentUrl) {
+                    throw new Error("Failed to upload file");
+                }
+            }
+
+            const attachments = attachmentUrl ? [{
+                type: 'file',
+                url: attachmentUrl,
+                name: attachment.name
+            }] : [];
+
             await classroomAPI.submitAssignment(assignmentId, {
                 student_id: user?.user_id || user?.id /* Ensure valid ID */,
                 submission_text: submissionText,
-                attachments: []
+                attachments: attachments
             });
             setSubmitted(true);
             setTimeout(() => {
-                navigate('/student/classes'); // Go back to class list to refresh status
+                navigate('/student/classes');
             }, 2000);
         } catch (err) {
             console.error("Submission error:", err);
@@ -189,9 +225,29 @@ const StudentAssignment = () => {
                                         />
                                     </div>
 
-                                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 hover:bg-gray-100 transition-colors cursor-not-allowed opacity-70">
-                                        <Upload className="mx-auto mb-2" size={24} />
-                                        <p className="text-xs">File upload coming soon</p>
+                                    <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors
+                                        ${attachment ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:bg-gray-50'}`}>
+                                        <input
+                                            type="file"
+                                            id="file-upload"
+                                            className="hidden"
+                                            onChange={(e) => setAttachment(e.target.files[0])}
+                                        />
+                                        <label htmlFor="file-upload" className="cursor-pointer block w-full h-full">
+                                            {attachment ? (
+                                                <div className="flex items-center justify-center gap-2 text-green-700 font-medium">
+                                                    <CheckCircle size={20} />
+                                                    {attachment.name}
+                                                    <span className="text-xs ml-2 text-green-500 hover:text-red-500" onClick={(e) => { e.preventDefault(); setAttachment(null); }}>Remove</span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <Upload className="mx-auto mb-2 text-gray-400" size={24} />
+                                                    <p className="text-sm font-medium text-gray-600">Click to upload a file</p>
+                                                    <p className="text-xs text-gray-400 mt-1">PDF, DOCX, Images supported</p>
+                                                </>
+                                            )}
+                                        </label>
                                     </div>
 
                                     <button
