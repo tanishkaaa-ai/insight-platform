@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../components/DashboardLayout';
+import TeacherLayout from '../components/TeacherLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { classroomAPI, projectsAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
@@ -120,15 +120,15 @@ const TeacherProjectReview = () => {
     };
 
     if (loading) return (
-        <DashboardLayout>
+        <TeacherLayout>
             <div className="flex justify-center items-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
             </div>
-        </DashboardLayout>
+        </TeacherLayout>
     );
 
     return (
-        <DashboardLayout>
+        <TeacherLayout>
             <div className="p-6">
                 <div className="mb-8">
                     <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
@@ -210,7 +210,7 @@ const TeacherProjectReview = () => {
                     )}
                 </div>
             </div>
-        </DashboardLayout>
+        </TeacherLayout>
     );
 };
 
