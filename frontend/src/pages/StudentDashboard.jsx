@@ -88,7 +88,7 @@ const StudentDashboard = () => {
                 let nextClass = { subject: 'No Upcoming Classes', time: '--:--', topic: 'Relax!' };
                 if (classesRes.status === 'fulfilled' && classesRes.value.data.length > 0) {
                     // Simple logic: Find the first class with a schedule for "Today" -> In a real app, this would check weekday
-                    const today = new Date().toLocaleDateString('en-US', { weekday: 'Short' }); // Mon, Tue...
+                    const today = new Date().toLocaleDateString('en-US', { weekday: 'short' }); // Mon, Tue...
 
                     const upcomingClasses = classesRes.value.data.filter(c => {
                         // Check if schedule exists and today is in days list

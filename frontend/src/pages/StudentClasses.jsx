@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { Book, User, Clock, MessageSquare, FileText, ChevronRight, Loader2, AlertCircle, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { classroomAPI } from '../services/api';
+import { classroomAPI, pollsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
@@ -16,6 +16,10 @@ const StudentClasses = () => {
     const [loading, setLoading] = useState(true);
     const [streamLoading, setStreamLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Poll State
+    const [activePoll, setActivePoll] = useState(null);
+    const [pollSubmitted, setPollSubmitted] = useState(false);
 
     // Join Class State
     const [showJoinModal, setShowJoinModal] = useState(false);
@@ -51,7 +55,7 @@ const StudentClasses = () => {
         }
     }, [STUDENT_ID]);
 
-    // Fetch stream when selected class changes
+    // Fetch stream and active poll when selected class changes
     useEffect(() => {
         if (!selectedClass) return;
 
@@ -62,14 +66,57 @@ const StudentClasses = () => {
                 setStream(response.data);
             } catch (err) {
                 console.error("Error fetching stream:", err);
-                // Don't set global error, just maybe show empty stream or toast
             } finally {
                 setStreamLoading(false);
             }
         };
 
+        const fetchActivePoll = async () => {
+            try {
+                // Fetch all polls for class, look for active one
+                // Optimally we'd have an endpoint just for 'active poll', but filtering is fine for now
+                const res = await pollsAPI.getClassPolls(selectedClass.classroom_id);
+                const active = res.data.find(p => p.is_active);
+
+                // Reset submission state if poll changes
+                if (active?.poll_id !== activePoll?.poll_id) {
+                    setPollSubmitted(false);
+                    // Check if already responded (backend could tell us, but for now client-side logic is ok if we persist it or check API)
+                    // TODO: Check if user already responded to avoid re-showing logic or use API error handling
+                }
+                setActivePoll(active || null);
+            } catch (err) {
+                console.error("Error fetching polls:", err);
+            }
+        };
+
         fetchStream();
+        fetchActivePoll();
+
+        // Poll for poll updates every 10s
+        const pollInterval = setInterval(fetchActivePoll, 10000);
+        return () => clearInterval(pollInterval);
     }, [selectedClass]);
+
+    const handleSubmitPoll = async (option) => {
+        if (!activePoll) return;
+        try {
+            await pollsAPI.respondToPoll(activePoll.poll_id, {
+                student_id: STUDENT_ID,
+                response: option
+            });
+            setPollSubmitted(true);
+            toast.success("Poll response submitted!");
+        } catch (err) {
+            console.error("Poll submission error:", err);
+            if (err.response?.data?.error === 'You have already responded to this poll') {
+                setPollSubmitted(true);
+                toast.error("You have already responded.");
+            } else {
+                toast.error("Failed to submit response.");
+            }
+        }
+    };
 
     const handleStartAssignment = (assignmentId) => {
         navigate(`/student/assignment/${assignmentId}`);
@@ -212,6 +259,49 @@ const StudentClasses = () => {
 
                             {/* Feed */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
+                                {/* Active Poll Card */}
+                                {activePoll && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="bg-teal-50 border border-teal-200 rounded-xl p-6 shadow-sm relative overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 right-0 p-2">
+                                            <span className="flex h-3 w-3 relative">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-3 text-teal-800 font-bold">
+                                            <MessageSquare size={20} />
+                                            <h3>Live Poll: {activePoll.question}</h3>
+                                        </div>
+
+                                        {!pollSubmitted && activePoll.options && !pollSubmitted ? (
+                                            <div className="space-y-3 mt-4">
+                                                {activePoll.options.map((option, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => handleSubmitPoll(option)}
+                                                        className="w-full text-left p-3 bg-white border border-teal-100 hover:border-teal-300 hover:bg-teal-50 rounded-lg transition-all text-gray-700 font-medium"
+                                                    >
+                                                        {option}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 p-4 bg-teal-100 rounded-lg text-center text-teal-800 font-bold">
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <div className="bg-teal-600 text-white rounded-full p-1"><User size={12} /></div>
+                                                    Response Submitted!
+                                                </span>
+                                                <p className="text-xs font-normal mt-1 opacity-80">Wait for the teacher to reveal results.</p>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                )}
+
                                 {streamLoading ? (
                                     <div className="flex justify-center p-12">
                                         <Loader2 className="animate-spin text-orange-400" size={32} />
@@ -248,12 +338,32 @@ const StudentClasses = () => {
                                                     <span className="text-sm text-blue-800 font-medium flex items-center gap-2">
                                                         <Clock size={16} /> Due: {post.assignment_details.due_date ? new Date(post.assignment_details.due_date).toLocaleDateString() : 'No Due Date'}
                                                     </span>
-                                                    <button
-                                                        onClick={() => handleStartAssignment(post.post_id)}
-                                                        className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                                    >
-                                                        Start Now
-                                                    </button>
+                                                    {post.current_user_submission && ['turned_in', 'graded', 'returned'].includes(post.current_user_submission.status) ? (
+                                                        <div className="flex items-center gap-2">
+                                                            {post.current_user_submission.grade !== undefined && post.current_user_submission.grade !== null ? (
+                                                                <span className="font-bold text-green-600 bg-green-100 px-3 py-1 rounded-lg">
+                                                                    {post.current_user_submission.grade}/{post.assignment_details.points || 100}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-green-600 font-bold text-sm bg-green-100 px-3 py-1 rounded-lg">
+                                                                    Submitted
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleStartAssignment(post.post_id)}
+                                                                className="text-blue-600 text-xs font-bold hover:underline"
+                                                            >
+                                                                View
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleStartAssignment(post.post_id)}
+                                                            className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                                        >
+                                                            Start Now
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )}
 

@@ -158,8 +158,8 @@ def register_socketio_events(socketio):
         })
 
     @socketio.on("disconnect")
-    def handle_disconnect():
-        logger.info("WebSocket: Client disconnected")
+    def handle_disconnect(*args):
+        logger.info(f"WebSocket: Client disconnected | Args: {args}")
 
     @socketio.on("join_class")
     def handle_join_class(data):

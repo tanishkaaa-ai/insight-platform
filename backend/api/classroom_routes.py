@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from bson import ObjectId
 import random
 import string
+import jwt
+import os
 
 # Import MongoDB helper functions
 from models.database import (
@@ -39,6 +41,10 @@ CLASSROOM_NOTIFICATIONS = 'classroom_notifications'
 USERS = 'users'
 STUDENTS = 'students'
 TEACHERS = 'teachers'
+
+# JWT Configuration (duplicated from auth_routes to avoid circular imports)
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dev-jwt-secret-change-in-production')
+JWT_ALGORITHM = 'HS256'
 
 
 # ============================================================================
@@ -71,6 +77,24 @@ def create_notification(user_id, classroom_id, notification_type, title, message
     }
     insert_one(CLASSROOM_NOTIFICATIONS, notification_doc)
     logger.info(f"Notification created | user_id: {user_id} | type: {notification_type}")
+
+
+def get_current_user_id():
+    """Extract user_id from Authorization header if present"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return None, None
+
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != 'bearer':
+        return None, None
+
+    token = parts[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload.get('user_id'), payload.get('role')
+    except:
+        return None, None
 
 
 # ============================================================================
@@ -634,7 +658,7 @@ def get_classroom_stream(classroom_id):
                     if student:
                         author_name = f"{student.get('first_name', '')} {student.get('last_name', '')}"
 
-            formatted_posts.append({
+            post_data = {
                 'post_id': post['_id'],
                 'post_type': post.get('post_type'),
                 'title': post.get('title'),
@@ -649,7 +673,24 @@ def get_classroom_stream(classroom_id):
                 'is_pinned': post.get('is_pinned'),
                 'comment_count': post.get('comment_count', 0),
                 'created_at': post.get('created_at').isoformat() if post.get('created_at') else None
-            })
+            }
+
+            # If user is student, check for submission
+            user_id, role = get_current_user_id()
+            if user_id and role == 'student' and post.get('post_type') == 'assignment':
+                submission = find_one(CLASSROOM_SUBMISSIONS, {
+                    'assignment_id': post['_id'],
+                    'student_id': user_id
+                })
+                if submission:
+                    post_data['current_user_submission'] = {
+                        'status': submission.get('status'),
+                        'grade': submission.get('grade'),
+                        'submitted_at': submission.get('submitted_at').isoformat() if submission.get('submitted_at') else None,
+                        'is_late': submission.get('is_late')
+                    }
+
+            formatted_posts.append(post_data)
 
         logger.info(f"Classroom stream retrieved | classroom_id: {classroom_id} | posts: {len(formatted_posts)}")
         return jsonify(formatted_posts), 200
@@ -849,6 +890,25 @@ def get_assignment(assignment_id):
             'due_date': assignment.get('assignment_details', {}).get('due_date').isoformat() if assignment.get('assignment_details', {}).get('due_date') else None,
             'points': assignment.get('assignment_details', {}).get('points', 100)
         }
+
+        # If user is student, check for submission
+        user_id, role = get_current_user_id()
+        if user_id and role == 'student':
+            submission = find_one(CLASSROOM_SUBMISSIONS, {
+                'assignment_id': assignment_id,
+                'student_id': user_id
+            })
+            if submission:
+                result['current_user_submission'] = {
+                    'submission_id': submission.get('_id'),
+                    'status': submission.get('status'),
+                    'submission_text': submission.get('submission_text'),
+                    'attachments': submission.get('attachments', []),
+                    'grade': submission.get('grade'),
+                    'teacher_feedback': submission.get('teacher_feedback'),
+                    'submitted_at': submission.get('submitted_at').isoformat() if submission.get('submitted_at') else None,
+                    'is_late': submission.get('is_late')
+                }
 
         return jsonify(result), 200
     except Exception as e:

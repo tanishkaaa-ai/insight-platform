@@ -23,8 +23,10 @@ const StudentAssignment = () => {
                 const response = await classroomAPI.getAssignment(assignmentId);
                 setAssignment(response.data);
 
-                // Check if already submitted (if the API supports checking status in the assignment details or separate call)
-                // For now, we assume simplicity and fresh submission
+                if (response.data.current_user_submission) {
+                    setSubmitted(true);
+                    setSubmissionText(response.data.current_user_submission.submission_text || '');
+                }
             } catch (err) {
                 setError("Failed to load assignment details.");
             } finally {
@@ -44,8 +46,8 @@ const StudentAssignment = () => {
         try {
             setSubmitting(true);
             await classroomAPI.submitAssignment(assignmentId, {
-                student_id: user.id /* or get from context */,
-                content: submissionText,
+                student_id: user.user_id /* or get from context */,
+                submission_text: submissionText,
                 attachments: [] // Placeholder for file upload
             });
             setSubmitted(true);
