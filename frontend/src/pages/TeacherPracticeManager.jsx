@@ -13,7 +13,8 @@ import {
     X,
     FileText,
     CheckCircle,
-    Loader
+    Loader,
+    Filter
 } from 'lucide-react';
 
 const TeacherPracticeManager = () => {
@@ -75,10 +76,6 @@ const TeacherPracticeManager = () => {
         }
     };
 
-    // Better implementation using existing imports
-    // We need to import classroomAPI and useAuth
-
-    // ... (See below for actual code to insert/replace)
 
     const fetchItems = async (conceptId) => {
         try {
@@ -128,11 +125,12 @@ const TeacherPracticeManager = () => {
     const submitConcept = async (e) => {
         e.preventDefault();
         try {
+            const payload = { ...conceptForm, classroom_id: selectedClass || undefined };
             if (conceptForm.id) {
-                await conceptsAPI.updateConcept(conceptForm.id, conceptForm);
+                await conceptsAPI.updateConcept(conceptForm.id, payload);
                 toast.success("Concept updated");
             } else {
-                await conceptsAPI.createConcept({ ...conceptForm, classroom_id: selectedClass || undefined });
+                await conceptsAPI.createConcept(payload);
                 toast.success("Concept created");
             }
             setShowConceptModal(false);
@@ -226,11 +224,13 @@ const TeacherPracticeManager = () => {
                         </h1>
                         <p className="text-gray-500">Manage curriculum concepts and practice questions</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    {/* Class Selector */}
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200">
+                        <Filter size={18} className="text-gray-400" />
                         <select
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
-                            className="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="bg-transparent border-none text-gray-700 font-medium focus:ring-0 cursor-pointer min-w-[200px]"
                         >
                             <option value="">All Classes (Global)</option>
                             {classes.map(cls => (
