@@ -145,6 +145,7 @@ export const projectsAPI = {
   submitMilestone: (projectId, milestoneId, data) => api.post(`/pbl/projects/${projectId}/milestones/${milestoneId}/submit`, data),
   approveMilestone: (projectId, milestoneId, data) => api.post(`/pbl/projects/${projectId}/milestones/${milestoneId}/approve`, data),
   rejectMilestone: (projectId, milestoneId, data) => api.post(`/pbl/projects/${projectId}/milestones/${milestoneId}/reject`, data),
+  getTeamProgress: (teamId) => api.get(`/pbl/teams/${teamId}/progress`),
 };
 
 export const templatesAPI = {
