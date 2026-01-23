@@ -389,7 +389,8 @@ def get_teacher_classrooms(teacher_id):
         logger.info(f"Teacher classrooms request | teacher_id: {teacher_id}")
 
         query = {'teacher_id': teacher_id}
-        if request.args.get('active_only') == 'true':
+        # Default to active only, unless include_archived is requested
+        if request.args.get('include_archived') != 'true':
             query['is_active'] = True
 
         classrooms = find_many(CLASSROOMS, query, sort=[('created_at', -1)])

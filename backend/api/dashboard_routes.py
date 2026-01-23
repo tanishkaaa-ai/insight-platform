@@ -759,7 +759,7 @@ def get_institutional_metrics():
         logger.info("Fetching institutional metrics")
 
         # Get all classrooms
-        all_classrooms = find_many(CLASSROOMS, {})
+        all_classrooms = find_many(CLASSROOMS, {'is_active': True})
         classroom_ids = [c['_id'] for c in all_classrooms]
 
         # Get all students and teachers
