@@ -164,17 +164,21 @@ def create_project():
     """
     try:
         data = request.json
+        logger.info(f"[CREATE_PROJECT] Request received | teacher_id: {data.get('teacher_id')} | classroom_id: {data.get('classroom_id')} | title: {data.get('title')}")
 
         # Validate required fields
         required = ['title', 'classroom_id', 'teacher_id', 'stage', 'deadline']
         for field in required:
             if field not in data:
+                logger.warning(f"[CREATE_PROJECT] Missing required field: {field} | teacher_id: {data.get('teacher_id')}")
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
         # Validate stage
         if data['stage'] not in PBL_STAGES:
+            logger.warning(f"[CREATE_PROJECT] Invalid stage: {data['stage']} | teacher_id: {data.get('teacher_id')}")
             return jsonify({'error': f'Invalid stage. Must be one of: {list(PBL_STAGES.keys())}'}), 400
 
+        logger.info(f"[CREATE_PROJECT] Validation passed | creating project document")
         project_doc = {
             '_id': str(ObjectId()),
             'title': data['title'],
@@ -203,7 +207,7 @@ def create_project():
 
         project_id = insert_one(PROJECTS, project_doc)
 
-        logger.info(f"Project created | project_id: {project_id} | title: {data['title']} | stage: {data['stage']}")
+        logger.info(f"[CREATE_PROJECT] SUCCESS | project_id: {project_id} | title: {data['title']} | stage: {data['stage']} | teacher_id: {data['teacher_id']} | classroom_id: {data['classroom_id']}")
 
         return jsonify({
             'project_id': project_id,
@@ -213,7 +217,7 @@ def create_project():
         }), 201
 
     except Exception as e:
-        logger.error(f"Error creating project | error: {str(e)}")
+        logger.error(f"[CREATE_PROJECT] ERROR | error: {str(e)} | teacher_id: {data.get('teacher_id') if data else 'unknown'}")
         return jsonify({
             'error': 'Internal server error',
             'detail': str(e)
@@ -228,16 +232,22 @@ def get_project(project_id):
     GET /api/pbl-workflow/projects/{project_id}
     """
     try:
+        logger.info(f"[GET_PROJECT] Request received | project_id: {project_id}")
         project = find_one(PROJECTS, {'_id': project_id})
 
         if not project:
+            logger.warning(f"[GET_PROJECT] Project not found | project_id: {project_id}")
             return jsonify({'error': 'Project not found'}), 404
+
+        logger.info(f"[GET_PROJECT] Project found | project_id: {project_id} | title: {project.get('title')} | stage: {project.get('stage')}")
 
         # Get teams for this project
         teams = find_many(TEAMS, {'project_id': project_id})
+        logger.info(f"[GET_PROJECT] Teams retrieved | project_id: {project_id} | team_count: {len(teams)}")
 
         # Get milestones
         milestones = find_many(PROJECT_MILESTONES, {'project_id': project_id}, sort=[('due_date', 1)])
+        logger.info(f"[GET_PROJECT] Milestones retrieved | project_id: {project_id} | milestone_count: {len(milestones)}")
 
         # Format response
         project_data = {
@@ -377,18 +387,25 @@ def create_team(project_id):
     """
     try:
         data = request.json
+        logger.info(f"[CREATE_TEAM] Request received | project_id: {project_id} | team_name: {data.get('team_name')} | member_count: {len(data.get('members', []))}")
 
         # Validate project exists
         project = find_one(PROJECTS, {'_id': project_id})
         if not project:
+            logger.warning(f"[CREATE_TEAM] Project not found | project_id: {project_id}")
             return jsonify({'error': 'Project not found'}), 404
+
+        logger.info(f"[CREATE_TEAM] Project found | project_id: {project_id} | title: {project.get('title')}")
 
         # Validate team size
         team_size = len(data.get('members', []))
         min_size = project.get('settings', {}).get('team_size_min', 3)
         max_size = project.get('settings', {}).get('team_size_max', 5)
 
+        logger.info(f"[CREATE_TEAM] Validating team size | project_id: {project_id} | team_size: {team_size} | min: {min_size} | max: {max_size}")
+
         if team_size < min_size or team_size > max_size:
+            logger.warning(f"[CREATE_TEAM] Invalid team size | project_id: {project_id} | team_size: {team_size} | required: {min_size}-{max_size}")
             return jsonify({'error': f'Team size must be between {min_size} and {max_size}'}), 400
 
         team_doc = {
@@ -403,10 +420,12 @@ def create_team(project_id):
         }
 
         team_id = insert_one(TEAMS, team_doc)
+        logger.info(f"[CREATE_TEAM] Team document inserted | team_id: {team_id} | project_id: {project_id}")
 
         initialize_team_progress(team_id, project_id)
+        logger.info(f"[CREATE_TEAM] Team progress initialized | team_id: {team_id} | project_id: {project_id}")
 
-        logger.info(f"Team created | team_id: {team_id} | project_id: {project_id} | members: {team_size}")
+        logger.info(f"[CREATE_TEAM] SUCCESS | team_id: {team_id} | project_id: {project_id} | team_name: {team_doc['team_name']} | member_count: {team_size} | members: {data.get('members')}")
 
         return jsonify({
             'team_id': team_id,
@@ -415,7 +434,7 @@ def create_team(project_id):
         }), 201
 
     except Exception as e:
-        logger.error(f"Error creating team | project_id: {project_id} | error: {str(e)}")
+        logger.error(f"[CREATE_TEAM] ERROR | project_id: {project_id} | error: {str(e)} | team_data: {data if data else 'none'}")
         return jsonify({
             'error': 'Internal server error',
             'detail': str(e)
@@ -1221,20 +1240,28 @@ def initialize_team_progress(team_id, project_id):
 def submit_milestone_for_approval(project_id, milestone_id):
     try:
         data = request.json
+        logger.info(f"[SUBMIT_MILESTONE] Request received | project_id: {project_id} | milestone_id: {milestone_id} | team_id: {data.get('team_id')}")
+
         if 'team_id' not in data:
+            logger.warning(f"[SUBMIT_MILESTONE] Missing team_id | project_id: {project_id} | milestone_id: {milestone_id}")
             return jsonify({'error': 'Missing required field: team_id'}), 400
 
         team_id = data['team_id']
 
         milestone = find_one(PROJECT_MILESTONES, {'_id': milestone_id, 'project_id': project_id})
         if not milestone:
+            logger.warning(f"[SUBMIT_MILESTONE] Milestone not found | project_id: {project_id} | milestone_id: {milestone_id}")
             return jsonify({'error': 'Milestone not found'}), 404
 
+        logger.info(f"[SUBMIT_MILESTONE] Milestone found | milestone_id: {milestone_id} | title: {milestone.get('title')} | is_completed: {milestone.get('is_completed')}")
+
         if milestone.get('is_completed'):
+            logger.warning(f"[SUBMIT_MILESTONE] Milestone already completed | milestone_id: {milestone_id} | team_id: {team_id}")
             return jsonify({'error': 'Milestone already completed'}), 400
 
         progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
         if not progress:
+            logger.info(f"[SUBMIT_MILESTONE] Team progress not found, initializing | team_id: {team_id} | project_id: {project_id}")
             initialize_team_progress(team_id, project_id)
             progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
 
@@ -1243,14 +1270,19 @@ def submit_milestone_for_approval(project_id, milestone_id):
             {'project_id': project_id},
             sort=[('due_date', 1)]
         )
+        logger.info(f"[SUBMIT_MILESTONE] Milestones retrieved | project_id: {project_id} | total_milestones: {len(milestones)}")
 
         milestone_order = {m['_id']: idx for idx, m in enumerate(milestones)}
         current_index = milestone_order.get(milestone_id, 0)
+        logger.info(f"[SUBMIT_MILESTONE] Milestone order | milestone_id: {milestone_id} | current_index: {current_index} | total: {len(milestones)}")
 
         if current_index > 0:
             prev_milestone = milestones[current_index - 1]
             if not prev_milestone.get('is_completed'):
+                logger.warning(f"[SUBMIT_MILESTONE] Sequential validation failed | milestone_id: {milestone_id} | prev_milestone_id: {prev_milestone['_id']} | prev_completed: {prev_milestone.get('is_completed')}")
                 return jsonify({'error': 'Previous milestone must be completed first'}), 400
+
+        logger.info(f"[SUBMIT_MILESTONE] Sequential validation passed | milestone_id: {milestone_id} | team_id: {team_id}")
 
         update_one(
             PROJECT_MILESTONES,
@@ -1263,7 +1295,7 @@ def submit_milestone_for_approval(project_id, milestone_id):
             }}
         )
 
-        logger.info(f"Milestone submitted for approval | milestone_id: {milestone_id} | team_id: {team_id}")
+        logger.info(f"[SUBMIT_MILESTONE] SUCCESS | milestone_id: {milestone_id} | team_id: {team_id} | project_id: {project_id} | status: pending_approval | notes_length: {len(data.get('notes', ''))}")
 
         return jsonify({
             'message': 'Milestone submitted for teacher approval',
@@ -1272,6 +1304,7 @@ def submit_milestone_for_approval(project_id, milestone_id):
         }), 200
 
     except Exception as e:
+        logger.error(f"[SUBMIT_MILESTONE] ERROR | project_id: {project_id} | milestone_id: {milestone_id} | error: {str(e)}")
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 @pbl_workflow_bp.route('/projects/<project_id>/milestones/<milestone_id>/approve', methods=['POST'])
@@ -1279,20 +1312,29 @@ def approve_milestone(project_id, milestone_id):
     try:
         data = request.json
         teacher_id = data.get('teacher_id')
+        logger.info(f"[APPROVE_MILESTONE] Request received | project_id: {project_id} | milestone_id: {milestone_id} | teacher_id: {teacher_id}")
 
         if not teacher_id:
+            logger.warning(f"[APPROVE_MILESTONE] Missing teacher_id | project_id: {project_id} | milestone_id: {milestone_id}")
             return jsonify({'error': 'Missing required field: teacher_id'}), 400
 
         milestone = find_one(PROJECT_MILESTONES, {'_id': milestone_id, 'project_id': project_id})
         if not milestone:
+            logger.warning(f"[APPROVE_MILESTONE] Milestone not found | project_id: {project_id} | milestone_id: {milestone_id}")
             return jsonify({'error': 'Milestone not found'}), 404
 
+        logger.info(f"[APPROVE_MILESTONE] Milestone found | milestone_id: {milestone_id} | title: {milestone.get('title')} | pending_approval: {milestone.get('pending_approval')}")
+
         if not milestone.get('pending_approval'):
+            logger.warning(f"[APPROVE_MILESTONE] Milestone not pending approval | milestone_id: {milestone_id} | pending_approval: {milestone.get('pending_approval')}")
             return jsonify({'error': 'Milestone not pending approval'}), 400
 
         team_id = milestone.get('submitted_by_team')
         if not team_id:
+            logger.warning(f"[APPROVE_MILESTONE] No team associated | milestone_id: {milestone_id}")
             return jsonify({'error': 'No team associated with this submission'}), 404
+
+        logger.info(f"[APPROVE_MILESTONE] Validation passed | milestone_id: {milestone_id} | team_id: {team_id}")
 
         update_one(
             PROJECT_MILESTONES,
@@ -1305,11 +1347,15 @@ def approve_milestone(project_id, milestone_id):
                 'teacher_feedback': data.get('feedback', '')
             }}
         )
+        logger.info(f"[APPROVE_MILESTONE] Milestone marked as completed | milestone_id: {milestone_id} | approved_by: {teacher_id}")
 
         progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
         if not progress:
+            logger.info(f"[APPROVE_MILESTONE] Team progress not found, initializing | team_id: {team_id} | project_id: {project_id}")
             initialize_team_progress(team_id, project_id)
             progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
+
+        logger.info(f"[APPROVE_MILESTONE] Team progress retrieved | team_id: {team_id} | current_level: {progress.get('current_level')} | total_xp: {progress.get('total_xp')}")
 
         milestones = find_many(
             PROJECT_MILESTONES,
@@ -1321,13 +1367,18 @@ def approve_milestone(project_id, milestone_id):
         milestone_order = {m['_id']: idx for idx, m in enumerate(milestones)}
         current_index = milestone_order.get(milestone_id, 0)
 
+        logger.info(f"[APPROVE_MILESTONE] Calculating XP and level | milestone_id: {milestone_id} | completed_count: {completed_count} | current_index: {current_index} | total_milestones: {len(milestones)}")
+
         xp_earned = MILESTONE_XP_BASE + (current_index * MILESTONE_BONUS_PER_LEVEL)
 
         new_level = (completed_count // 3) + 1
         completion_pct = round((completed_count / len(milestones)) * 100, 1) if milestones else 0
 
+        logger.info(f"[APPROVE_MILESTONE] XP and level calculated | team_id: {team_id} | xp_earned: {xp_earned} | new_level: {new_level} | completion_pct: {completion_pct}%")
+
         unlocked = [m['_id'] for idx, m in enumerate(milestones) if idx <= current_index + 1]
         locked = [m['_id'] for idx, m in enumerate(milestones) if idx > current_index + 1]
+        logger.info(f"[APPROVE_MILESTONE] Milestone locks calculated | team_id: {team_id} | unlocked_count: {len(unlocked)} | locked_count: {len(locked)}")
 
         update_one(
             TEAM_PROGRESS,
@@ -1344,25 +1395,31 @@ def approve_milestone(project_id, milestone_id):
                 'total_xp': xp_earned
             }}
         )
+        logger.info(f"[APPROVE_MILESTONE] Team progress updated | team_id: {team_id} | new_level: {new_level} | completed: {completed_count} | xp_added: {xp_earned}")
 
         award_achievement(team_id, 'MILESTONE_COMPLETED')
+        logger.info(f"[APPROVE_MILESTONE] Achievement awarded: MILESTONE_COMPLETED | team_id: {team_id}")
 
         if completed_count == 1:
             award_achievement(team_id, 'FIRST_MILESTONE')
+            logger.info(f"[APPROVE_MILESTONE] Achievement awarded: FIRST_MILESTONE | team_id: {team_id}")
 
         if completed_count == len(milestones) // 2:
             award_achievement(team_id, 'HALFWAY_POINT')
+            logger.info(f"[APPROVE_MILESTONE] Achievement awarded: HALFWAY_POINT | team_id: {team_id}")
 
         if completed_count == len(milestones):
             award_achievement(team_id, 'ALL_MILESTONES')
+            logger.info(f"[APPROVE_MILESTONE] Achievement awarded: ALL_MILESTONES | team_id: {team_id}")
 
         days_early = 0
         if milestone.get('due_date'):
             days_early = (milestone['due_date'] - datetime.utcnow()).days
             if days_early > 2:
                 award_achievement(team_id, 'EARLY_COMPLETION')
+                logger.info(f"[APPROVE_MILESTONE] Achievement awarded: EARLY_COMPLETION | team_id: {team_id} | days_early: {days_early}")
 
-        logger.info(f"Milestone approved | milestone_id: {milestone_id} | team_id: {team_id} | xp: {xp_earned}")
+        logger.info(f"[APPROVE_MILESTONE] SUCCESS | milestone_id: {milestone_id} | team_id: {team_id} | xp_earned: {xp_earned} | new_level: {new_level} | completion: {completion_pct}% | unlocked_next: {current_index + 1 < len(milestones)}")
 
         return jsonify({
             'message': 'Milestone approved successfully',
@@ -1415,17 +1472,23 @@ def reject_milestone(project_id, milestone_id):
 @pbl_workflow_bp.route('/teams/<team_id>/progress', methods=['GET'])
 def get_team_progress(team_id):
     try:
+        logger.info(f"[GET_TEAM_PROGRESS] Request received | team_id: {team_id}")
         progress = find_one(TEAM_PROGRESS, {'team_id': team_id})
         if not progress:
+            logger.warning(f"[GET_TEAM_PROGRESS] Team progress not found | team_id: {team_id}")
             return jsonify({'error': 'Team progress not found'}), 404
 
+        logger.info(f"[GET_TEAM_PROGRESS] Progress found | team_id: {team_id} | level: {progress.get('current_level')} | xp: {progress.get('total_xp')} | completion: {progress.get('completion_percentage')}%")
+
         achievements = find_many(TEAM_ACHIEVEMENTS, {'team_id': team_id}, sort=[('earned_at', -1)])
+        logger.info(f"[GET_TEAM_PROGRESS] Achievements retrieved | team_id: {team_id} | achievement_count: {len(achievements)}")
 
         milestones = find_many(
             PROJECT_MILESTONES,
             {'project_id': progress['project_id']},
             sort=[('due_date', 1)]
         )
+        logger.info(f"[GET_TEAM_PROGRESS] Milestones retrieved | team_id: {team_id} | project_id: {progress['project_id']} | total_milestones: {len(milestones)}")
 
         unlocked_data = []
         locked_data = []
@@ -1444,6 +1507,8 @@ def get_team_progress(team_id):
                 unlocked_data.append(milestone_data)
             else:
                 locked_data.append(milestone_data)
+
+        logger.info(f"[GET_TEAM_PROGRESS] SUCCESS | team_id: {team_id} | unlocked: {len(unlocked_data)} | locked: {len(locked_data)} | level: {progress.get('current_level')} | xp: {progress.get('total_xp')}")
 
         return jsonify({
             'team_id': team_id,

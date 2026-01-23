@@ -26,15 +26,26 @@ const CreateProjectModal = ({ isOpen, onClose, onProjectCreated, classroomId, te
         ...formData,
         classroom_id: classroomId,
         teacher_id: teacherId,
-        stage: 'QUESTIONING', // Default starting stage
+        stage: 'QUESTIONING',
         project_type: 'team'
       };
-      await projectsAPI.createProject(data);
+      console.info('[PBL] Creating project:', {
+        title: data.title,
+        classroom_id: classroomId,
+        teacher_id: teacherId,
+        deadline: data.deadline
+      });
+      const response = await projectsAPI.createProject(data);
+      console.info('[PBL] Project created successfully:', response.data);
       toast.success('Project created successfully!');
       onProjectCreated();
       onClose();
     } catch (error) {
-      console.error("Failed to create project", error);
+      console.error("[PBL] Failed to create project:", {
+        error: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       toast.error("Failed to create project.");
     } finally {
       setLoading(false);

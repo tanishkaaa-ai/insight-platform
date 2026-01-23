@@ -129,7 +129,7 @@ const StudentDashboard = () => {
 
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
-                setError("Failed to load dashboard data. Please try again.");
+                setError(`Error: ${err.message || String(err)}`);
             } finally {
                 setLoading(false);
             }

@@ -73,25 +73,37 @@ const StudentProjects = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // 1. Get Student Teams
+                console.info('[STUDENT_PROJECTS] Fetching student teams:', { student_id: STUDENT_ID });
+
                 const teamsRes = await projectsAPI.getStudentTeams(STUDENT_ID);
                 const teams = teamsRes.data || [];
+                console.info('[STUDENT_PROJECTS] Teams retrieved:', { count: teams.length, teams });
 
                 if (teams.length > 0) {
-                    const team = teams[0]; // Pick first team for now
+                    const team = teams[0];
                     setActiveTeam(team);
+                    console.info('[STUDENT_PROJECTS] Active team set:', {
+                        team_id: team.team_id || team._id,
+                        team_name: team.team_name,
+                        project_id: team.project_id
+                    });
 
-                    // 2. Get Team Tasks
-                    // Assuming getTeamTasks expects team_id
+                    console.info('[STUDENT_PROJECTS] Fetching team tasks:', { team_id: team.team_id || team._id });
                     const tasksRes = await projectsAPI.getTeamTasks(team.team_id || team._id);
                     setTasks(tasksRes.data || []);
+                    console.info('[STUDENT_PROJECTS] Tasks retrieved:', { count: tasksRes.data?.length || 0 });
                 } else {
-                    // No teams found
+                    console.warn('[STUDENT_PROJECTS] No teams found for student:', { student_id: STUDENT_ID });
                     setTasks([]);
                 }
 
             } catch (err) {
-                console.error("Error fetching projects:", err);
+                console.error("[STUDENT_PROJECTS] Error fetching projects:", {
+                    error: err.message,
+                    response: err.response?.data,
+                    status: err.response?.status,
+                    student_id: STUDENT_ID
+                });
                 setError("Failed to load project workspace. Make sure you are assigned to a team.");
             } finally {
                 setLoading(false);
