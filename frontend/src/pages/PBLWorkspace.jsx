@@ -294,6 +294,11 @@ const PBLWorkspace = () => {
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+
+  // ... (inside PBLWorkspace component)
+
+
 
   useEffect(() => {
     // Fetch classes first
@@ -550,6 +555,21 @@ const PBLWorkspace = () => {
                       </div>
                       <h4 className="font-bold text-gray-800 text-lg mb-1">{team.team_name}</h4>
                       <p className="text-sm text-gray-500 mb-4">{team.member_count} Members</p>
+
+                      <div className="flex -space-x-2 mb-4">
+                        {team.members && team.members.map((member, i) => (
+                          <div
+                            key={member.student_id || i}
+                            className="w-8 h-8 rounded-full bg-teal-100 border-2 border-white flex items-center justify-center text-xs font-bold text-teal-700 relative group/avatar"
+                            title={member.student_name}
+                          >
+                            {member.student_name?.charAt(0) || '?'}
+                            <div className="absolute bottom-full mb-1 hidden group-hover/avatar:block bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
+                              {member.student_name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
 
                       <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
                         <div className="bg-teal-500 h-2 rounded-full" style={{ width: '0%' }}></div>

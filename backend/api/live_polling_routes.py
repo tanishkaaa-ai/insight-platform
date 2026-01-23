@@ -199,8 +199,8 @@ def get_poll(poll_id):
             'is_active': poll.get('is_active'),
             'anonymous': poll.get('anonymous'),
             'response_count': response_count,
-            'created_at': poll.get('created_at').isoformat() if poll.get('created_at') else None,
-            'closed_at': poll.get('closed_at').isoformat() if poll.get('closed_at') else None
+            'created_at': (poll.get('created_at').isoformat() if hasattr(poll.get('created_at'), 'isoformat') else poll.get('created_at')) if poll.get('created_at') else None,
+            'closed_at': (poll.get('closed_at').isoformat() if hasattr(poll.get('closed_at'), 'isoformat') else poll.get('closed_at')) if poll.get('closed_at') else None
         }), 200
 
     except Exception as e:
@@ -471,7 +471,7 @@ def calculate_poll_results(poll_id: str, include_details: bool = False) -> dict:
         'understanding_level': understanding_level,
         'recommendation': recommendation,
         'is_active': poll.get('is_active'),
-        'created_at': poll.get('created_at').isoformat() if poll.get('created_at') else None
+        'created_at': (poll.get('created_at').isoformat() if hasattr(poll.get('created_at'), 'isoformat') else poll.get('created_at')) if poll.get('created_at') else None
     }
     
     if include_details:

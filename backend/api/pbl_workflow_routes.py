@@ -258,14 +258,21 @@ def get_project(project_id):
             'teacher_id': project.get('teacher_id'),
             'stage': project.get('stage'),
             'stage_info': PBL_STAGES.get(project.get('stage'), {}),
-            'deadline': project.get('deadline').isoformat() if project.get('deadline') else None,
+            'deadline':(project.get('deadline').isoformat() if hasattr(project.get('deadline'), 'isoformat') else project.get('deadline')) if project.get('deadline') else None,
             'status': project.get('status'),
             'learning_objectives': project.get('learning_objectives', []),
             'teams': [
                 {
                     'team_id': team['_id'],
                     'team_name': team.get('team_name'),
-                    'member_count': len(team.get('members', []))
+                    'member_count': len(team.get('members', [])),
+                    'members': [
+                        {
+                            'student_id': m_id,
+                            'student_name': f"{(find_one(STUDENTS, {'_id': m_id}) or {}).get('first_name', '')} {(find_one(STUDENTS, {'_id': m_id}) or {}).get('last_name', '')}".strip() or 'Unknown'
+                        }
+                        for m_id in team.get('members', [])
+                    ]
                 }
                 for team in teams
             ],
@@ -273,7 +280,7 @@ def get_project(project_id):
                 {
                     'milestone_id': m['_id'],
                     'title': m.get('title'),
-                    'due_date': m.get('due_date').isoformat() if m.get('due_date') else None,
+                    'due_date': (m.get('due_date').isoformat() if hasattr(m.get('due_date'), 'isoformat') else m.get('due_date')) if m.get('due_date') else None,
                     'is_completed': m.get('is_completed', False)
                 }
                 for m in milestones
@@ -355,9 +362,9 @@ def get_classroom_projects(classroom_id):
                 'title': project.get('title'),
                 'stage': project.get('stage'),
                 'stage_order': project.get('stage_order'),
-                'deadline': project.get('deadline').isoformat() if project.get('deadline') else None,
+                'deadline': (project.get('deadline').isoformat() if hasattr(project.get('deadline'), 'isoformat') else project.get('deadline')) if project.get('deadline') else None,
                 'status': project.get('status'),
-                'created_at': project.get('created_at').isoformat() if project.get('created_at') else None
+                'created_at': (project.get('created_at').isoformat() if hasattr(project.get('created_at'), 'isoformat') else project.get('created_at')) if project.get('created_at') else None
             })
 
         return jsonify({
@@ -401,6 +408,7 @@ def create_team(project_id):
         team_size = len(data.get('members', []))
         # min_size = project.get('settings', {}).get('team_size_min', 1) # Force 1 for testing
         min_size = 1  # Forced override for development environment
+        max_size = project.get('settings', {}).get('team_size_max', 5)
 
         logger.info(f"[CREATE_TEAM] Validating team size | project_id: {project_id} | team_size: {team_size} | min: {min_size} | max: {max_size}")
 
@@ -515,7 +523,7 @@ def get_team(team_id):
             if student:
                 members_data.append({
                     'student_id': student_id,
-                    'student_name': student.get('name', 'Unknown'),
+                    'student_name': f"{student.get('first_name', '')} {student.get('last_name', '')}".strip(),
                     'email': student.get('email'),
                     'role': team.get('roles', {}).get(student_id, 'Member')
                 })
@@ -527,8 +535,21 @@ def get_team(team_id):
             'members': members_data,
             'member_count': len(members_data),
             'status': team.get('status'),
-            'created_at': team.get('created_at').isoformat() if team.get('created_at') else None
+            'created_at': (team.get('created_at').isoformat() if hasattr(team.get('created_at'), 'isoformat') else team.get('created_at')) if team.get('created_at') else None,
+            'progress': 0, # Placeholder - implement real calculation based on tasks/milestones
+            'completed_milestones': [], # Placeholder
+            'next_milestone': None
         }
+
+        # Calculate progress based on tasks
+        tasks = find_many(PROJECT_TASKS, {'team_id': team_id})
+        if tasks:
+            completed_tasks = [t for t in tasks if t.get('status') == 'completed']
+            team_data['progress'] = int((len(completed_tasks) / len(tasks)) * 100)
+            
+        # Get milestones status (simplistic approach: assuming milestones are linked to tasks or manual check)
+        # For now, just return project milestones as "pending" for the team unless we have specific team-milestone records
+        pass
 
         return jsonify(team_data), 200
 
@@ -655,10 +676,10 @@ def get_team_tasks(team_id):
                 'description': task.get('description'),
                 'assigned_to': task.get('assigned_to'),
                 'assigned_to_name': student.get('name', 'Unknown') if student else 'Unknown',
-                'due_date': task.get('due_date').isoformat() if task.get('due_date') else None,
+                'due_date': (task.get('due_date').isoformat() if hasattr(task.get('due_date'), 'isoformat') else task.get('due_date')) if task.get('due_date') else None,
                 'priority': task.get('priority'),
                 'status': task.get('status'),
-                'created_at': task.get('created_at').isoformat() if task.get('created_at') else None
+                'created_at': (task.get('created_at').isoformat() if hasattr(task.get('created_at'), 'isoformat') else task.get('created_at')) if task.get('created_at') else None
             })
 
         return jsonify({

@@ -142,7 +142,7 @@ def get_student_mastery(student_id):
                     'concept_id': record['concept_id'],
                     'concept_name': concept.get('concept_name', 'Unknown'),
                     'mastery_score': record.get('mastery_score', 0),
-                    'last_assessed': record.get('last_assessed').isoformat() if record.get('last_assessed') else None,
+                    'last_assessed': (record.get('last_assessed').isoformat() if hasattr(record.get('last_assessed'), 'isoformat') else record.get('last_assessed')) if record.get('last_assessed') else None,
                     'times_assessed': record.get('times_assessed', 0),
                     'learning_velocity': record.get('learning_velocity', 0)
                 })
@@ -397,7 +397,7 @@ def get_mastery_history(student_id, concept_id):
         history = []
         if mastery_record:
             history.append({
-                'date': mastery_record.get('last_assessed').isoformat() if mastery_record.get('last_assessed') else None,
+                'date': (mastery_record.get('last_assessed').isoformat() if hasattr(mastery_record.get('last_assessed'), 'isoformat') else mastery_record.get('last_assessed')) if mastery_record.get('last_assessed') else None,
                 'mastery_score': mastery_record.get('mastery_score', 0),
                 'assessments_count': mastery_record.get('times_assessed', 0)
             })
