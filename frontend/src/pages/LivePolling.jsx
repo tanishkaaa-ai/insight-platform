@@ -172,6 +172,21 @@ const LivePollingSystem = () => {
 
     try {
       setLoading(true);
+
+      // If there's an active poll, close it first so it goes to history cleanly
+      if (activePoll && activePoll.is_active) {
+        try {
+          await pollsAPI.closePoll(activePoll.poll_id);
+          // We don't need to update history state here because we are about to fetch/create state, 
+          // but strictly speaking we should push it to history to be safe.
+          // Actually, let's just let the new poll take over active slot.
+          const closedPoll = { ...activePoll, is_active: false };
+          setPollHistory(prev => [closedPoll, ...prev]);
+        } catch (err) {
+          console.warn("Failed to auto-close previous poll", err);
+        }
+      }
+
       const pollData = {
         teacher_id: teacherId,
         classroom_id: newPoll.classroom_id,
@@ -318,60 +333,7 @@ const LivePollingSystem = () => {
         )}
 
         {/* Active Poll Display */}
-        {activePoll && (
-          <div className="bg-white border-2 border-teal-500/20 rounded-2xl p-8 shadow-lg shadow-teal-100">
-            <div className="flex items-start justify-between mb-8">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/30" />
-                  <span className="text-xs font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full uppercase tracking-wider">Live & Listening</span>
-                </div>
-                <h2 className="text-3xl font-extrabold text-gray-900">{activePoll.question}</h2>
-              </div>
-              <button
-                onClick={closePoll}
-                className="px-6 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition-colors"
-              >
-                End Poll
-              </button>
-            </div>
 
-            {/* Real-time Response Counter */}
-            <div className="mb-8 flex gap-6">
-              <div className="flex-1 p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-4">
-                <div className="p-4 bg-white rounded-xl shadow-sm">
-                  <Users className="text-teal-600" size={32} />
-                </div>
-                <div>
-                  <p className="text-gray-500 text-sm font-bold uppercase">Responses Recieved</p>
-                  <p className="text-4xl font-extrabold text-gray-800">
-                    <AnimatedCounter end={activePoll.total_responses || activePoll.totalResponses || 0} />
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Results Visualization */}
-            <div className="space-y-6">
-              {(activePoll.responses || []).map((response, idx) => (
-                <div key={idx}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-700 font-bold">{response.option}</span>
-                    <span className="text-gray-500 font-medium">
-                      {response.count} votes ({response.percentage}%)
-                    </span>
-                  </div>
-                  <div className="w-full h-8 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-teal-500 transition-all duration-1000 ease-out"
-                      style={{ width: `${response.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Poll History */}
         {pollHistory.length > 0 && (
