@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { GraduationCap, School, User, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 
 const StartPage = () => {
     const navigate = useNavigate();
+    const { login, register } = useAuth(); // Use AuthContext
     const [role, setRole] = useState(null); // 'student' | 'teacher' | null
     const [isRegistering, setIsRegistering] = useState(false);
     const [formData, setFormData] = useState({
@@ -32,21 +33,22 @@ const StartPage = () => {
                 ? { ...formData, role }
                 : { email: formData.email, password: formData.password };
 
-            const response = await (isRegistering ? authAPI.register(payload) : authAPI.login(payload));
+            const result = await (isRegistering ? register(payload) : login(payload));
 
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.user || { role }));
-
-                // Redirect based on role
-                if (role === 'teacher') {
+            if (result.success) {
+                // Redirect based on backend user role
+                const userRole = result.user?.role || role;
+                if (userRole === 'teacher') {
                     navigate('/teacher');
                 } else {
                     navigate('/student');
                 }
+            } else {
+                setError(result.error);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Authentication failed. Please try again.');
+            console.error("Auth Unexpected Error:", err);
+            setError('An unexpected error occurred. Please try again.');
         } finally {
             setLoading(false);
         }

@@ -459,14 +459,9 @@ def get_classroom_polls(classroom_id):
 
         formatted_polls = []
         for poll in polls:
-            formatted_polls.append({
-                'poll_id': poll['_id'],
-                'question': poll.get('question'),
-                'poll_type': poll.get('poll_type'),
-                'is_active': poll.get('is_active'),
-                'response_count': poll.get('response_count', 0),
-                'created_at': poll.get('created_at').isoformat() if poll.get('created_at') else None
-            })
+            # Calculate full results for each poll to show history
+            poll_data = calculate_poll_results(poll['_id'])
+            formatted_polls.append(poll_data)
 
         logger.info(f"Classroom polls retrieved | classroom_id: {classroom_id} | count: {len(formatted_polls)}")
         return jsonify(formatted_polls), 200

@@ -258,6 +258,75 @@ def get_student_engagement_history(student_id):
         }), 500
 
 
+@engagement_bp.route('/student/<student_id>/gamification', methods=['GET'])
+def get_gamification_profile(student_id):
+    """
+    Get gamification profile (XP, Level, Badges) based on engagement history
+    """
+    try:
+        # Get engagement sessions
+        sessions = find_many(
+            ENGAGEMENT_SESSIONS,
+            {'student_id': student_id}
+        )
+        
+        # Calculate total XP (sum of engagement scores)
+        total_xp = sum(session.get('engagement_score', 0) for session in sessions)
+        
+        # Calculate Level (1000 XP per level)
+        level = int(total_xp / 1000) + 1
+        current_level_xp = total_xp % 1000
+        next_level_xp = 1000
+        
+        # Calculate streaks (consecutive days with activity)
+        # Sort sessions by date
+        sorted_dates = sorted(list(set(
+            session['analyzed_at'].date() 
+            for session in sessions 
+            if session.get('analyzed_at')
+        )))
+        
+        streak = 0
+        if sorted_dates:
+            current_date = datetime.utcnow().date()
+            # Check if active today
+            if sorted_dates[-1] == current_date:
+                streak = 1
+                check_date = current_date - timedelta(days=1)
+                for i in range(len(sorted_dates) - 2, -1, -1):
+                    if sorted_dates[i] == check_date:
+                        streak += 1
+                        check_date -= timedelta(days=1)
+                    else:
+                        break
+            # Check if active yesterday (streak still alive)
+            elif sorted_dates[-1] == current_date - timedelta(days=1):
+                streak = 1
+                check_date = current_date - timedelta(days=2)
+                for i in range(len(sorted_dates) - 2, -1, -1):
+                    if sorted_dates[i] == check_date:
+                        streak += 1
+                        check_date -= timedelta(days=1)
+                    else:
+                        break
+                
+        return jsonify({
+            'student_id': student_id,
+            'level': level,
+            'xp': total_xp,
+            'current_level_xp': current_level_xp,
+            'next_level_xp': next_level_xp,
+            'streak': streak,
+            'badges': [] # Placeholder for future badge system
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Internal server error',
+            'detail': str(e)
+        }), 500
+
+
 # ============================================================================
 # LIVE POLLING ROUTES (BR4)
 # ============================================================================

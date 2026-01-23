@@ -1,19 +1,20 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from bson import ObjectId
-from models.database import find_one, find_many, insert_one, update_one, delete_one
+from models.database import (
+    find_one, find_many, insert_one, update_one, delete_one,
+    PROJECTS,
+    TEAMS,
+    PROJECT_MILESTONES,
+    PROJECT_DELIVERABLES,
+    PROJECT_TASKS,
+    PEER_REVIEWS,
+    PROJECT_GRADES
+)
 from utils.logger import get_logger
 
 pbl_crud_bp = Blueprint('pbl_crud', __name__)
 logger = get_logger(__name__)
-
-PROJECTS = 'pbl_projects'
-PROJECT_TEAMS = 'pbl_project_teams'
-PROJECT_MILESTONES = 'pbl_project_milestones'
-PROJECT_DELIVERABLES = 'project_deliverables'
-PROJECT_TASKS = 'pbl_project_tasks'
-PROJECT_PEER_REVIEWS = 'pbl_peer_reviews'
-PROJECT_GRADES = 'pbl_project_grades'
 
 @pbl_crud_bp.route('/projects/<project_id>/milestones', methods=['GET'])
 def get_project_milestones(project_id):
@@ -229,7 +230,7 @@ def get_team_grades(team_id):
 @pbl_crud_bp.route('/peer-reviews/<review_id>', methods=['GET'])
 def get_peer_review(review_id):
     try:
-        review = find_one(PROJECT_PEER_REVIEWS, {'_id': review_id})
+        review = find_one(PEER_REVIEWS, {'_id': review_id})
         if not review:
             return jsonify({'error': 'Peer review not found'}), 404
 
@@ -249,12 +250,12 @@ def get_peer_review(review_id):
 def update_peer_review(review_id):
     try:
         data = request.json
-        review = find_one(PROJECT_PEER_REVIEWS, {'_id': review_id})
+        review = find_one(PEER_REVIEWS, {'_id': review_id})
         if not review:
             return jsonify({'error': 'Peer review not found'}), 404
 
         if 'ratings' in data:
-            update_one(PROJECT_PEER_REVIEWS, {'_id': review_id}, {'$set': {'ratings': data['ratings']}})
+            update_one(PEER_REVIEWS, {'_id': review_id}, {'$set': {'ratings': data['ratings']}})
             return jsonify({'message': 'Peer review updated successfully'}), 200
 
         return jsonify({'error': 'No ratings provided'}), 400
@@ -264,11 +265,11 @@ def update_peer_review(review_id):
 @pbl_crud_bp.route('/peer-reviews/<review_id>', methods=['DELETE'])
 def delete_peer_review(review_id):
     try:
-        review = find_one(PROJECT_PEER_REVIEWS, {'_id': review_id})
+        review = find_one(PEER_REVIEWS, {'_id': review_id})
         if not review:
             return jsonify({'error': 'Peer review not found'}), 404
 
-        delete_one(PROJECT_PEER_REVIEWS, {'_id': review_id})
+        delete_one(PEER_REVIEWS, {'_id': review_id})
         return jsonify({'message': 'Peer review deleted successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
@@ -288,11 +289,11 @@ def delete_project(project_id):
 @pbl_crud_bp.route('/teams/<team_id>', methods=['DELETE'])
 def delete_team(team_id):
     try:
-        team = find_one(PROJECT_TEAMS, {'_id': team_id})
+        team = find_one(TEAMS, {'_id': team_id})
         if not team:
             return jsonify({'error': 'Team not found'}), 404
 
-        update_one(PROJECT_TEAMS, {'_id': team_id}, {'$set': {'status': 'archived'}})
+        update_one(TEAMS, {'_id': team_id}, {'$set': {'status': 'archived'}})
         return jsonify({'message': 'Team archived successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500

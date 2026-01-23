@@ -36,25 +36,18 @@ const StudentDashboard = () => {
                 setLoading(true);
 
                 // Parallel data fetching
-                const [engagementRes, masteryRes, assignmentsRes, classesRes] = await Promise.allSettled([
+                const [engagementRes, masteryRes, assignmentsRes, classesRes, gamificationRes] = await Promise.allSettled([
                     engagementAPI.getStudentEngagementHistory(STUDENT_ID, 30),
                     masteryAPI.getStudentMastery(STUDENT_ID),
                     classroomAPI.getStudentAssignments(STUDENT_ID, 'assigned'),
-                    classroomAPI.getStudentClasses(STUDENT_ID)
+                    classroomAPI.getStudentClasses(STUDENT_ID),
+                    engagementAPI.getGamificationProfile(STUDENT_ID)
                 ]);
 
-                // Process Engagement Data (XP, Level, Streak)
-                let engagementData = { level: 1, xp: 0, streak: 0, history: [] };
-                if (engagementRes.status === 'fulfilled') {
-                    const history = engagementRes.value.data.history || [];
-                    // Simple gamification logic based on history length/scores (mock logic for demo as backend doesn't return aggregated XP yet)
-                    const totalScore = history.reduce((acc, curr) => acc + (curr.engagement_score || 0), 0);
-                    engagementData = {
-                        level: Math.floor(totalScore / 500) + 1,
-                        xp: totalScore % 1000,
-                        streak: history.length > 5 ? 5 : history.length, // Placeholder streak logic
-                        history: history
-                    };
+                // Process Engagement/Gamification Data
+                let engagementData = { level: 1, xp: 0, streak: 0, nextLevelXp: 1000 };
+                if (gamificationRes.status === 'fulfilled') {
+                    engagementData = gamificationRes.value.data;
                 }
 
                 // Process Mastery Data
@@ -91,15 +84,34 @@ const StudentDashboard = () => {
                     }));
                 }
 
-                // Process Next Class (Mock logic: pick first class)
+                // Process Next Class (Real Schedule)
                 let nextClass = { subject: 'No Upcoming Classes', time: '--:--', topic: 'Relax!' };
                 if (classesRes.status === 'fulfilled' && classesRes.value.data.length > 0) {
-                    const firstClass = classesRes.value.data[0];
-                    nextClass = {
-                        subject: firstClass.class_name,
-                        time: '10:00 AM', // Placeholder as API doesn't return schedule yet
-                        topic: firstClass.subject
-                    };
+                    // Simple logic: Find the first class with a schedule for "Today" -> In a real app, this would check weekday
+                    const today = new Date().toLocaleDateString('en-US', { weekday: 'Short' }); // Mon, Tue...
+
+                    const upcomingClasses = classesRes.value.data.filter(c => {
+                        // Check if schedule exists and today is in days list
+                        return c.schedule && c.schedule.days && c.schedule.days.includes(today);
+                    });
+
+                    if (upcomingClasses.length > 0) {
+                        // Sort by time (simplified)
+                        const firstClass = upcomingClasses[0];
+                        nextClass = {
+                            subject: firstClass.class_name,
+                            time: firstClass.schedule.time || 'TBD',
+                            topic: firstClass.subject
+                        };
+                    } else if (classesRes.value.data.length > 0) {
+                        // Fallback to just showing the first class if no schedule match
+                        const firstClass = classesRes.value.data[0];
+                        nextClass = {
+                            subject: firstClass.class_name,
+                            time: (firstClass.schedule && firstClass.schedule.time) || '--:--',
+                            topic: firstClass.subject
+                        };
+                    }
                 }
 
                 setData(prev => ({
@@ -107,6 +119,7 @@ const StudentDashboard = () => {
                     name: user?.profile?.first_name || prev.name,
                     level: engagementData.level,
                     xp: engagementData.xp,
+                    nextLevelXp: engagementData.nextLevelXp || 1000,
                     streak: engagementData.streak,
                     masteryScore: Math.round(masteryScore),
                     pendingAssignments: pendingCount,

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import TeacherLayout from '../components/TeacherLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { classroomAPI, dashboardAPI } from '../services/api';
 import {
   GraduationCap,
   LineChart,
@@ -11,28 +13,10 @@ import {
   ChevronRight,
   TrendingUp,
   Lightbulb,
-  Megaphone
+  Megaphone,
+  Loader
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-// Mock Data
-const mockTeacherStats = {
-  totalStudents: 142,
-  avgAttendance: 94,
-  activeProjects: 8,
-  engagementScore: 78
-};
-
-const mockClasses = [
-  { id: 1, name: 'Forensic Science 101', period: '1st (10:00 AM)', students: 32, engagement: 'High', alert: false },
-  { id: 2, name: 'Digital Investigation', period: '2nd (11:30 AM)', students: 28, engagement: 'Medium', alert: true },
-  { id: 3, name: 'Cyber Ethics', period: '3rd (02:00 PM)', students: 30, engagement: 'High', alert: false },
-];
-
-const atRiskStudents = [
-  { id: 101, name: 'Jordan Smith', class: 'Digital Investigation', reason: 'Absent 3 days', riskLevel: 'High' },
-  { id: 105, name: 'Casey Lee', class: 'Forensic Science 101', reason: 'Low Mastery Score', riskLevel: 'Medium' },
-];
 
 const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
   <motion.div
@@ -56,6 +40,119 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
 );
 
 const TeacherDashboard = () => {
+  const { user, getUserId } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    avgEngagement: 0,
+    activeProjects: 0, // Placeholder as projects API isn't primary focus yet
+    masteryIndex: 0
+  });
+  const [todaysClasses, setTodaysClasses] = useState([]);
+  const [atRiskStudents, setAtRiskStudents] = useState([]);
+  const [aiSuggestion, setAiSuggestion] = useState(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const userId = getUserId();
+        console.log("TeacherDashboard: Fetching data for user:", userId);
+
+        if (!userId) {
+          console.warn("TeacherDashboard: No user ID found");
+          return;
+        }
+
+        // 1. Fetch Teacher's Classes
+        const classesRes = await classroomAPI.getTeacherClasses(userId);
+        console.log("TeacherDashboard: Classes fetched:", classesRes.data);
+        const classes = classesRes.data || [];
+
+        // Filter for "Today's Classes"
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayName = days[new Date().getDay()];
+        const todayClasses = classes.filter(c =>
+          c.schedule?.days?.some(d => d.toLowerCase().includes(todayName.toLowerCase().substring(0, 3)))
+        );
+
+        // Fallback: show all active classes if no specific match (or just first 3)
+        // Check if classes array is empty first
+        setTodaysClasses(todayClasses.length > 0 ? todayClasses : classes.slice(0, 3));
+
+        // 2. Fetch Alerts
+        try {
+          const alertsRes = await dashboardAPI.getAlerts({
+            severity: 'AT_RISK',
+            teacher_id: userId
+          });
+          console.log("TeacherDashboard: Alerts fetched:", alertsRes.data);
+          setAtRiskStudents(Array.isArray(alertsRes.data) ? alertsRes.data.slice(0, 5) : []);
+        } catch (err) {
+          console.error("TeacherDashboard: Error fetching alerts:", err);
+          setAtRiskStudents([]);
+        }
+
+        // 3. Calculate Stats
+        let totalStudents = 0;
+        let totalEngagement = 0;
+        let classCountWithEngagement = 0;
+
+        const engagementPromises = classes.map(c => dashboardAPI.getClassEngagement(c.classroom_id));
+        const engagementResults = await Promise.allSettled(engagementPromises);
+
+        classes.forEach((cls, index) => {
+          totalStudents += (cls.student_count || 0);
+
+          const res = engagementResults[index];
+          if (res.status === 'fulfilled' && res.value.data) {
+            totalEngagement += res.value.data.class_engagement_index || 0;
+            classCountWithEngagement++;
+          }
+        });
+
+        const avgEngagement = classCountWithEngagement > 0 ? Math.round(totalEngagement / classCountWithEngagement) : 0;
+        console.log("TeacherDashboard: Calculated stats:", { totalStudents, avgEngagement });
+
+        setStats({
+          totalStudents,
+          avgEngagement,
+          activeProjects: 8,
+          masteryIndex: 8.4
+        });
+
+        // AI Suggestion
+        if (avgEngagement > 0 && avgEngagement < 60) {
+          setAiSuggestion({
+            title: "Low Engagement Detected",
+            text: "Overall class engagement is below 60%. Consider introducing a live poll or interactive breakout session to boost participation."
+          });
+        } else {
+          setAiSuggestion({
+            title: "AI Teaching Assistant Suggestion",
+            text: "Student participation tends to drop during mid-session lectures. Consider adding a quick interactive poll to re-engage the class."
+          });
+        }
+
+      } catch (error) {
+        console.error("Error loading dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [getUserId]);
+
+  if (loading) {
+    return (
+      <TeacherLayout>
+        <div className="flex items-center justify-center h-screen">
+          <Loader className="animate-spin text-teal-600" size={40} />
+        </div>
+      </TeacherLayout>
+    );
+  }
+
   return (
     <TeacherLayout>
       <div className="space-y-8">
@@ -64,7 +161,7 @@ const TeacherDashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Administrator Dashboard</h1>
-            <p className="text-gray-500 mt-1">{new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}, Prof. Anderson. Here's what's happening today.</p>
+            <p className="text-gray-500 mt-1">{new Date().getHours() < 12 ? 'Good Morning' : new Date().getHours() < 18 ? 'Good Afternoon' : 'Good Evening'}, {user?.first_name || 'Professor'}. Here's what's happening today.</p>
           </div>
           <div className="flex gap-3">
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
@@ -81,22 +178,22 @@ const TeacherDashboard = () => {
           <StatCard
             icon={GraduationCap}
             label="Total Students"
-            value={mockTeacherStats.totalStudents}
+            value={stats.totalStudents}
             trend="+5%"
             color="bg-blue-50 text-blue-600"
           />
           <StatCard
             icon={LineChart}
             label="Avg. Engagement"
-            value={`${mockTeacherStats.engagementScore}%`}
+            value={`${stats.avgEngagement}%`}
             trend="+12%"
             color="bg-purple-50 text-purple-600"
-            subtext="Based on last 7 days"
+            subtext="Based on real-time analysis"
           />
           <StatCard
             icon={Lightbulb}
             label="Mastery Index"
-            value="8.4/10"
+            value={`${stats.masteryIndex}/10`}
             color="bg-teal-50 text-teal-600"
             subtext="Class average across modules"
           />
@@ -127,60 +224,64 @@ const TeacherDashboard = () => {
                 </NavLink>
               </div>
               <div className="divide-y divide-gray-50">
-                {mockClasses.map((cls) => (
-                  <div key={cls.id} className="p-5 hover:bg-gray-50 transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-gray-500">
-                          {cls.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-800 group-hover:text-teal-600 transition-colors">{cls.name}</h3>
-                          <p className="text-sm text-gray-500 flex items-center gap-2">
-                            <Clock size={14} /> {cls.period} • {cls.students} Students
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right hidden md:block">
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Engagement</p>
-                          <span className={`font-bold ${cls.engagement === 'High' ? 'text-green-600' : 'text-yellow-600'}`}>
-                            {cls.engagement}
-                          </span>
-                        </div>
-                        {cls.alert && (
-                          <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center animate-pulse" title="Needs Attention">
-                            <AlertTriangle size={16} />
+                {todaysClasses.length > 0 ? (
+                  todaysClasses.map((cls) => (
+                    <div key={cls.classroom_id} className="p-5 hover:bg-gray-50 transition-colors group">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center font-bold text-gray-500">
+                            {cls.class_name.charAt(0)}
                           </div>
-                        )}
-                        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                          <MoreHorizontal size={20} />
-                        </button>
+                          <div>
+                            <h3 className="font-bold text-gray-800 group-hover:text-teal-600 transition-colors">{cls.class_name}</h3>
+                            <p className="text-sm text-gray-500 flex items-center gap-2">
+                              <Clock size={14} /> {cls.schedule?.time || 'TBA'} • {cls.student_count || 0} Students
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right hidden md:block">
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</p>
+                            <span className={`font-bold ${cls.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                              {cls.is_active ? 'Active' : 'Archived'}
+                            </span>
+                          </div>
+
+                          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <MoreHorizontal size={20} />
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-gray-500">
+                    No classes scheduled for today.
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
             {/* AI Insights Concept */}
-            <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none" />
-              <div className="relative z-10 flex items-start gap-4">
-                <div className="bg-white/10 p-3 rounded-xl border border-white/10">
-                  <Lightbulb size={24} className="text-teal-400" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-2">AI Teaching Assistant Suggestion</h3>
-                  <p className="text-slate-300 text-sm leading-relaxed max-w-xl">
-                    Engagement analysis shows that student participation drops by 15% during "Evidence Collection" lectures. Consider adding a 5-minute interactive poll halfway through the session to re-engage the class.
-                  </p>
-                  <button className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-sm transition-colors">
-                    Create Poll Now
-                  </button>
+            {aiSuggestion && (
+              <div className="bg-gradient-to-r from-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500 rounded-full blur-[100px] opacity-20 pointer-events-none" />
+                <div className="relative z-10 flex items-start gap-4">
+                  <div className="bg-white/10 p-3 rounded-xl border border-white/10">
+                    <Lightbulb size={24} className="text-teal-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-2">{aiSuggestion.title}</h3>
+                    <p className="text-slate-300 text-sm leading-relaxed max-w-xl">
+                      {aiSuggestion.text}
+                    </p>
+                    <button className="mt-4 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-sm transition-colors">
+                      Create Poll Now
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Right Sidebar: At Risk & Upcoming */}
@@ -192,18 +293,26 @@ const TeacherDashboard = () => {
                 </h2>
               </div>
               <div className="p-2">
-                {atRiskStudents.map((student) => (
-                  <div key={student.id} className="p-3 transition-colors hover:bg-red-50/50 rounded-xl cursor-pointer">
+                {atRiskStudents.length > 0 ? (atRiskStudents.map((alert) => (
+                  <div key={alert.alert_id} className="p-3 transition-colors hover:bg-red-50/50 rounded-xl cursor-pointer">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-bold text-gray-800 text-sm">{student.name}</span>
+                      <span className="font-bold text-gray-800 text-sm">{alert.student_name}</span>
                       <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full uppercase">
-                        {student.riskLevel} Risk
+                        {alert.severity} Risk
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mb-2">{student.class}</p>
-                    <p className="text-xs text-red-600 font-medium">Reason: {student.reason}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {alert.behaviors?.map((b, i) => (
+                        <span key={i} className="text-[10px] text-red-500 bg-white border border-red-100 px-1 rounded">{b}</span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-red-600 font-medium mt-1">Rec: {alert.recommendations?.[0] || 'Monitor'}</p>
                   </div>
-                ))}
+                ))) : (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    No critical alerts at this time.
+                  </div>
+                )}
                 <button className="w-full text-center py-3 text-xs font-bold text-gray-400 hover:text-gray-600 border-t border-gray-50 mt-1">
                   View All Alerts
                 </button>

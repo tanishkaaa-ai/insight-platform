@@ -30,12 +30,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Redirect to login if not already there
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
+      const isLoginRequest = error.config?.url?.includes('/auth/login');
+      const isRegisterRequest = error.config?.url?.includes('/auth/register');
+
+      if (!isLoginRequest && !isRegisterRequest) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
       }
     }
     return Promise.reject(error);
@@ -68,12 +71,16 @@ export const practiceAPI = {
 
 export const classroomAPI = {
   getStudentClasses: (studentId) => api.get(`/classroom/classrooms/student/${studentId}`),
-  getTeacherClasses: (teacherId) => api.get(`/classroom/classrooms/teacher/${teacherId}`),
+  getTeacherClasses: (teacherId) => api.get(`/classroom/teacher/${teacherId}/classrooms`),
   joinClass: (data) => api.post('/classroom/classrooms/join', data),
   getClassStream: (classId) => api.get(`/classroom/classrooms/${classId}/stream`),
   getAssignment: (assignmentId) => api.get(`/classroom/assignments/${assignmentId}`),
   submitAssignment: (assignmentId, data) => api.post(`/classroom/assignments/${assignmentId}/submit`, data),
   getStudentAssignments: (studentId, status) => api.get(`/classroom/students/${studentId}/assignments`, { params: { status } }),
+  getClassroom: (classroomId) => api.get(`/classroom/classrooms/${classroomId}`),
+  getClassroomStudents: (classroomId) => api.get(`/classroom/classrooms/${classroomId}/students`),
+  createClass: (data) => api.post('/classroom/classrooms', data),
+  createPost: (classroomId, data) => api.post(`/classroom/classrooms/${classroomId}/posts`, data),
 };
 
 export const engagementAPI = {
@@ -85,6 +92,7 @@ export const engagementAPI = {
   dismissAlert: (alertId) => api.delete(`/engagement/alerts/${alertId}`),
   acknowledgeAlert: (alertId) => api.post(`/engagement/alerts/${alertId}/acknowledge`),
   getStudentEngagementHistory: (studentId, days) => api.get(`/engagement/student/${studentId}/history`, { params: { days } }),
+  getGamificationProfile: (studentId) => api.get(`/engagement/student/${studentId}/gamification`),
 };
 
 export const pollsAPI = {
@@ -123,6 +131,12 @@ export const projectsAPI = {
   getTeamSoftSkillsSummary: (teamId) => api.get(`/pbl/teams/${teamId}/soft-skills-summary`),
   getStages: () => api.get('/pbl/stages'),
   getDimensions: () => api.get('/pbl/dimensions'),
+  // CRUD Extensions
+  deleteMilestone: (milestoneId) => api.delete(`/pbl/milestones/${milestoneId}`),
+  updateMilestone: (milestoneId, data) => api.put(`/pbl/milestones/${milestoneId}`, data),
+  getProjectMilestones: (projectId) => api.get(`/pbl/projects/${projectId}/milestones`),
+  getProjectDeliverables: (projectId) => api.get(`/pbl/projects/${projectId}/deliverables`),
+  updateDeliverableGrade: (deliverableId, data) => api.put(`/pbl/deliverables/${deliverableId}/grade`, data),
 };
 
 export const templatesAPI = {

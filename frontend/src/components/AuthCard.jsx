@@ -138,19 +138,18 @@ const AuthCard = ({ isRegister = false }) => {
     setApiError('');
 
     const result = await login(loginData);
-    
+
     if (result.success) {
-      // Navigate based on user role
-      if (user?.role === 'teacher') {
-        navigate('/teacher');
+      // Use window.location for full page reload to ensure clean state
+      if (result.user?.role === 'teacher') {
+        window.location.href = '/teacher';
       } else {
-        navigate('/student');
+        window.location.href = '/student';
       }
     } else {
       setApiError(result.error || 'Login failed. Please try again.');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -185,19 +184,18 @@ const AuthCard = ({ isRegister = false }) => {
     }
 
     const result = await registerUser(payload);
-    
+
     if (result.success) {
-      // Navigate based on user role
-      if (user?.role === 'teacher') {
-        navigate('/teacher');
+      // Use window.location for full page reload to ensure clean state
+      if (result.user?.role === 'teacher') {
+        window.location.href = '/teacher';
       } else {
-        navigate('/student');
+        window.location.href = '/student';
       }
     } else {
       setApiError(result.error || 'Registration failed. Please try again.');
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -257,9 +255,8 @@ const AuthCard = ({ isRegister = false }) => {
                   name="email"
                   value={loginData.email}
                   onChange={handleLoginChange}
-                  className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                    loginErrors.email ? 'border-red-500' : 'border-slate-600/50'
-                  } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                  className={`w-full px-5 py-4 bg-slate-800/60 border ${loginErrors.email ? 'border-red-500' : 'border-slate-600/50'
+                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                   placeholder="Enter your email"
                 />
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -292,9 +289,8 @@ const AuthCard = ({ isRegister = false }) => {
                   name="password"
                   value={loginData.password}
                   onChange={handleLoginChange}
-                  className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                    loginErrors.password ? 'border-red-500' : 'border-slate-600/50'
-                  } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                  className={`w-full px-5 py-4 bg-slate-800/60 border ${loginErrors.password ? 'border-red-500' : 'border-slate-600/50'
+                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                   placeholder="Enter your password"
                 />
                 <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -354,9 +350,8 @@ const AuthCard = ({ isRegister = false }) => {
                     name="email"
                     value={registerData.email}
                     onChange={handleRegisterChange}
-                    className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                      registerErrors.email ? 'border-red-500' : 'border-slate-600/50'
-                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                    className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.email ? 'border-red-500' : 'border-slate-600/50'
+                      } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                     placeholder="Enter your email"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -389,9 +384,8 @@ const AuthCard = ({ isRegister = false }) => {
                     name="username"
                     value={registerData.username}
                     onChange={handleRegisterChange}
-                    className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                      registerErrors.username ? 'border-red-500' : 'border-slate-600/50'
-                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                    className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.username ? 'border-red-500' : 'border-slate-600/50'
+                      } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                     placeholder="Choose a username"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -426,9 +420,8 @@ const AuthCard = ({ isRegister = false }) => {
                     name="password"
                     value={registerData.password}
                     onChange={handleRegisterChange}
-                    className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                      registerErrors.password ? 'border-red-500' : 'border-slate-600/50'
-                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                    className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.password ? 'border-red-500' : 'border-slate-600/50'
+                      } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                     placeholder="Create a password"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -477,9 +470,8 @@ const AuthCard = ({ isRegister = false }) => {
                     name="first_name"
                     value={registerData.first_name}
                     onChange={handleRegisterChange}
-                    className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                      registerErrors.first_name ? 'border-red-500' : 'border-slate-600/50'
-                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                    className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.first_name ? 'border-red-500' : 'border-slate-600/50'
+                      } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                     placeholder="First name"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -514,9 +506,8 @@ const AuthCard = ({ isRegister = false }) => {
                     name="last_name"
                     value={registerData.last_name}
                     onChange={handleRegisterChange}
-                    className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                      registerErrors.last_name ? 'border-red-500' : 'border-slate-600/50'
-                    } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
+                    className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.last_name ? 'border-red-500' : 'border-slate-600/50'
+                      } rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-12`}
                     placeholder="Last name"
                   />
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -551,9 +542,8 @@ const AuthCard = ({ isRegister = false }) => {
                   name="grade_level"
                   value={registerData.grade_level || ''}
                   onChange={handleRegisterChange}
-                  className={`w-full px-5 py-4 bg-slate-800/60 border ${
-                    registerErrors.grade_level ? 'border-red-500' : 'border-slate-600/50'
-                  } rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer bg-slate-800/60 pr-10`}
+                  className={`w-full px-5 py-4 bg-slate-800/60 border ${registerErrors.grade_level ? 'border-red-500' : 'border-slate-600/50'
+                    } rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer bg-slate-800/60 pr-10`}
                 >
                   <option value="">Select Grade</option>
                   {[...Array(12)].map((_, i) => (

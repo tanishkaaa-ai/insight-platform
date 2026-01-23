@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { Book, User, Clock, MessageSquare, FileText, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Book, User, Clock, MessageSquare, FileText, ChevronRight, Loader2, AlertCircle, Plus, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { classroomAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const StudentClasses = () => {
     const { getUserId } = useAuth();
+    const navigate = useNavigate();
     const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
     const [stream, setStream] = useState([]);
@@ -14,26 +17,32 @@ const StudentClasses = () => {
     const [streamLoading, setStreamLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Join Class State
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [joinCode, setJoinCode] = useState('');
+    const [joinLoading, setJoinLoading] = useState(false);
+    const [joinError, setJoinError] = useState(null);
+
     const STUDENT_ID = getUserId();
+
+    const fetchClasses = async () => {
+        try {
+            setLoading(true);
+            const response = await classroomAPI.getStudentClasses(STUDENT_ID);
+            setClasses(response.data);
+            if (response.data.length > 0 && !selectedClass) {
+                setSelectedClass(response.data[0]);
+            }
+        } catch (err) {
+            console.error("Error fetching classes:", err);
+            setError("Failed to load your classes.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Fetch classes on mount
     useEffect(() => {
-        const fetchClasses = async () => {
-            try {
-                setLoading(true);
-                const response = await classroomAPI.getStudentClasses(STUDENT_ID);
-                setClasses(response.data);
-                if (response.data.length > 0) {
-                    setSelectedClass(response.data[0]);
-                }
-            } catch (err) {
-                console.error("Error fetching classes:", err);
-                setError("Failed to load your classes.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (STUDENT_ID) {
             fetchClasses();
         } else {
@@ -63,12 +72,37 @@ const StudentClasses = () => {
     }, [selectedClass]);
 
     const handleStartAssignment = (assignmentId) => {
-        // TODO: Navigate to assignment submission page
-        alert(`Starting assignment ${assignmentId}... (Feature coming soon)`);
+        navigate(`/student/assignment/${assignmentId}`);
     };
 
     const handleViewDetails = (postId) => {
-        alert(`Viewing details for ${postId}...`);
+        navigate(`/student/assignment/${postId}`);
+    };
+
+    const handleJoinClass = async (e) => {
+        e.preventDefault();
+        if (!joinCode.trim()) return;
+
+        setJoinLoading(true);
+        setJoinError(null);
+
+        try {
+            await classroomAPI.joinClass({
+                student_id: STUDENT_ID,
+                join_code: joinCode.trim()
+            });
+
+            toast.success("Successfully joined the class!");
+            setShowJoinModal(false);
+            setJoinCode('');
+            // Refresh classes
+            fetchClasses();
+        } catch (err) {
+            console.error("Join class error:", err);
+            setJoinError(err.response?.data?.error || "Failed to join class. Please check the code.");
+        } finally {
+            setJoinLoading(false);
+        }
     };
 
     if (loading) {
@@ -107,41 +141,60 @@ const StudentClasses = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-8rem)]">
 
                 {/* Class List (Sidebar-ish) */}
-                <div className="lg:col-span-1 space-y-4 overflow-y-auto pr-2">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <Book className="text-orange-500" /> My Classes
-                    </h2>
-                    {classes.length === 0 ? (
-                        <div className="text-gray-400 italic p-4 border-2 border-dashed border-gray-200 rounded-xl text-center">
-                            You haven't joined any classes yet.
-                        </div>
-                    ) : (
-                        classes.map((cls) => (
-                            <motion.div
-                                key={cls.classroom_id}
-                                onClick={() => setSelectedClass(cls)}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-300 ease-out hover:-translate-y-1 ${selectedClass?.classroom_id === cls.classroom_id
-                                    ? 'border-orange-400 bg-white shadow-md -rotate-1 ring-2 ring-orange-100 ring-offset-2'
-                                    : 'border-transparent bg-white/60 hover:bg-white hover:shadow-sm'
-                                    }`}
-                            >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div className={`p-2 rounded-lg ${cls.theme_color ? '' : 'bg-teal-100 text-teal-700'} font-bold text-xs uppercase tracking-wider`}
-                                        style={cls.theme_color ? { backgroundColor: `${cls.theme_color}20`, color: cls.theme_color } : {}}>
-                                        {cls.class_name.split(' ')[0]}
+                <div className="lg:col-span-1 flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <Book className="text-orange-500" /> My Classes
+                        </h2>
+                        <button
+                            onClick={() => setShowJoinModal(true)}
+                            className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors shadow-md"
+                            title="Join a Class"
+                        >
+                            <Plus size={20} />
+                        </button>
+                    </div>
+
+                    <div className="overflow-y-auto pr-2 flex-1 space-y-4">
+                        {classes.length === 0 ? (
+                            <div className="text-gray-400 italic p-8 border-2 border-dashed border-gray-200 rounded-xl text-center flex flex-col items-center">
+                                <Book size={48} className="mb-4 opacity-20" />
+                                <p>You haven't joined any classes yet.</p>
+                                <button
+                                    onClick={() => setShowJoinModal(true)}
+                                    className="mt-4 text-orange-500 font-bold hover:underline"
+                                >
+                                    Join your first class
+                                </button>
+                            </div>
+                        ) : (
+                            classes.map((cls) => (
+                                <motion.div
+                                    key={cls.classroom_id}
+                                    onClick={() => setSelectedClass(cls)}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all duration-300 ease-out hover:-translate-y-1 ${selectedClass?.classroom_id === cls.classroom_id
+                                        ? 'border-orange-400 bg-white shadow-md -rotate-1 ring-2 ring-orange-100 ring-offset-2'
+                                        : 'border-transparent bg-white/60 hover:bg-white hover:shadow-sm'
+                                        }`}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className={`p-2 rounded-lg ${cls.theme_color ? '' : 'bg-teal-100 text-teal-700'} font-bold text-xs uppercase tracking-wider`}
+                                            style={cls.theme_color ? { backgroundColor: `${cls.theme_color}20`, color: cls.theme_color } : {}}>
+                                            {cls.class_name.split(' ')[0]}
+                                        </div>
+                                        <ChevronRight className={`transition-transform ${selectedClass?.classroom_id === cls.classroom_id ? 'rotate-90 text-orange-500' : 'text-gray-300'}`} size={20} />
                                     </div>
-                                    <ChevronRight className={`transition-transform ${selectedClass?.classroom_id === cls.classroom_id ? 'rotate-90 text-orange-500' : 'text-gray-300'}`} size={20} />
-                                </div>
-                                <h3 className="font-bold text-gray-800 text-lg">{cls.class_name}</h3>
-                                <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
-                                    <span className="flex items-center gap-1"><User size={14} /> {cls.teacher_name}</span>
-                                    {/* <span className="flex items-center gap-1"><Clock size={14} /> {cls.time}</span> */}
-                                </div>
-                            </motion.div>
-                        ))
-                    )}
+                                    <h3 className="font-bold text-gray-800 text-lg">{cls.class_name}</h3>
+                                    <div className="flex items-center gap-3 mt-3 text-sm text-gray-500">
+                                        <span className="flex items-center gap-1"><User size={14} /> {cls.teacher_name}</span>
+                                        {/* <span className="flex items-center gap-1"><Clock size={14} /> {cls.time}</span> */}
+                                    </div>
+                                </motion.div>
+                            ))
+                        )}
+                    </div>
                 </div>
 
                 {/* Class Stream (Main Content) */}
@@ -246,6 +299,87 @@ const StudentClasses = () => {
                 </div>
 
             </div>
+
+            {/* Join Class Modal */}
+            <AnimatePresence>
+                {showJoinModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                        onClick={() => setShowJoinModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl relative overflow-hidden"
+                        >
+                            <button
+                                onClick={() => setShowJoinModal(false)}
+                                className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="mb-6">
+                                <h3 className="text-2xl font-bold text-gray-800 mb-2">Join a Class</h3>
+                                <p className="text-gray-500">
+                                    Ask your teacher for the class code, then enter it here.
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleJoinClass}>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                                            Class Code
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={joinCode}
+                                            onChange={(e) => setJoinCode(e.target.value)}
+                                            placeholder="e.g. AB12CD"
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none text-lg font-mono tracking-wider uppercase transition-colors"
+                                            maxLength={6}
+                                        />
+                                    </div>
+
+                                    {joinError && (
+                                        <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-start gap-2">
+                                            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                                            {joinError}
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-3 mt-8">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowJoinModal(false)}
+                                            className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={!joinCode.trim() || joinLoading}
+                                            className="flex-1 px-4 py-3 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {joinLoading ? (
+                                                <Loader2 size={20} className="animate-spin" />
+                                            ) : (
+                                                'Join Class'
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </DashboardLayout >
     );
 };

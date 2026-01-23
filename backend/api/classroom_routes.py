@@ -126,6 +126,7 @@ def create_classroom():
             'theme_color': data.get('theme_color', '#4285f4'),
             'grade_level': data.get('grade_level'),
             'max_students': data.get('max_students', 100),
+            'schedule': data.get('schedule', {'days': [], 'time': ''}),
             'settings': {
                 'allow_student_posts': data.get('allow_student_posts', True),
                 'allow_student_comments': data.get('allow_student_comments', True),
@@ -177,6 +178,9 @@ def get_classroom_details(classroom_id):
             'section': classroom.get('section'),
             'subject': classroom.get('subject'),
             'room': classroom.get('room'),
+            'subject': classroom.get('subject'),
+            'room': classroom.get('room'),
+            'schedule': classroom.get('schedule'),
             'description': classroom.get('description'),
             'join_code': classroom.get('join_code') if classroom.get('settings', {}).get('show_class_code', True) else None,
             'is_active': classroom.get('is_active'),
@@ -220,6 +224,8 @@ def update_classroom(classroom_id):
             update_data['theme_color'] = data['theme_color']
         if 'grade_level' in data:
             update_data['grade_level'] = data['grade_level']
+        if 'schedule' in data:
+            update_data['schedule'] = data['schedule']
 
         if update_data:
             update_data['updated_at'] = datetime.utcnow()
@@ -352,7 +358,7 @@ def join_classroom():
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
-@classroom_bp.route('/classrooms/teacher/<teacher_id>', methods=['GET'])
+@classroom_bp.route('/teacher/<teacher_id>/classrooms', methods=['GET'])
 def get_teacher_classrooms(teacher_id):
     """Get all classrooms for a teacher"""
     try:
@@ -376,6 +382,9 @@ def get_teacher_classrooms(teacher_id):
                 'class_name': classroom.get('class_name'),
                 'section': classroom.get('section'),
                 'subject': classroom.get('subject'),
+                'section': classroom.get('section'),
+                'subject': classroom.get('subject'),
+                'schedule': classroom.get('schedule'),
                 'join_code': classroom.get('join_code'),
                 'student_count': student_count,
                 'is_active': classroom.get('is_active'),
@@ -414,8 +423,10 @@ def get_student_classrooms(student_id):
                     'classroom_id': classroom['_id'],
                     'class_name': classroom.get('class_name'),
                     'section': classroom.get('section'),
+                    'section': classroom.get('section'),
                     'subject': classroom.get('subject'),
                     'room': classroom.get('room'),
+                    'schedule': classroom.get('schedule'),
                     'teacher_name': f"{teacher.get('first_name', '')} {teacher.get('last_name', '')}" if teacher else 'Unknown',
                     'theme_color': classroom.get('theme_color'),
                     'joined_at': membership.get('joined_at').isoformat() if membership.get('joined_at') else None
@@ -499,7 +510,7 @@ def leave_classroom(classroom_id):
 # ============================================================================
 
 @classroom_bp.route('/classrooms/<classroom_id>/posts', methods=['POST'])
-def create_post():
+def create_post(classroom_id):
     """
     Create a new post (announcement, assignment, material, question)
 
@@ -515,7 +526,6 @@ def create_post():
     }
     """
     try:
-        classroom_id = request.view_args['classroom_id']
         data = request.json
         logger.info(f"Create post request | classroom_id: {classroom_id} | type: {data.get('post_type')} | author: {data.get('author_id')}")
 
@@ -650,7 +660,7 @@ def get_classroom_stream(classroom_id):
 
 
 @classroom_bp.route('/posts/<post_id>/comments', methods=['POST'])
-def add_comment():
+def add_comment(post_id):
     """
     Add comment to a post
 
@@ -663,7 +673,6 @@ def add_comment():
     }
     """
     try:
-        post_id = request.view_args['post_id']
         data = request.json
         logger.info(f"Add comment request | post_id: {post_id} | author: {data.get('author_id')}")
 
@@ -747,6 +756,55 @@ def get_post_comments(post_id):
 # ============================================================================
 # ASSIGNMENT & SUBMISSION ROUTES
 # ============================================================================
+
+@classroom_bp.route('/classrooms/<classroom_id>/assignments', methods=['POST'])
+def create_assignment(classroom_id):
+    try:
+        data = request.json
+
+        if not data.get('title'):
+            return jsonify({'error': 'Title is required'}), 400
+
+        classroom = find_one(CLASSROOMS, {'_id': classroom_id})
+        if not classroom:
+            return jsonify({'error': 'Classroom not found'}), 404
+
+        assignment_post = {
+            '_id': str(ObjectId()),
+            'classroom_id': classroom_id,
+            'author_id': data.get('teacher_id'),
+            'post_type': 'assignment',
+            'title': data['title'],
+            'content': data.get('description', ''),
+            'assignment_details': {
+                'assignment_type': data.get('assignment_type', 'homework'),
+                'due_date': datetime.fromisoformat(data['due_date']) if data.get('due_date') else None,
+                'points': data.get('total_points', 100),
+                'attachments': data.get('attachments', [])
+            },
+            'is_pinned': False,
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }
+
+        assignment_id = insert_one(CLASSROOM_POSTS, assignment_post)
+
+        members = find_many(CLASSROOM_MEMBERSHIPS, {'classroom_id': classroom_id, 'is_active': True})
+        for member in members:
+            create_notification(
+                member['student_id'],
+                classroom_id,
+                'assignment',
+                f"New Assignment: {data['title']}",
+                f"Due: {data.get('due_date', 'No deadline')}",
+                f"/classroom/{classroom_id}/assignments/{assignment_id}"
+            )
+
+        logger.info(f"Assignment created | classroom_id: {classroom_id} | assignment_id: {assignment_id}")
+        return jsonify({'assignment_id': assignment_id, 'message': 'Assignment created successfully'}), 201
+
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 @classroom_bp.route('/classrooms/<classroom_id>/assignments', methods=['GET'])
 def get_classroom_assignments(classroom_id):
