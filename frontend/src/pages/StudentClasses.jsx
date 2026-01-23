@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { Book, User, Clock, MessageSquare, FileText, ChevronRight, Loader2, AlertCircle, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 const StudentClasses = () => {
     const { getUserId } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
     const [stream, setStream] = useState([]);
@@ -100,7 +101,7 @@ const StudentClasses = () => {
         // Poll for poll updates every 10s
         const pollInterval = setInterval(fetchActivePoll, 10000);
         return () => clearInterval(pollInterval);
-    }, [selectedClass]);
+    }, [selectedClass, location.key]); // Add location.key to force refresh on navigation back
 
     const handleSubmitPoll = async (option) => {
         if (!activePoll) return;
