@@ -13,7 +13,7 @@ import {
     ChevronRight,
     ChevronLeft,
     BookOpen,
-    BookOpen,
+
     CheckCircle,
     Award
 } from 'lucide-react';

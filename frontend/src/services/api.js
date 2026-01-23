@@ -146,10 +146,7 @@ export const projectsAPI = {
   approveMilestone: (projectId, milestoneId, data) => api.post(`/pbl/projects/${projectId}/milestones/${milestoneId}/approve`, data),
   rejectMilestone: (projectId, milestoneId, data) => api.post(`/pbl/projects/${projectId}/milestones/${milestoneId}/reject`, data),
   getTeamProgress: (teamId) => api.get(`/pbl/teams/${teamId}/progress`),
-<<<<<<< Updated upstream
-=======
   getTeamAchievements: (teamId) => api.get(`/pbl/teams/${teamId}/achievements`),
->>>>>>> Stashed changes
 };
 
 export const templatesAPI = {
