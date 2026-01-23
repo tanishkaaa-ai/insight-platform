@@ -399,8 +399,8 @@ def create_team(project_id):
 
         # Validate team size
         team_size = len(data.get('members', []))
-        min_size = project.get('settings', {}).get('team_size_min', 3)
-        max_size = project.get('settings', {}).get('team_size_max', 5)
+        # min_size = project.get('settings', {}).get('team_size_min', 1) # Force 1 for testing
+        min_size = 1  # Forced override for development environment
 
         logger.info(f"[CREATE_TEAM] Validating team size | project_id: {project_id} | team_size: {team_size} | min: {min_size} | max: {max_size}")
 

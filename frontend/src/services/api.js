@@ -163,6 +163,7 @@ export const conceptsAPI = {
 };
 
 export const dashboardAPI = {
+  getAlerts: (params) => api.get('/engagement/alerts', { params }),
   getClassEngagement: (classId) => api.get(`/dashboard/class-engagement/${classId}`),
   getAttentionMap: (classId) => api.get(`/dashboard/attention-map/${classId}`),
   getMasteryHeatmap: (classId) => api.get(`/dashboard/mastery-heatmap/${classId}`),

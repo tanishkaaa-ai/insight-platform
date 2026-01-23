@@ -53,11 +53,40 @@ const TeacherClassDetails = () => {
         }
     };
 
+    const [gradesData, setGradesData] = useState({});
+
     useEffect(() => {
         if (classroomId) {
             fetchData();
         }
     }, [classroomId]);
+
+    // Fetch grades when tab is active
+    useEffect(() => {
+        const fetchGrades = async () => {
+            if (activeTab === 'grades' && stream.length > 0) {
+                const assignments = stream.filter(p => p.post_type === 'assignment');
+                const newGrades = {};
+
+                // Fetch submissions for each assignment
+                // In production this should be one bulk call, but parallel calls work for now
+                await Promise.all(assignments.map(async (assignment) => {
+                    try {
+                        const res = await classroomAPI.getAssignmentSubmissions(assignment.post_id);
+                        // Store by assignmentID -> studentID -> grade
+                        newGrades[assignment.post_id] = {};
+                        res.data.forEach(sub => {
+                            newGrades[assignment.post_id][sub.student.student_id] = sub.grade;
+                        });
+                    } catch (e) {
+                        console.error("Failed to fetch grades for", assignment.post_id);
+                    }
+                }));
+                setGradesData(newGrades);
+            }
+        };
+        fetchGrades();
+    }, [activeTab, stream]);
 
     const handleCreatePost = async () => {
         if (!newPostContent.trim()) return;
@@ -138,7 +167,7 @@ const TeacherClassDetails = () => {
 
                 {/* Hero Section */}
                 <div className={`rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white`}>
-                    <div className={`${classroom.theme_color || 'bg-teal-600'} h-32 p-6 relative text-white`}>
+                    <div className={`h-32 p-6 relative text-white ${classroom.theme_color ? classroom.theme_color : 'bg-teal-600'}`}>
                         <div className="max-w-4xl">
                             <h1 className="text-3xl font-bold mb-2">{classroom.class_name}</h1>
                             <div className="flex items-center gap-4 text-white/90 font-medium">
@@ -358,10 +387,80 @@ const TeacherClassDetails = () => {
                         )}
 
                         {activeTab === 'grades' && (
-                            <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm text-center">
-                                <BookOpen className="mx-auto text-gray-300 mb-4" size={48} />
-                                <h3 className="text-lg font-bold text-gray-800 mb-2">Gradebook Empty</h3>
-                                <p className="text-gray-500">Create assignments to start tracking grades.</p>
+                            <div className="bg-white border border-gray-200 rounded-2xl p-0 overflow-hidden shadow-sm">
+                                <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                    <h3 className="font-bold text-gray-700">Gradebook</h3>
+                                    <button className="text-teal-600 font-bold text-sm hover:underline">Export CSV</button>
+                                </div>
+                                <div className="p-0 overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+                                            <tr>
+                                                <th className="px-6 py-3 font-bold whitespace-nowrap sticky left-0 bg-gray-50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Student</th>
+                                                {stream.filter(p => p.post_type === 'assignment').map(assignment => (
+                                                    <th key={assignment.post_id} className="px-6 py-3 font-bold whitespace-nowrap text-center">
+                                                        <div className="flex flex-col">
+                                                            <span>{assignment.title || 'Untitled'}</span>
+                                                            <span className="text-[10px] text-gray-400 font-normal">{assignment.assignment_details?.points || 100} pts</span>
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                                <th className="px-6 py-3 font-bold text-right sticky right-0 bg-gray-50 z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {students.map(student => (
+                                                <tr key={student.student_id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 font-bold text-gray-700 flex items-center gap-3 sticky left-0 bg-white hover:bg-gray-50 z-10">
+                                                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs shrink-0">
+                                                            {student.name.charAt(0)}
+                                                        </div>
+                                                        <span className="whitespace-nowrap">{student.name}</span>
+                                                    </td>
+                                                    {stream.filter(p => p.post_type === 'assignment').map(assignment => {
+                                                        // In a real app we'd map this from a robust grades state
+                                                        // For now we'll check if we have the submission loaded
+                                                        // This assumes we fetch submissions separately or they are included (they aren't yet fully)
+                                                        // We will implement a simplified view:
+                                                        // If we don't have the grade data readily available in this view's state yet,
+                                                        // we should probably fetch it.
+                                                        // However, to "show grades", let's assume we will fetch them.
+                                                        // For this step I will render placeholders or if I can find a way to get them.
+                                                        // Actually, I can fetch them in a useEffect when activeTab is grades.
+                                                        // Let's modify the component to do that.
+                                                        // For this replacement, I'll render the cell.
+                                                        const grade = gradesData[assignment.post_id]?.[student.student_id];
+                                                        return (
+                                                            <td key={assignment.post_id} className="px-6 py-4 text-center">
+                                                                <span className={`inline-block px-2.5 py-1 rounded-md font-bold text-xs ${grade !== undefined
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : 'bg-gray-100 text-gray-400'
+                                                                    }`}>
+                                                                    {grade !== undefined ? grade : '--'}
+                                                                </span>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="px-6 py-4 text-right sticky right-0 bg-white hover:bg-gray-50 z-10">
+                                                        <button
+                                                            onClick={() => alert(`Message to ${student.name}`)}
+                                                            className="text-teal-600 hover:text-teal-800 font-bold text-xs px-3 py-1.5 rounded hover:bg-teal-50 transition-colors"
+                                                        >
+                                                            Message
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {students.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={stream.filter(p => p.post_type === 'assignment').length + 2} className="px-6 py-8 text-center text-gray-400">
+                                                        No students found.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         )}
                     </div>

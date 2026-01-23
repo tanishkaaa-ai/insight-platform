@@ -969,7 +969,23 @@ def submit_assignment(assignment_id):
         is_late = False
         if assignment.get('assignment_details', {}).get('due_date'):
             due_date = assignment['assignment_details']['due_date']
-            is_late = datetime.utcnow() > due_date
+            # Ensure due_date is a datetime object
+            # DEBUG LOG
+            logger.info(f"DEBUG: due_date type: {type(due_date)}, value: {due_date}")
+
+            if isinstance(due_date, str):
+                try:
+                    due_date = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+                except ValueError:
+                    logger.warning(f"Failed to parse due_date: {due_date}")
+                    pass
+            
+            if isinstance(due_date, datetime):
+                try:
+                    is_late = datetime.utcnow() > due_date
+                except TypeError as e:
+                    logger.error(f"Date comparison failed: {e}")
+                    is_late = False
 
         submission = find_one(CLASSROOM_SUBMISSIONS, {'assignment_id': assignment_id, 'student_id': data['student_id']})
 
