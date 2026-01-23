@@ -92,7 +92,7 @@ def get_class_engagement_index(classroom_id):
             {'classroom_id': classroom_id, 'role': 'student'}
         )
         
-        student_ids = [m.get('user_id') for m in memberships if m.get('user_id')]
+        student_ids = [m.get('student_id') for m in memberships if m.get('student_id')]
         
         if not student_ids:
             return jsonify({
@@ -110,18 +110,22 @@ def get_class_engagement_index(classroom_id):
         student_engagements = []
         for sid in student_ids:
             # Get latest session
-            latest_session = find_one(
+            sessions = find_many(
                 ENGAGEMENT_SESSIONS,
                 {'student_id': sid},
-                sort=[('session_start', -1)]
+                sort=[('session_start', -1)],
+                limit=1
             )
+            latest_session = sessions[0] if sessions else None
             
             # Get active alerts to determine status overrides
-            active_alert = find_one(
+            alerts = find_many(
                 DISENGAGEMENT_ALERTS,
                 {'student_id': sid, 'resolved': False},
-                sort=[('timestamp', -1)]
+                sort=[('timestamp', -1)],
+                limit=1
             )
+            active_alert = alerts[0] if alerts else None
             
             if active_alert:
                  student_engagements.append({
@@ -202,7 +206,7 @@ def get_class_engagement_index(classroom_id):
             'classroom_id': classroom_id,
             'classroom_name': classroom.get('name', 'Unknown'),
             'class_engagement_index': round(cei, 2),
-            'total_students': result['total_students'],
+            'total_students': result.get('class_size', 0),
             'distribution': result['distribution'],
             'students_needing_attention': sorted(
                 students_needing_attention,
@@ -265,21 +269,25 @@ def get_student_attention_map(classroom_id):
             student = find_one(STUDENTS, {'_id': student_id})
 
             # Get latest engagement session
-            latest_session = find_one(
+            sessions = find_many(
                 ENGAGEMENT_SESSIONS,
                 {'student_id': student_id},
-                sort=[('session_start', -1)]
+                sort=[('session_start', -1)],
+                limit=1
             )
+            latest_session = sessions[0] if sessions else None
 
             # Get active alerts
-            active_alert = find_one(
+            alerts = find_many(
                 DISENGAGEMENT_ALERTS,
                 {
                     'student_id': student_id,
                     'resolved': False
                 },
-                sort=[('timestamp', -1)]
+                sort=[('timestamp', -1)],
+                limit=1
             )
+            active_alert = alerts[0] if alerts else None
 
             # Determine current state
             if active_alert:
