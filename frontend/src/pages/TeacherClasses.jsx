@@ -14,78 +14,105 @@ import {
     Loader,
     X,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    Calculator,
+    BookOpen,
+    FlaskConical,
+    Music,
+    Palette,
+    Globe,
+    Code,
+    Cpu,
+    Activity,
+    Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ClassCard = ({ cls, onDelete }) => (
-    <motion.div
-        whileHover={{ y: -5, rotate: 1 }}
-        className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex flex-col h-full transition-shadow hover:shadow-lg"
-    >
-        <div className={`${cls.theme_color || 'bg-teal-600'} h-32 relative p-6 text-white`}>
-            <div className="absolute top-4 right-4">
-                <button className="text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-colors">
-                    <MoreVertical size={20} />
-                </button>
-            </div>
-            <div className="absolute top-4 right-14">
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onDelete && onDelete(cls);
-                    }}
-                    className="text-white/80 hover:text-red-200 hover:bg-red-500/20 p-1.5 rounded-lg transition-colors"
-                >
-                    <Trash2 size={20} />
-                </button>
-            </div>
-            <div className="absolute bottom-6 left-6">
-                <span className="text-xs font-bold uppercase tracking-wider bg-black/20 px-2 py-1 rounded mb-2 inline-block">
-                    {cls.section}
-                </span>
-                <h3 className="font-bold text-xl leading-tight">{cls.class_name}</h3>
-            </div>
-        </div>
+const getSubjectIcon = (subject) => {
+    if (!subject) return GraduationCap;
+    const s = subject.toLowerCase();
+    if (s.includes('math') || s.includes('algebra') || s.includes('calculus')) return Calculator;
+    if (s.includes('science') || s.includes('bio') || s.includes('chem') || s.includes('physic')) return FlaskConical;
+    if (s.includes('computer') || s.includes('tech') || s.includes('code') || s.includes('program')) return Code;
+    if (s.includes('english') || s.includes('lit') || s.includes('history') || s.includes('lang')) return BookOpen;
+    if (s.includes('art') || s.includes('design')) return Palette;
+    if (s.includes('music')) return Music;
+    if (s.includes('geography') || s.includes('world')) return Globe;
+    if (s.includes('health') || s.includes('pe')) return Activity;
+    if (s.includes('social')) return Users;
+    return GraduationCap;
+};
 
-        <div className="p-6 flex-1 flex flex-col justify-between">
-            <div className="space-y-3">
-                <div className="flex items-center gap-3 text-gray-500 text-sm">
-                    <GraduationCap size={16} className="text-gray-400" />
-                    <span>{cls.student_count || 0} Students Enrolled</span>
+const ClassCard = ({ cls, onDelete }) => {
+    const SubjectIcon = getSubjectIcon(cls.subject);
+
+    return (
+        <motion.div
+            whileHover={{ y: -5, rotate: 1 }}
+            className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex flex-col h-full transition-shadow hover:shadow-lg group"
+        >
+            <div
+                className="h-32 relative p-6 text-white overflow-hidden"
+                style={{ backgroundColor: cls.theme_color || '#0d9488' }}
+            >
+                {/* Background Icon Watermark */}
+                <div className="absolute -right-4 -bottom-8 opacity-20 transform rotate-12 transition-transform group-hover:scale-110 duration-500">
+                    <SubjectIcon size={120} />
                 </div>
-                <div className="flex items-center gap-3 text-gray-500 text-sm">
-                    <Calendar size={16} className="text-gray-400" />
-                    <span>{cls.schedule?.days?.join('/')} {cls.schedule?.time}</span>
+
+                <div className="absolute top-4 right-4">
+                    <button className="text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-colors">
+                        <MoreVertical size={20} />
+                    </button>
+                </div>
+
+                {/* Header Content */}
+                <div className="absolute bottom-6 left-6 relative z-10">
+                    <span className="text-xs font-bold uppercase tracking-wider bg-black/20 px-2 py-1 rounded mb-2 inline-block backdrop-blur-sm">
+                        {cls.section}
+                    </span>
+                    <h3 className="font-bold text-xl leading-tight text-shadow-sm">{cls.class_name}</h3>
                 </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-50 flex gap-2">
-                <button className="flex-1 py-2 text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                    Gradebook
-                </button>
-                <NavLink
-                    to={`/classroom/${cls.classroom_id}`}
-                    className="flex-1 py-2 text-sm font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors flex items-center justify-center gap-1"
-                >
-                    Open <ArrowRight size={14} />
-                </NavLink>
-                <button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onDelete && onDelete(cls);
-                    }}
-                    className="px-3 py-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
-                    title="Delete Class"
-                >
-                    <Trash2 size={18} />
-                </button>
+            <div className="p-6 flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-gray-500 text-sm">
+                        <Users size={16} className="text-gray-400" />
+                        <span>{cls.student_count || 0} Students Enrolled</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-gray-500 text-sm">
+                        <Calendar size={16} className="text-gray-400" />
+                        <span>{cls.schedule?.days?.join('/')} {cls.schedule?.time}</span>
+                    </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-50 flex gap-2">
+                    <button className="flex-1 py-2 text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                        Gradebook
+                    </button>
+                    <NavLink
+                        to={`/classroom/${cls.classroom_id}`}
+                        className="flex-1 py-2 text-sm font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors flex items-center justify-center gap-1"
+                    >
+                        Open <ArrowRight size={14} />
+                    </NavLink>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onDelete && onDelete(cls);
+                        }}
+                        className="px-3 py-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
+                        title="Delete Class"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                </div>
             </div>
-        </div>
-    </motion.div >
-);
+        </motion.div >
+    );
+};
 
 const CreateClassModal = ({ isOpen, onClose, onClassCreated, userId }) => {
     const [formData, setFormData] = useState({
