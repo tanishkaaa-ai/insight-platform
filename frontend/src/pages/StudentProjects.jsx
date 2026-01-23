@@ -62,12 +62,9 @@ const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask }) =>
     );
 };
 
-const PeerReviewModal = ({ team, onClose }) => {
-    // Mock team members excluding self (in real app, filter by ID)
-    const members = [
-        { id: 2, name: 'Alice Johnson' },
-        { id: 3, name: 'Bob Smith' }
-    ];
+const PeerReviewModal = ({ team, onClose, currentUserId }) => {
+    // Filter out current user from members to review
+    const members = team?.members?.filter(m => m.student_id !== currentUserId) || [];
     const [reviews, setReviews] = useState({});
 
     const handleRatingChange = (memberId, skill, value) => {
@@ -80,11 +77,33 @@ const PeerReviewModal = ({ team, onClose }) => {
         }));
     };
 
-    const handleSubmit = () => {
-        console.log("Submitting reviews:", reviews);
-        // projectsAPI.submitPeerReview(reviews)
-        toast.success("Peer reviews submitted successfully!");
-        onClose();
+    const handleSubmit = async () => {
+        try {
+            console.log("Submitting reviews:", reviews);
+
+            // Format reviews for API
+            const reviewPromises = Object.entries(reviews).map(([memberId, ratings]) => {
+                return projectsAPI.submitPeerReview(team.team_id || team._id, {
+                    reviewer_id: currentUserId,
+                    reviewee_id: memberId,
+                    review_type: 'mid-project', // Default to mid-project for now, could be dynamic
+                    ratings: {
+                        'TEAM_DYNAMICS': ratings['Collaboration'] || 3,
+                        'TEAM_STRUCTURE': ratings['Critical Thinking'] || 3, // Mapping roughly to dimensions
+                        'TEAM_MOTIVATION': ratings['Effort'] || 3,
+                        'TEAM_EXCELLENCE': ratings['Communication'] || 3
+                    },
+                    comments: {}
+                });
+            });
+
+            await Promise.all(reviewPromises);
+            toast.success("Peer reviews submitted successfully!");
+            onClose();
+        } catch (error) {
+            console.error("Error submitting reviews:", error);
+            toast.error("Failed to submit reviews. Please try again.");
+        }
     };
 
     return (
@@ -101,8 +120,8 @@ const PeerReviewModal = ({ team, onClose }) => {
                 <div className="p-6 overflow-y-auto">
                     <p className="text-gray-500 mb-6">Rate your team members on their soft skills contribution.</p>
                     {members.map(member => (
-                        <div key={member.id} className="mb-8 border-b border-gray-100 pb-6 last:border-0">
-                            <h4 className="font-bold text-lg text-gray-800 mb-4">{member.name}</h4>
+                        <div key={member.student_id} className="mb-8 border-b border-gray-100 pb-6 last:border-0">
+                            <h4 className="font-bold text-lg text-gray-800 mb-4">{member.student_name || 'Team Member'}</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {['Collaboration', 'Communication', 'Critical Thinking', 'Effort'].map(skill => (
                                     <div key={skill}>
@@ -111,9 +130,9 @@ const PeerReviewModal = ({ team, onClose }) => {
                                             {[1, 2, 3, 4, 5].map(rating => (
                                                 <button
                                                     key={rating}
-                                                    onClick={() => handleRatingChange(member.id, skill, rating)}
+                                                    onClick={() => handleRatingChange(member.student_id, skill, rating)}
                                                     className={`w-8 h-8 rounded-lg text-sm font-bold transition-colors
-                                                        ${reviews[member.id]?.[skill] === rating
+                                                        ${reviews[member.student_id]?.[skill] === rating
                                                             ? 'bg-blue-600 text-white'
                                                             : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
                                                 >
@@ -226,9 +245,21 @@ const StudentProjects = () => {
                         project_id: team.project_id
                     });
 
+                    // Fetch full team details to get members
+                    console.info('[STUDENT_PROJECTS] Fetching full team details:', { team_id: team.team_id || team._id });
+                    try {
+                        const fullTeamRes = await projectsAPI.getTeam(team.team_id || team._id);
+                        if (fullTeamRes.data) {
+                            setActiveTeam(prev => ({ ...prev, ...fullTeamRes.data }));
+                            console.info('[STUDENT_PROJECTS] Full team details updated');
+                        }
+                    } catch (teamErr) {
+                        console.error('[STUDENT_PROJECTS] Error fetching full team details:', teamErr);
+                    }
+
                     console.info('[STUDENT_PROJECTS] Fetching team tasks:', { team_id: team.team_id || team._id });
                     const tasksRes = await projectsAPI.getTeamTasks(team.team_id || team._id);
-                    setTasks(Array.isArray(tasksRes.data) ? tasksRes.data : []);
+                    setTasks(Array.isArray(tasksRes.data?.tasks) ? tasksRes.data.tasks : (Array.isArray(tasksRes.data) ? tasksRes.data : []));
                     console.info('[STUDENT_PROJECTS] Tasks retrieved:', { count: tasksRes.data?.length || 0 });
                 } else {
                     console.warn('[STUDENT_PROJECTS] No teams found for student:', { student_id: STUDENT_ID });
@@ -361,7 +392,7 @@ const StudentProjects = () => {
                 </div>
             </div>
 
-            {showPeerReview && <PeerReviewModal team={activeTeam} onClose={() => setShowPeerReview(false)} />}
+            {showPeerReview && <PeerReviewModal team={activeTeam} onClose={() => setShowPeerReview(false)} currentUserId={STUDENT_ID} />}
             {showUpload && <UploadModal onClose={() => setShowUpload(false)} />}
         </DashboardLayout>
     );
