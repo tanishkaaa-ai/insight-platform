@@ -7,7 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
 const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask }) => {
-    const columnTasks = tasks.filter(t => t.status === status);
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    const columnTasks = safeTasks.filter(t => t.status === status);
 
     return (
         <div className="flex flex-col h-full bg-slate-50 rounded-2xl p-4 border border-slate-200">
@@ -227,7 +228,7 @@ const StudentProjects = () => {
 
                     console.info('[STUDENT_PROJECTS] Fetching team tasks:', { team_id: team.team_id || team._id });
                     const tasksRes = await projectsAPI.getTeamTasks(team.team_id || team._id);
-                    setTasks(tasksRes.data || []);
+                    setTasks(Array.isArray(tasksRes.data) ? tasksRes.data : []);
                     console.info('[STUDENT_PROJECTS] Tasks retrieved:', { count: tasksRes.data?.length || 0 });
                 } else {
                     console.warn('[STUDENT_PROJECTS] No teams found for student:', { student_id: STUDENT_ID });
