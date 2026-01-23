@@ -214,7 +214,8 @@ const CreateTeamModal = ({ isOpen, onClose, onCreated, projectId, students }) =>
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error('Failed to create team');
+      const message = error.response?.data?.error || 'Failed to create team';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -250,16 +251,16 @@ const CreateTeamModal = ({ isOpen, onClose, onCreated, projectId, students }) =>
             <label className="block text-sm font-bold text-gray-700 mb-2">Select Students ({selectedStudents.length})</label>
             <div className="space-y-2 border border-gray-100 rounded-xl p-2 max-h-60 overflow-y-auto">
               {students.map(student => (
-                <div key={student._id || student.user_id}
-                  className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${selectedStudents.includes(student._id || student.user_id) ? 'bg-teal-50 border border-teal-200' : 'hover:bg-gray-50 border border-transparent'}`}
-                  onClick={() => toggleStudent(student._id || student.user_id)}
+                <div key={student.student_id}
+                  className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${selectedStudents.includes(student.student_id) ? 'bg-teal-50 border border-teal-200' : 'hover:bg-gray-50 border border-transparent'}`}
+                  onClick={() => toggleStudent(student.student_id)}
                 >
-                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 ${selectedStudents.includes(student._id || student.user_id) ? 'bg-teal-600 border-teal-600' : 'border-gray-300'}`}>
-                    {selectedStudents.includes(student._id || student.user_id) && <Check size={14} className="text-white" />}
+                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center mr-3 ${selectedStudents.includes(student.student_id) ? 'bg-teal-600 border-teal-600' : 'border-gray-300'}`}>
+                    {selectedStudents.includes(student.student_id) && <Check size={14} className="text-white" />}
                   </div>
                   <div>
-                    <div className="font-bold text-gray-800">{student.first_name} {student.last_name}</div>
-                    <div className="text-xs text-gray-500">{student.email}</div>
+                    <div className="font-bold text-gray-800">{student.name}</div>
+                    <div className="text-xs text-gray-500">{student.email || 'No email'}</div>
                   </div>
                 </div>
               ))}

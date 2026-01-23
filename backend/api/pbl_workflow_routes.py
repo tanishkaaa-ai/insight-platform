@@ -199,7 +199,7 @@ def create_project():
             'settings': {
                 'enable_peer_review': data.get('enable_peer_review', True),
                 'peer_review_schedule': data.get('peer_review_schedule', ['mid-project', 'final']),
-                'team_size_min': data.get('team_size_min', 3),
+                'team_size_min': data.get('team_size_min', 1),
                 'team_size_max': data.get('team_size_max', 5),
                 'allow_self_team_formation': data.get('allow_self_team_formation', True)
             }

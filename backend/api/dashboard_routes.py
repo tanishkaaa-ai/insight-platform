@@ -711,11 +711,11 @@ def get_student_interventions(student_id):
                 'teacher_id': intervention.get('teacher_id'),
                 'intervention_type': intervention.get('intervention_type'),
                 'description': intervention.get('description'),
-                'timestamp': intervention.get('timestamp').isoformat() if intervention.get('timestamp') else None,
+                'timestamp': intervention.get('timestamp').isoformat() if hasattr(intervention.get('timestamp'), 'isoformat') else intervention.get('timestamp'),
                 'status': intervention.get('status'),
                 'outcome': intervention.get('outcome'),
                 'outcome_notes': intervention.get('outcome_notes'),
-                'follow_up_date': intervention.get('follow_up_date').isoformat() if intervention.get('follow_up_date') else None
+                'follow_up_date': intervention.get('follow_up_date').isoformat() if hasattr(intervention.get('follow_up_date'), 'isoformat') else intervention.get('follow_up_date')
             })
 
         logger.info(f"Retrieved intervention history | student_id: {student_id} | count: {len(formatted_interventions)}")

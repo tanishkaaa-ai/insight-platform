@@ -138,7 +138,7 @@ const TeacherClassDetails = () => {
 
                 {/* Hero Section */}
                 <div className={`rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white`}>
-                    <div className={`${classroom.theme_color || 'bg-teal-600'} h-40 p-8 relative text-white`}>
+                    <div className={`${classroom.theme_color || 'bg-teal-600'} h-32 p-6 relative text-white`}>
                         <div className="max-w-4xl">
                             <h1 className="text-3xl font-bold mb-2">{classroom.class_name}</h1>
                             <div className="flex items-center gap-4 text-white/90 font-medium">

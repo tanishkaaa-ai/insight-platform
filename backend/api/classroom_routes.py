@@ -1112,7 +1112,7 @@ def get_assignment_submissions(assignment_id):
 
 
 @classroom_bp.route('/submissions/<submission_id>/grade', methods=['POST'])
-def grade_submission():
+def grade_submission(submission_id):
     """
     Teacher grades a submission
 
@@ -1124,7 +1124,7 @@ def grade_submission():
     }
     """
     try:
-        submission_id = request.view_args['submission_id']
+        # submission_id is passed as argument
         data = request.json
         logger.info(f"Grade submission | submission_id: {submission_id} | grade: {data.get('grade')}")
 
