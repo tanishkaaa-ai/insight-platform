@@ -35,7 +35,7 @@ const TeacherInterventions = () => {
             // TODO: Ensure backend supports this endpoint correctly or use a mock/filter approach if needed
             // Currently api.js has getTeacherInterventions(teacherId)
             const response = await dashboardAPI.getTeacherInterventions(userId);
-            setInterventions(response.data || []);
+            setInterventions(response.data.interventions || []);
         } catch (error) {
             console.error("Failed to fetch interventions", error);
             // toast.error("Could not load interventions");
@@ -70,10 +70,10 @@ const TeacherInterventions = () => {
         }
     };
 
-    const filteredInterventions = interventions.filter(i => {
+    const filteredInterventions = Array.isArray(interventions) ? interventions.filter(i => {
         if (filterStatus === 'all') return true;
         return i.status === filterStatus;
-    });
+    }) : [];
 
     return (
         <TeacherLayout>
