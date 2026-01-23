@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { dashboardAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { X, Save, AlertTriangle } from 'lucide-react';
 
 const CreateInterventionModal = ({ studentId, alertId, isOpen, onClose }) => {
+    const { getUserId } = useAuth();
     const [formData, setFormData] = useState({
         intervention_type: 'one_on_one_tutoring',
         description: '',
@@ -11,9 +13,8 @@ const CreateInterventionModal = ({ studentId, alertId, isOpen, onClose }) => {
     });
     const [loading, setLoading] = useState(false);
 
-    // Hardcoded teacher ID for now as we might not have it in context, or grab from auth
-    // Ideally this comes from AuthContext
-    const teacherId = 'teacher_1';
+    // Use actual logged-in teacher ID
+    const teacherId = getUserId();
 
     const interventionTypes = [
         'one_on_one_tutoring',

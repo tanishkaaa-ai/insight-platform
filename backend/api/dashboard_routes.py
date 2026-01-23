@@ -974,24 +974,104 @@ def measure_intervention_impact(intervention_id):
 @dashboard_bp.route('/interventions/teacher/<teacher_id>', methods=['GET'])
 def get_teacher_interventions(teacher_id):
     try:
-        interventions = find_many(TEACHER_INTERVENTIONS, {'teacher_id': teacher_id}, sort=[('performed_at', -1)])
+        # Fetch all interventions for this teacher
+        interventions = find_many(TEACHER_INTERVENTIONS, {'teacher_id': teacher_id})
+        
         formatted_interventions = []
         total_predicted_improvement = 0
         total_actual_improvement = 0
         measured_count = 0
 
         for intervention in interventions:
-            formatted_interventions.append({'intervention_id': intervention['_id'], 'concept_id': intervention.get('concept_id'), 'intervention_type': intervention.get('intervention_type'), 'target_students_count': len(intervention.get('target_students', [])), 'mastery_before': intervention.get('mastery_before'), 'mastery_after': intervention.get('mastery_after'), 'improvement': intervention.get('improvement'), 'predicted_improvement': intervention.get('predicted_improvement'), 'prediction_accuracy': intervention.get('prediction_accuracy'), 'performed_at': intervention.get('performed_at').isoformat() if intervention.get('performed_at') else None, 'measured_at': intervention.get('measured_at').isoformat() if intervention.get('measured_at') else None})
-            if intervention.get('measured_at'):
-                measured_count += 1
-                total_actual_improvement += intervention.get('improvement', 0)
-                total_predicted_improvement += intervention.get('predicted_improvement', 0)
+            try:
+                # Determine timestamp (support both manual and tracked styles)
+                created_at = intervention.get('timestamp') or intervention.get('performed_at') or datetime.utcnow()
+                
+                # Helper to format date
+                def fmt_date(d):
+                    return d.isoformat() if hasattr(d, 'isoformat') else d
+
+                # Determine Student Name(s)
+                student_name = "Unknown Student"
+                student_id = intervention.get('student_id')
+                
+                if student_id:
+                    # Handle ObjectId mismatch
+                    query_id = student_id
+                    if isinstance(student_id, str) and len(student_id) == 24:
+                        try:
+                            object_id = ObjectId(student_id)
+                            # Try finding with ObjectId first
+                            student = find_one(STUDENTS, {'_id': object_id})
+                            if not student:
+                                # Fallback to string if not found
+                                student = find_one(STUDENTS, {'_id': student_id})
+                        except:
+                            student = find_one(STUDENTS, {'_id': student_id})
+                    else:
+                        student = find_one(STUDENTS, {'_id': student_id})
+
+                    if student:
+                        student_name = f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() or student.get('name', 'Unknown')
+                        
+                elif intervention.get('target_students'):
+                    # concise summary for group
+                    count = len(intervention.get('target_students', []))
+                    student_name = f"{count} Students (Group)"
+                else:
+                     # No student and no group -> General/Class wide
+                     student_name = "General Intervention"
+
+                formatted_interventions.append({
+                    'intervention_id': intervention['_id'],
+                    'student_id': student_id,
+                    'student_name': student_name,
+                    'concept_id': intervention.get('concept_id'),
+                    'type': intervention.get('intervention_type'), 
+                    'intervention_type': intervention.get('intervention_type'),
+                    'description': intervention.get('description'),
+                    'status': intervention.get('status', 'active'),
+                    'created_at': fmt_date(created_at),
+                    'performed_at': fmt_date(intervention.get('performed_at')),
+                    'measured_at': fmt_date(intervention.get('measured_at')),
+                    
+                    # Metrics
+                    'mastery_before': intervention.get('mastery_before'),
+                    'mastery_after': intervention.get('mastery_after'),
+                    'improvement': intervention.get('improvement'),
+                    'predicted_improvement': intervention.get('predicted_improvement'),
+                    'outcome': intervention.get('outcome')
+                })
+
+                if intervention.get('measured_at'):
+                    measured_count += 1
+                    total_actual_improvement += intervention.get('improvement', 0)
+                    total_predicted_improvement += intervention.get('predicted_improvement', 0)
+            except Exception as e:
+                logger.error(f"Error processing intervention {intervention.get('_id')}: {str(e)}")
+                continue # Skip bad records but return list
+
+        # Sort by created_at desc
+        formatted_interventions.sort(key=lambda x: x['created_at'] or '', reverse=True)
 
         avg_actual_improvement = total_actual_improvement / measured_count if measured_count > 0 else 0
-        teacher_effectiveness = {'total_interventions': len(interventions), 'measured_interventions': measured_count, 'avg_improvement': round(avg_actual_improvement, 2), 'effectiveness_rating': 'excellent' if avg_actual_improvement > 12 else 'good' if avg_actual_improvement > 8 else 'satisfactory' if avg_actual_improvement > 5 else 'needs_improvement'}
+        teacher_effectiveness = {
+            'total_interventions': len(interventions),
+            'measured_interventions': measured_count,
+            'avg_improvement': round(avg_actual_improvement, 2),
+            'effectiveness_rating': 'excellent' if avg_actual_improvement > 12 else 'good' if avg_actual_improvement > 8 else 'satisfactory' if avg_actual_improvement > 5 else 'needs_improvement'
+        }
 
-        return jsonify({'teacher_id': teacher_id, 'interventions': formatted_interventions, 'teacher_effectiveness': teacher_effectiveness}), 200
+        return jsonify({
+            'teacher_id': teacher_id,
+            'interventions': formatted_interventions,
+            'teacher_effectiveness': teacher_effectiveness
+        }), 200
+
     except Exception as e:
+        logger.error(f"Error fetching teacher interventions: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 @dashboard_bp.route('/interventions/recommendations/<teacher_id>', methods=['GET'])
