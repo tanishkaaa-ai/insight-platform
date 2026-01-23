@@ -796,7 +796,12 @@ def get_student_soft_skills(student_id):
                 'student_id': student_id,
                 'team_id': team_id,
                 'message': 'No peer reviews found for this student',
-                'soft_skills': {}
+                'overall_soft_skills_score': 0,
+                'dimension_scores': {},
+                'total_reviews_received': 0,
+                'has_self_review': False,
+                'self_vs_peer_discrepancy': None,
+                'soft_skills': {} # Backwards compat
             }), 200
 
         # Aggregate ratings by dimension (outlier-resistant)
