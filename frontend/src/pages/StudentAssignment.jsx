@@ -24,7 +24,10 @@ const StudentAssignment = () => {
                 setAssignment(response.data);
 
                 if (response.data.current_user_submission) {
-                    setSubmitted(true);
+                    const status = response.data.current_user_submission.status;
+                    if (['turned_in', 'graded', 'returned'].includes(status)) {
+                        setSubmitted(true);
+                    }
                     setSubmissionText(response.data.current_user_submission.submission_text || '');
                 }
             } catch (err) {
@@ -52,7 +55,7 @@ const StudentAssignment = () => {
             });
             setSubmitted(true);
             setTimeout(() => {
-                navigate(-1); // Go back after success
+                navigate('/student/classes'); // Go back to class list to refresh status
             }, 2000);
         } catch (err) {
             console.error("Submission error:", err);
@@ -121,7 +124,7 @@ const StudentAssignment = () => {
                             <div>
                                 <h3 className="font-bold text-lg text-gray-800 mb-3">Instructions</h3>
                                 <div className="prose text-gray-600">
-                                    {assignment.description || "No instructions provided."}
+                                    {assignment.content || assignment.description || "No instructions provided."}
                                 </div>
                             </div>
                         </div>
@@ -130,10 +133,47 @@ const StudentAssignment = () => {
                             <h3 className="font-bold text-lg text-gray-800 mb-4">Your Work</h3>
 
                             {submitted ? (
-                                <div className="text-center py-8">
-                                    <CheckCircle className="text-green-500 w-16 h-16 mx-auto mb-4" />
-                                    <h4 className="font-bold text-green-700 text-lg">Submitted!</h4>
-                                    <p className="text-green-600">Great job!</p>
+                                <div className="text-left">
+                                    {/* Grade & Feedback Section */}
+                                    {(assignment.current_user_submission?.status === 'returned' || assignment.current_user_submission?.grade !== null) && (
+                                        <div className="mb-6 border-b border-gray-100 pb-6">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h4 className="font-bold text-gray-800 text-lg">Grade & Feedback</h4>
+                                                <span className="text-2xl font-bold text-green-600 bg-green-50 px-4 py-2 rounded-xl">
+                                                    {assignment.current_user_submission.grade} <span className="text-sm text-green-400 font-normal">/ {assignment.points || 100}</span>
+                                                </span>
+                                            </div>
+                                            {assignment.current_user_submission.teacher_feedback ? (
+                                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                                    <p className="text-sm font-bold text-blue-800 mb-1">Teacher Feedback:</p>
+                                                    <p className="text-blue-700">{assignment.current_user_submission.teacher_feedback}</p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-400 italic">No written feedback provided.</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Submission Confirmation / Status */}
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <CheckCircle className="text-green-500" size={24} />
+                                        <div>
+                                            <h4 className="font-bold text-gray-800">Assignment Submitted</h4>
+                                            <p className="text-sm text-gray-500">
+                                                {assignment.current_user_submission?.submitted_at
+                                                    ? new Date(assignment.current_user_submission.submitted_at).toLocaleString()
+                                                    : 'Submitted'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Your Work */}
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Your Answer</p>
+                                        <div className="p-4 bg-gray-50 rounded-xl text-gray-700 border border-gray-100 whitespace-pre-wrap">
+                                            {submissionText}
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-4">

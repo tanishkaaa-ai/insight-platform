@@ -816,7 +816,7 @@ def create_assignment(classroom_id):
             'author_id': data.get('teacher_id'),
             'post_type': 'assignment',
             'title': data['title'],
-            'content': data.get('description', ''),
+            'content': data.get('content') or data.get('description', ''),
             'assignment_details': {
                 'assignment_type': data.get('assignment_type', 'homework'),
                 'due_date': datetime.fromisoformat(data['due_date']) if data.get('due_date') else None,
@@ -1206,6 +1206,7 @@ def get_student_assignments(student_id):
             if assignment:
                 classroom = find_one(CLASSROOMS, {'_id': assignment['classroom_id']})
 
+                details = assignment.get('assignment_details') or {}
                 formatted_assignments.append({
                     'assignment_id': assignment['_id'],
                     'title': assignment.get('title'),
@@ -1213,8 +1214,8 @@ def get_student_assignments(student_id):
                         'classroom_id': classroom.get('_id') if classroom else None,
                         'class_name': classroom.get('class_name') if classroom else 'Unknown'
                     },
-                    'due_date': assignment.get('assignment_details', {}).get('due_date').isoformat() if assignment.get('assignment_details', {}).get('due_date') else None,
-                    'points': assignment.get('assignment_details', {}).get('points'),
+                    'due_date': details.get('due_date').isoformat() if details.get('due_date') else None,
+                    'points': details.get('points'),
                     'status': submission.get('status'),
                     'grade': submission.get('grade'),
                     'is_late': submission.get('is_late'),

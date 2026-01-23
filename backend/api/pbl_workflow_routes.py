@@ -281,7 +281,12 @@ def get_project(project_id):
                     'milestone_id': m['_id'],
                     'title': m.get('title'),
                     'due_date': (m.get('due_date').isoformat() if hasattr(m.get('due_date'), 'isoformat') else m.get('due_date')) if m.get('due_date') else None,
-                    'is_completed': m.get('is_completed', False)
+                    'is_completed': m.get('is_completed', False),
+                    'pending_approval': m.get('pending_approval', False),
+                    'submission_notes': m.get('submission_notes'),
+                    'report_url': m.get('report_url'),
+                    'zip_url': m.get('zip_url'),
+                    'submitted_at': (m.get('submitted_at').isoformat() if hasattr(m.get('submitted_at'), 'isoformat') else m.get('submitted_at')) if m.get('submitted_at') else None
                 }
                 for m in milestones
             ],

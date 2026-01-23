@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Circle, Clock, Users, FileText, Upload, Calendar, AlertTriangle, Workflow, Target, Check, Briefcase, Sparkles, Award, Gauge, Plus, ChevronRight, Layout, Loader, X, MoreHorizontal, Trash2, Edit2 } from 'lucide-react';
+import { CheckCircle, Circle, Clock, Users, FileText, Upload, Calendar, AlertTriangle, Workflow, Target, Check, Briefcase, Sparkles, Award, Gauge, Plus, ChevronRight, Layout, Loader, X, MoreHorizontal, Trash2, Edit2, Download } from 'lucide-react';
 import TeacherLayout from '../components/TeacherLayout';
 import { projectsAPI, classroomAPI, templatesAPI } from '../services/api'; // Added templatesAPI
 import { useAuth } from '../contexts/AuthContext';
@@ -831,6 +831,7 @@ const PBLWorkspace = () => {
                           <th className="p-4 font-bold text-gray-600 text-sm">Milestone</th>
                           <th className="p-4 font-bold text-gray-600 text-sm">Due Date</th>
                           <th className="p-4 font-bold text-gray-600 text-sm">Status</th>
+                          <th className="p-4 font-bold text-gray-600 text-sm">Submission</th>
                           <th className="p-4 font-bold text-gray-600 text-sm text-right">Actions</th>
                         </tr>
                       </thead>
@@ -845,9 +846,30 @@ const PBLWorkspace = () => {
                               {m.due_date ? new Date(m.due_date).toLocaleDateString() : 'No date'}
                             </td>
                             <td className="p-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.is_completed ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                {m.is_completed ? 'Completed' : 'Pending'}
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.is_completed ? 'bg-green-100 text-green-700' : m.pending_approval ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>
+                                {m.is_completed ? 'Completed' : m.pending_approval ? 'For Review' : 'Pending'}
                               </span>
+                            </td>
+                            <td className="p-4">
+                              {(m.report_url || m.zip_url) ? (
+                                <div className="flex flex-col gap-1">
+                                  {m.report_url && (
+                                    <a href={m.report_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-teal-600 hover:underline flex items-center gap-1">
+                                      <FileText size={12} /> View Report
+                                    </a>
+                                  )}
+                                  {m.zip_url && (
+                                    <a href={m.zip_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-teal-600 hover:underline flex items-center gap-1">
+                                      <Download size={12} /> Download ZIP
+                                    </a>
+                                  )}
+                                  <span className="text-xs text-gray-400">
+                                    Submitted: {m.submitted_at ? new Date(m.submitted_at).toLocaleDateString() : 'Unknown'}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400 italic">No files yet</span>
+                              )}
                             </td>
                             <td className="p-4 text-right">
                               <button
