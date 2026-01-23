@@ -32,8 +32,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const isLoginRequest = error.config?.url?.includes('/auth/login');
       const isRegisterRequest = error.config?.url?.includes('/auth/register');
+      const isVerifyRequest = error.config?.url?.includes('/auth/verify');
 
-      if (!isLoginRequest && !isRegisterRequest) {
+      if (!isLoginRequest && !isRegisterRequest && !isVerifyRequest) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         if (window.location.pathname !== '/') {
@@ -51,10 +52,10 @@ export const socket = io(API_BASE_URL, {
 });
 
 // API methods
-// API methods
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
+  verifyToken: () => api.get('/auth/verify'),
 };
 
 export const masteryAPI = {

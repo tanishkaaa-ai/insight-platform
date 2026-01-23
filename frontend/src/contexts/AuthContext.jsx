@@ -22,17 +22,43 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Effect to sync state with localStorage (optional, but good for cleanup if needed)
+  // Verify token on mount
   useEffect(() => {
-    if (!token || !user) {
-      // If state is cleared but localStorage remains (edge case), clean it up
-      if (!token && !user) {
-        // ensure consistency
+    const verifyToken = async () => {
+      const storedToken = localStorage.getItem('token');
+
+      if (!storedToken) {
+        setLoading(false);
+        return;
       }
-    }
-  }, [token, user]);
+
+      try {
+        const response = await authAPI.verifyToken();
+        if (response.data.valid) {
+          // Token is valid, keep current state
+          setLoading(false);
+        } else {
+          // Token invalid, clear auth
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setToken(null);
+          setUser(null);
+          setLoading(false);
+        }
+      } catch (error) {
+        // Token verification failed, clear auth
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setToken(null);
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
+    verifyToken();
+  }, []);
 
   const login = async (credentials) => {
     try {
