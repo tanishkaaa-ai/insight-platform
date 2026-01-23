@@ -540,7 +540,7 @@ def get_practice_recommendations(student_id):
             
             recommendations.append({
                 'concept_id': record['concept_id'],
-                'concept_name': concept.get('concept_name', 'Unknown') if concept else 'Unknown',
+                'concept_name': concept.get('concept_name', concept.get('name', 'Unknown')) if concept else 'Unknown',
                 'current_mastery': mastery,
                 'recommendation': recommendation,
                 'priority': priority,

@@ -92,7 +92,7 @@ def get_class_engagement_index(classroom_id):
             {'classroom_id': classroom_id, 'role': 'student'}
         )
         
-        student_ids = [m['user_id'] for m in memberships]
+        student_ids = [m.get('user_id') for m in memberships if m.get('user_id')]
         
         if not student_ids:
             return jsonify({
