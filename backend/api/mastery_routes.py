@@ -298,8 +298,16 @@ def generate_practice_session():
         from ai_engine.adaptive_practice import ContentItem
 
         concept_query = {}
-        if classroom_id:
-            concept_query['classroom_id'] = classroom_id
+        if data.concept_id:
+            # Focus mode: Only fetch the requested concept
+            concept_query['_id'] = data.concept_id
+        elif classroom_id:
+            # Class mode: Fetch class-specific AND global concepts
+            concept_query['$or'] = [
+                {'classroom_id': classroom_id},
+                {'classroom_id': None},
+                {'classroom_id': {'$exists': False}}
+            ]
 
         concepts = find_many(CONCEPTS, concept_query)
         logger.info(f"[GENERATE_PRACTICE] Concepts retrieved | count: {len(concepts)} | classroom: {classroom_id}")
