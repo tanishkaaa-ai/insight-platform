@@ -1393,7 +1393,9 @@ def submit_milestone_for_approval(project_id, milestone_id):
                 'pending_approval': True,
                 'submitted_by_team': team_id,
                 'submitted_at': datetime.utcnow(),
-                'submission_notes': data.get('notes', '')
+                'submission_notes': data.get('notes', ''),
+                'report_url': data.get('report_url'),
+                'zip_url': data.get('zip_url')
             }}
         )
 

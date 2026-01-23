@@ -100,7 +100,9 @@ def register_blueprints(app):
     from api.dashboard_routes import dashboard_bp
     from api.pbl_workflow_routes import pbl_workflow_bp
     from api.pbl_crud_extensions import pbl_crud_bp
+    from api.pbl_crud_extensions import pbl_crud_bp
     from api.polling_template_crud import poll_template_crud_bp
+    from api.upload_routes import upload_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     logger.info("Registered: /api/auth")
@@ -137,6 +139,9 @@ def register_blueprints(app):
 
     app.register_blueprint(pbl_crud_bp, url_prefix="/api/pbl")
     logger.info("Registered: /api/pbl (CRUD extensions)")
+
+    app.register_blueprint(upload_bp, url_prefix="/api")
+    logger.info("Registered: /api/upload")
 
     logger.info("All blueprints registered successfully")
 

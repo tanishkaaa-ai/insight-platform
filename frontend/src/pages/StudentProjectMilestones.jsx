@@ -104,39 +104,91 @@ const StudentProjectMilestones = () => {
         fetchTeamAndMilestones();
     }, [getUserId]);
 
-    const handleSubmitMilestone = async (milestoneId) => {
-        // Simple prompt for now, could be a modal
-        const notes = window.prompt('Enter completion notes (e.g. "Completed research phase with 5 sources"):');
-        if (!notes) return;
+    // State for submission modal
+    const [submittingId, setSubmittingId] = useState(null);
+    const [submissionNotes, setSubmissionNotes] = useState('');
+    const [reportFile, setReportFile] = useState(null);
+    const [zipFile, setZipFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleFileSelect = (e, setFile) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
+    const uploadFile = async (file) => {
+        if (!file) return null;
+        const formData = new FormData();
+        formData.append('file', file);
 
         try {
+            // Using fetch directly as api service wrapper might not support formData yet
+            // Assuming base URL is same, or need to configure axios for multipart
+            const res = await fetch('http://127.0.0.1:5000/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Upload failed');
+            return data.file_url;
+        } catch (e) {
+            console.error("Upload error:", e);
+            toast.error(`Failed to upload ${file.name}`);
+            return null;
+        }
+    };
+
+    const handleSubmitMilestone = async () => {
+        if (!submittingId) return;
+        if (!submissionNotes) {
+            toast.error("Please add some notes about your submission");
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            console.info('[STUDENT_MILESTONES] Uploading files...');
+            const reportUrl = await uploadFile(reportFile);
+            const zipUrl = await uploadFile(zipFile);
+
             console.info('[STUDENT_MILESTONES] Submitting milestone:', {
-                milestone_id: milestoneId,
-                team_id: team.team_id || team._id
+                milestone_id: submittingId,
+                team_id: team.team_id || team._id,
+                report_url: reportUrl,
+                zip_url: zipUrl
             });
 
-            await projectsAPI.submitMilestone(team.project_id, milestoneId, {
+            await projectsAPI.submitMilestone(team.project_id, submittingId, {
                 team_id: team.team_id || team._id,
-                notes
+                notes: submissionNotes,
+                report_url: reportUrl,
+                zip_url: zipUrl
             });
 
             toast.success('Milestone submitted for approval!');
-            console.info('[STUDENT_MILESTONES] Milestone submitted successfully');
 
-            // Refresh milestones by reloading the page logic or re-fetching
-            // For now, optimistic update or just reload would work
-            // Let's reload data
+            // Cleanup
+            setSubmittingId(null);
+            setSubmissionNotes('');
+            setReportFile(null);
+            setZipFile(null);
+
+            // Refresh milestones
             const progressRes = await projectsAPI.getTeamProgress(team.team_id || team._id);
             const progress = progressRes.data;
             const allMilestones = [
                 ...(progress.unlocked_milestones || []),
                 ...(progress.locked_milestones || [])
             ].sort((a, b) => a.order - b.order);
-            setMilestones(allMilestones);
+            // Re-trigger fetch or update local state logic would be here
+            window.location.reload(); // Simple refresh for now to sync everything
 
         } catch (error) {
             console.error('[STUDENT_MILESTONES] Submit failed:', error);
             toast.error('Failed to submit milestone');
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -209,10 +261,10 @@ const StudentProjectMilestones = () => {
                                     <div className="pl-11 md:pl-0">
                                         {!milestone.is_completed && !milestone.pending_approval && (
                                             <button
-                                                onClick={() => handleSubmitMilestone(milestone.milestone_id)}
+                                                onClick={() => setSubmittingId(milestone.milestone_id)}
                                                 className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center gap-2"
                                             >
-                                                <Send size={16} /> Submit for Approval
+                                                <Send size={16} /> Submit Work
                                             </button>
                                         )}
                                         {milestone.pending_approval && (
@@ -224,6 +276,82 @@ const StudentProjectMilestones = () => {
                         ))
                     )}
                 </div>
+
+                {/* Submission Modal */}
+                {submittingId && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl"
+                        >
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4">Submit Milestone</h2>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Submission Notes</label>
+                                    <textarea
+                                        value={submissionNotes}
+                                        onChange={(e) => setSubmissionNotes(e.target.value)}
+                                        className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        rows={3}
+                                        placeholder="Describe what you accomplished..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors relative">
+                                        <input
+                                            type="file"
+                                            accept=".pdf"
+                                            onChange={(e) => handleFileSelect(e, setReportFile)}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                        <div className="pointer-events-none">
+                                            <div className="bg-red-100 text-red-600 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-600">Project Report</p>
+                                            <p className="text-xs text-gray-400">{reportFile ? reportFile.name : "Upload PDF"}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors relative">
+                                        <input
+                                            type="file"
+                                            accept=".zip,.rar"
+                                            onChange={(e) => handleFileSelect(e, setZipFile)}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                        <div className="pointer-events-none">
+                                            <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
+                                            </div>
+                                            <p className="text-sm font-bold text-gray-600">Project Code</p>
+                                            <p className="text-xs text-gray-400">{zipFile ? zipFile.name : "Upload ZIP"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setSubmittingId(null)}
+                                    className="flex-1 py-2 text-gray-500 font-bold hover:bg-gray-50 rounded-xl"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSubmitMilestone}
+                                    disabled={isUploading}
+                                    className="flex-1 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 disabled:opacity-50"
+                                >
+                                    {isUploading ? 'Uploading...' : 'Submit Work'}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );

@@ -3,7 +3,7 @@ import TeacherLayout from '../components/TeacherLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { classroomAPI, projectsAPI } from '../services/api';
 import { toast } from 'react-hot-toast';
-import { CheckCircle, XCircle, Clock, AlertTriangle, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertTriangle, MessageSquare, FileText, Code } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TeacherProjectReview = () => {
@@ -192,6 +192,31 @@ const TeacherProjectReview = () => {
                                                         Submitted: {milestone.submitted_at ? new Date(milestone.submitted_at).toLocaleString() : 'Unknown date'}
                                                     </div>
                                                 </div>
+
+                                                {(milestone.report_url || milestone.zip_url) && (
+                                                    <div className="flex gap-3 mt-4">
+                                                        {milestone.report_url && (
+                                                            <a
+                                                                href={`http://127.0.0.1:5000${milestone.report_url}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors border border-red-100"
+                                                            >
+                                                                <FileText size={16} /> Report PDF
+                                                            </a>
+                                                        )}
+                                                        {milestone.zip_url && (
+                                                            <a
+                                                                href={`http://127.0.0.1:5000${milestone.zip_url}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-100 transition-colors border border-blue-100"
+                                                            >
+                                                                <Code size={16} /> Code ZIP
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="flex flex-col justify-center gap-3 md:min-w-[160px]">
