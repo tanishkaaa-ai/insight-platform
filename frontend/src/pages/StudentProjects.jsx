@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
-import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle } from 'lucide-react';
+import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -348,6 +348,12 @@ const StudentProjects = () => {
                                 <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">?</div>
                             ))}
                         </div>
+                        <button
+                            onClick={() => window.location.href = '/student/milestones'}
+                            className="bg-white border-2 border-yellow-200 text-yellow-700 px-4 py-2 rounded-xl font-bold hover:bg-yellow-50 transition-colors flex items-center gap-2"
+                        >
+                            <Target size={18} /> Milestones
+                        </button>
                         <button
                             onClick={() => setShowUpload(true)}
                             className="bg-white border-2 border-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition-colors"

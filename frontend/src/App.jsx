@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// Placeholder to avoid error if I don't replace anything. I need to find the right file first.
+// I will skip this replacement and instead view TeacherDashboard.jsx
+
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { socket } from './services/api';
 import { AuthProvider } from './contexts/AuthContext';
@@ -23,6 +25,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import TeacherClassDetails from './pages/TeacherClassDetails';
 import TeacherCurriculum from './pages/TeacherCurriculum';
 import TeacherAssignment from './pages/TeacherAssignment';
+import StudentProjectMilestones from './pages/StudentProjectMilestones';
+import TeacherProjectReview from './pages/TeacherProjectReview';
 
 function MainLayout({ isConnected }) {
   const location = useLocation();
@@ -63,6 +67,7 @@ function MainLayout({ isConnected }) {
         <Route path="/teacher/polls" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
         <Route path="/teacher/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
         <Route path="/teacher/curriculum" element={<ProtectedRoute requiredRole="teacher"><TeacherCurriculum /></ProtectedRoute>} />
+        <Route path="/teacher/project-review" element={<ProtectedRoute requiredRole="teacher"><TeacherProjectReview /></ProtectedRoute>} />
         <Route path="/teacher/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
 
         <Route path="/polling" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
@@ -76,6 +81,7 @@ function MainLayout({ isConnected }) {
         <Route path="/student/assignment/:assignmentId" element={<ProtectedRoute requiredRole="student"><StudentAssignment /></ProtectedRoute>} />
         <Route path="/student/practice" element={<ProtectedRoute requiredRole="student"><StudentPractice /></ProtectedRoute>} />
         <Route path="/student/projects" element={<ProtectedRoute requiredRole="student"><StudentProjects /></ProtectedRoute>} />
+        <Route path="/student/milestones" element={<ProtectedRoute requiredRole="student"><StudentProjectMilestones /></ProtectedRoute>} />
         <Route path="/student/polls" element={<ProtectedRoute requiredRole="student"><StudentPolls /></ProtectedRoute>} />
       </Routes>
     </>
