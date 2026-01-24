@@ -111,14 +111,14 @@ const StudentPolls = () => {
                             <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-4">
                                 <List size={20} /> Active Polls
                             </h3>
-                            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                            <div className="space-y-2 max-h-[60vh] overflow-y-auto p-2">
                                 {activePolls.map(poll => (
                                     <button
                                         key={poll.poll_id}
                                         onClick={() => setActivePoll(poll)}
                                         className={`w-full text-left p-4 rounded-xl transition-all border group relative overflow-hidden ${activePoll?.poll_id === poll.poll_id
-                                                ? 'bg-orange-50 border-orange-300 shadow-md transform scale-[1.02]'
-                                                : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200 shadow-sm'
+                                            ? 'bg-orange-50 border-orange-300 shadow-md transform scale-[1.02]'
+                                            : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200 shadow-sm'
                                             }`}
                                     >
                                         <div className="text-sm font-bold text-gray-800 line-clamp-2">{poll.question}</div>
@@ -155,7 +155,7 @@ const StudentPolls = () => {
                                 key={activePoll.poll_id}
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="bg-white rounded-3xl shadow-lg border border-orange-100 p-8 relative overflow-hidden min-h-[400px]"
+                                className="bg-white rounded-3xl shadow-lg border border-orange-200 p-8 relative overflow-hidden min-h-[400px]"
                             >
                                 <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-4 py-1 rounded-full text-sm font-bold animate-pulse mb-6">
                                     <span className="w-2 h-2 bg-red-600 rounded-full" /> LIVE POLL ACTIVE
@@ -172,7 +172,7 @@ const StudentPolls = () => {
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => submitResponse(option)}
                                                 disabled={loading}
-                                                className="w-full p-5 text-left border-2 border-gray-100 rounded-2xl transition-all font-medium text-gray-700 flex items-center justify-between group disabled:opacity-50"
+                                                className="w-full p-5 text-left border-2 border-gray-200 rounded-2xl transition-all font-medium text-gray-700 flex items-center justify-between group disabled:opacity-50"
                                             >
                                                 <span>{option}</span>
                                                 <span className="w-6 h-6 rounded-full border-2 border-gray-200 group-hover:border-orange-400 flex items-center justify-center">
