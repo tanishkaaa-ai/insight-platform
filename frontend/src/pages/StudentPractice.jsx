@@ -6,6 +6,7 @@ import { masteryAPI, classroomAPI, practiceAPI, engagementAPI } from '../service
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import useTabDetection from '../hooks/useTabDetection';
 
 const StudentPractice = () => {
     const { getUserId } = useAuth();
@@ -601,6 +602,9 @@ const PracticeSessionModal = ({ session, questionIndex, onClose, onAnswer, onNex
         setSubmitting(false);
     }, [currentItem]);
 
+    const { user } = useAuth();
+    const { isFlagged } = useTabDetection(user?.user_id || user?.id, 'practice_session', session.session_id);
+
     const handleSubmit = async () => {
         if (!selectedAnswer) return;
 
@@ -621,6 +625,33 @@ const PracticeSessionModal = ({ session, questionIndex, onClose, onAnswer, onNex
             setSubmitting(false);
         }
     };
+
+    if (isFlagged) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden text-center p-8 border-2 border-red-500"
+                >
+                    <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <AlertCircle size={48} className="text-red-600" />
+                    </div>
+                    <h2 className="text-2xl font-extrabold text-gray-800 mb-2">Session Terminated</h2>
+                    <p className="text-gray-600 mb-6">
+                        Academic integrity violation detected. You switched tabs during an active practice session.
+                        This incident has been flagged to your instructor.
+                    </p>
+                    <button
+                        onClick={onClose}
+                        className="w-full py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+                    >
+                        Close Session
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
