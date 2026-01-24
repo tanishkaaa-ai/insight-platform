@@ -237,7 +237,7 @@ const StudentAttendance = () => {
               <p className="text-gray-600 mb-4">
                 {hasRegisteredIP
                   ? `Device registered successfully. IP: ${registeredIPAddress}`
-                  : "First, you need to register the device you'll use for attendance."}
+                  : "Register the device you will use for attendance. ⚠️ This is a ONE-TIME process and cannot be changed."}
               </p>
             </div>
           </div>
@@ -248,7 +248,7 @@ const StudentAttendance = () => {
               disabled={loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? 'Registering...' : 'Register This Device'}
+              {loading ? 'Registering...' : 'Register Device (Permanent)'}
             </button>
           )}
         </div>
