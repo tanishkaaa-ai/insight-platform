@@ -36,10 +36,14 @@ const StudentPractice = () => {
 
     // Helper function to calculate nodes state (moved inside to access GRAPH_SLOTS, or passed as arg)
     const calculateGraphNodes = (rawConcepts) => {
-        // Sort concepts
-        const sortedConcepts = [...rawConcepts].sort((a, b) =>
-            (a.concept_name || '').localeCompare(b.concept_name || '')
-        );
+        // Sort concepts by creation date (chronological)
+        const sortedConcepts = [...rawConcepts].sort((a, b) => {
+            if (a.created_at && b.created_at) {
+                return new Date(a.created_at) - new Date(b.created_at);
+            }
+            // Fallback to name if date missing
+            return (a.concept_name || '').localeCompare(b.concept_name || '');
+        });
 
         return sortedConcepts.map((concept, index) => {
             const slot = GRAPH_SLOTS[index % GRAPH_SLOTS.length];

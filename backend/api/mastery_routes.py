@@ -168,6 +168,7 @@ def get_student_mastery(student_id):
                     'classroom_id': concept.get('classroom_id'),
                     'mastery_score': mastery_score,
                     'status': status,
+                    'created_at': (concept.get('created_at').isoformat() if hasattr(concept.get('created_at'), 'isoformat') else concept.get('created_at')) if concept.get('created_at') else None,
                     'last_assessed': (record.get('last_assessed').isoformat() if hasattr(record.get('last_assessed'), 'isoformat') else record.get('last_assessed')) if record.get('last_assessed') else None,
                     'times_assessed': record.get('times_assessed', 0),
                     'learning_velocity': record.get('learning_velocity', 0)
