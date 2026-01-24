@@ -40,6 +40,89 @@ HARDCODED_ADMIN_PASS = "admin123"
 HARDCODED_ADMIN_ID = "000000000000000000000000"
 
 # ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+def generate_jwt_token(user_id, role):
+    """Generate JWT token for user"""
+    payload = {
+        'user_id': user_id,
+        'role': role,
+        'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+        'iat': datetime.utcnow()
+    }
+
+    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return token
+
+
+def decode_jwt_token(token):
+    """Decode and validate JWT token"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None
+
+
+def extract_token_from_header():
+    """Extract JWT token from Authorization header"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return None
+
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != 'bearer':
+        return None
+
+    return parts[1]
+
+
+def require_auth(required_role=None):
+    """
+    Decorator to protect routes with authentication
+
+    Usage:
+        @auth_bp.route('/protected')
+        @require_auth()
+        def protected_route():
+            ...
+
+        @auth_bp.route('/admin-only')
+        @require_auth(required_role='admin')
+        def admin_route():
+            ...
+    """
+    def decorator(f):
+        from functools import wraps
+
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token = extract_token_from_header()
+            if not token:
+                return jsonify({'error': 'Authentication required'}), 401
+
+            payload = decode_jwt_token(token)
+            if not payload:
+                return jsonify({'error': 'Invalid or expired token'}), 401
+
+            # Check role if required
+            if required_role and payload.get('role') != required_role:
+                return jsonify({'error': 'Insufficient permissions'}), 403
+
+            # Add user info to request context
+            request.user_id = payload['user_id']
+            request.user_role = payload['role']
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+    return decorator
+
+
+# ============================================================================
 # AUTHENTICATION ROUTES
 # ============================================================================
 
@@ -374,84 +457,37 @@ def change_password():
         }), 500
 
 
-# ============================================================================
-# UTILITY FUNCTIONS
-# ============================================================================
-
-def generate_jwt_token(user_id, role):
-    """Generate JWT token for user"""
-    payload = {
-        'user_id': user_id,
-        'role': role,
-        'exp': datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
-        'iat': datetime.utcnow()
-    }
-
-    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    return token
-
-
-def decode_jwt_token(token):
-    """Decode and validate JWT token"""
+@auth_bp.route('/profile', methods=['PATCH'])
+@require_auth()
+def update_profile():
+    """
+    Update user profile (e.g., student's parent email)
+    """
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        return payload
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
-
-
-def extract_token_from_header():
-    """Extract JWT token from Authorization header"""
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return None
-
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0].lower() != 'bearer':
-        return None
-
-    return parts[1]
-
-
-def require_auth(required_role=None):
-    """
-    Decorator to protect routes with authentication
-
-    Usage:
-        @auth_bp.route('/protected')
-        @require_auth()
-        def protected_route():
-            ...
-
-        @auth_bp.route('/admin-only')
-        @require_auth(required_role='admin')
-        def admin_route():
-            ...
-    """
-    def decorator(f):
-        from functools import wraps
-
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            token = extract_token_from_header()
-            if not token:
-                return jsonify({'error': 'Authentication required'}), 401
-
-            payload = decode_jwt_token(token)
-            if not payload:
-                return jsonify({'error': 'Invalid or expired token'}), 401
-
-            # Check role if required
-            if required_role and payload.get('role') != required_role:
-                return jsonify({'error': 'Insufficient permissions'}), 403
-
-            # Add user info to request context
-            request.user_id = payload['user_id']
-            request.user_role = payload['role']
-
-            return f(*args, **kwargs)
-
-        return decorated_function
-    return decorator
+        user_id = request.user_id
+        role = request.user_role
+        data = request.json
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        logger.info(f"Updating profile | user_id: {user_id} | role: {role}")
+        
+        # Only allow specific fields for now
+        allowed_student_fields = ['parent_email', 'first_name', 'last_name']
+        allowed_teacher_fields = ['first_name', 'last_name', 'subject_area']
+        
+        if role == 'student':
+            update_data = {k: v for k, v in data.items() if k in allowed_student_fields}
+            if update_data:
+                update_one(STUDENTS, {'user_id': user_id}, {'$set': update_data})
+        elif role == 'teacher':
+            update_data = {k: v for k, v in data.items() if k in allowed_teacher_fields}
+            if update_data:
+                update_one(TEACHERS, {'user_id': user_id}, {'$set': update_data})
+                
+        return jsonify({'message': 'Profile updated successfully'}), 200
+        
+    except Exception as e:
+        logger.error(f"Profile update failed: {str(e)}")
+        return jsonify({'error': 'Update failed', 'detail': str(e)}), 500

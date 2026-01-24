@@ -582,20 +582,32 @@ def get_active_student_sessions():
             return error_resp
             
         actual_student_id = str(student['_id'])
+        logger.info(f"Resolved Student ID: {actual_student_id}")
+
         student_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         student_ip = normalize_ip(student_ip.split(',')[0].strip() if ',' in student_ip else student_ip)
         registered_ip = normalize_ip(student.get('registered_ip'))
         ip_valid = (registered_ip == student_ip)
-
+        
         # 2. Get Student's Enrolled Classrooms
+        # Check both Student ID and User ID to cover potential data inconsistencies
+        student_ids_to_check = [actual_student_id]
+        if 'user_id' in student and str(student['user_id']) != actual_student_id:
+             student_ids_to_check.append(str(student['user_id']))
+             
+        logger.info(f"Checking memberships for Student IDs: {student_ids_to_check}")
+
         memberships = list(db[CLASSROOM_MEMBERSHIPS].find(
-            {'student_id': actual_student_id, 'is_active': True}
+            {'student_id': {'$in': student_ids_to_check}, 'is_active': True}
         ))
+        logger.info(f"Found {len(memberships)} active memberships for student {actual_student_id}")
         
         if not memberships:
+             logger.info("No memberships found.")
              return jsonify([]), 200
              
         classroom_ids = [m['classroom_id'] for m in memberships]
+        logger.info(f"Checking sessions for Classrooms: {classroom_ids}")
         
         # 3. Find Active Sessions
         active_sessions = list(db[ATTENDANCE_SESSIONS].find({
@@ -603,6 +615,7 @@ def get_active_student_sessions():
             'is_open': True,
             'closes_at': {'$gt': datetime.utcnow()}
         }))
+        logger.info(f"Found {len(active_sessions)} active sessions in DB for these classrooms.")
         
         if not active_sessions:
             return jsonify([]), 200

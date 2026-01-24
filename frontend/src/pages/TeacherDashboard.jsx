@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateInterventionModal from '../components/CreateInterventionModal';
+import BulkReportModal from '../components/BulkReportModal';
 
 const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
   <motion.div
@@ -56,6 +57,7 @@ const TeacherDashboard = () => {
   const [atRiskStudents, setAtRiskStudents] = useState([]);
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [interventionStudent, setInterventionStudent] = useState(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -234,6 +236,12 @@ const TeacherDashboard = () => {
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200">
               <Plus size={18} /> Start Live Session
+            </button>
+            <button
+              onClick={() => setReportModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+            >
+              <Megaphone size={18} /> Weekly Reports
             </button>
           </div>
         </div>
@@ -514,6 +522,11 @@ const TeacherDashboard = () => {
           </div>
         )
       }
+      <BulkReportModal
+        isOpen={reportModalOpen}
+        onClose={() => setReportModalOpen(false)}
+        teacherId={getUserId()}
+      />
     </TeacherLayout >
   );
 };

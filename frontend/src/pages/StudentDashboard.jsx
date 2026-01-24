@@ -4,10 +4,11 @@ import DashboardLayout from '../components/DashboardLayout';
 import GamificationBadge from '../components/GamificationBadge';
 import ProgressBar from '../components/ProgressBar';
 import StudentSoftSkillsProfile from '../components/StudentSoftSkillsProfile';
-import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap, AlertCircle, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { masteryAPI, classroomAPI, engagementAPI, projectsAPI } from '../services/api';
+import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap, AlertCircle, Loader2, Mail, Save } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { masteryAPI, classroomAPI, engagementAPI, projectsAPI, authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const StudentDashboard = () => {
     const { user, getUserId } = useAuth();
@@ -30,6 +31,9 @@ const StudentDashboard = () => {
         recentActivity: [],
         badges: []
     });
+    const [parentEmail, setParentEmail] = useState('');
+    const [savingEmail, setSavingEmail] = useState(false);
+    const [showEmailPrompt, setShowEmailPrompt] = useState(false);
 
     const STUDENT_ID = getUserId();
 
@@ -139,6 +143,11 @@ const StudentDashboard = () => {
                     recentActivity: [...recentMasteryActivity, ...recentAssignmentActivity]
                 }));
 
+                // Check for parent email
+                if (!user.parent_email && !localStorage.getItem('dismissedEmailPrompt')) {
+                    setShowEmailPrompt(true);
+                }
+
             } catch (err) {
                 console.error("Dashboard fetch error:", err);
                 setError(`Error: ${err.message || String(err)}`);
@@ -224,6 +233,70 @@ const StudentDashboard = () => {
                     <Compass className="absolute top-4 right-8 text-yellow-200 opacity-50 rotate-12" size={64} />
                     <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
                 </motion.div>
+
+                {/* Parent Email Prompt */}
+                <AnimatePresence>
+                    {showEmailPrompt && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-4 text-center md:text-left">
+                                    <div className="bg-blue-600 p-3 rounded-xl text-white">
+                                        <Mail size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-blue-900">Stay Connected!</h3>
+                                        <p className="text-blue-700 text-sm">Add your parent's email so they can receive your weekly performance reports.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 w-full md:w-auto">
+                                    <input
+                                        type="email"
+                                        placeholder="parent@example.com"
+                                        value={parentEmail}
+                                        onChange={(e) => setParentEmail(e.target.value)}
+                                        className="flex-1 md:w-64 px-4 py-2 rounded-xl border border-blue-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    />
+                                    <button
+                                        onClick={async () => {
+                                            if (!parentEmail || !parentEmail.includes('@')) {
+                                                toast.error("Please enter a valid email");
+                                                return;
+                                            }
+                                            try {
+                                                setSavingEmail(true);
+                                                await authAPI.updateProfile({ parent_email: parentEmail });
+                                                toast.success("Parent contact saved!");
+                                                setShowEmailPrompt(false);
+                                            } catch (e) {
+                                                toast.error("Failed to save email");
+                                            } finally {
+                                                setSavingEmail(false);
+                                            }
+                                        }}
+                                        disabled={savingEmail}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-700 transition"
+                                    >
+                                        {savingEmail ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowEmailPrompt(false);
+                                            localStorage.setItem('dismissedEmailPrompt', 'true');
+                                        }}
+                                        className="text-blue-400 hover:text-blue-600 text-xs font-bold"
+                                    >
+                                        Later
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Quick Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -72,6 +72,7 @@ export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   verifyToken: () => api.get('/auth/verify'),
+  updateProfile: (data) => api.patch('/auth/profile', data),
 };
 
 export const masteryAPI = {
@@ -209,6 +210,10 @@ export const dashboardAPI = {
   dismissStudentAlerts: (studentId) => api.post(`/engagement/alerts/student/${studentId}/dismiss`),
   deleteIntervention: (interventionId) => api.delete(`/dashboard/interventions/${interventionId}`),
   getAdminTeacherStats: () => api.get('/dashboard/admin/teachers'),
+  getBulkReports: (teacherId, classroomId) => api.get('/dashboard/reports/teacher/preview-all', {
+    params: { teacher_id: teacherId, classroom_id: classroomId }
+  }),
+  sendBatchReports: (data) => api.post('/dashboard/reports/send-batch', data),
 };
 
 export const attendanceAPI = {
