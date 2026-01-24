@@ -90,6 +90,14 @@ const StudentAssignment = () => {
                 attachments: attachments
             });
             setSubmitted(true);
+
+            // Trigger engagement update
+            try {
+               await engagementAPI.analyzeEngagement({ student_id: user?.user_id || user?.id });
+            } catch (e) {
+               console.error("Failed to update engagement stats", e);
+            }
+
             setTimeout(() => {
                 navigate('/student/classes');
             }, 2000);

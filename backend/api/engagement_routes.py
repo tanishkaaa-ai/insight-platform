@@ -18,6 +18,7 @@ from models.database import (
     LIVE_POLLS,
     POLL_RESPONSES,
     STUDENT_RESPONSES,
+    CLASSROOM_SUBMISSIONS,
     STUDENTS,
     find_one,
     find_many,
@@ -658,12 +659,24 @@ def _calculate_implicit_signals(student_id):
             'submitted_at': {'$gte': week_ago}
         }
     )
+
+    # Get assignment submissions
+    submissions = find_many(
+        CLASSROOM_SUBMISSIONS,
+        {
+            'student_id': student_id,
+            'submitted_at': {'$gte': week_ago},
+            'status': {'$in': ['turned_in', 'graded', 'returned']}
+        }
+    )
     
     response_times = [r.get('response_time', 0) for r in responses if r.get('response_time')]
-    interaction_count = len(responses)
+    interaction_count = len(responses) + len(submissions)
     
     correct_count = sum(1 for r in responses if r.get('is_correct'))
-    task_completion_rate = correct_count / len(responses) if responses else 0.5
+    # Task completion: For assignments, turned_in counts as complete.
+    total_tasks = len(responses) + len(submissions)
+    task_completion_rate = (correct_count + len(submissions)) / total_tasks if total_tasks > 0 else 0.5
     
     return ImplicitSignals(
         login_frequency=login_frequency,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/DashboardLayout';
 import { Target, Lock, CheckCircle, Play, BrainCircuit, Loader2, AlertCircle, X, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { masteryAPI, classroomAPI, practiceAPI } from '../services/api';
+import { masteryAPI, classroomAPI, practiceAPI, engagementAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -207,13 +207,21 @@ const StudentPractice = () => {
         }
     };
 
-    const handleNextQuestion = () => {
+    const handleNextQuestion = async () => {
         if (currentQuestionIndex < currentSession.content_items.length - 1) {
             setCurrentQuestionIndex(prev => prev + 1);
             setQuestionStartTime(Date.now());
         } else {
             // End of session
             setShowPracticeModal(false);
+
+            try {
+                // Trigger engagement analysis to update XP/Levels
+                await engagementAPI.analyzeEngagement({ student_id: STUDENT_ID });
+            } catch (err) {
+                console.error("Failed to update engagement stats", err);
+            }
+
             toast.success("Practice session completed! Great job!", { duration: 4000 });
         }
     };
