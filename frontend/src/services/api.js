@@ -15,9 +15,25 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        // Prioritize user_id (from normalized response) or _id (raw mongo)
+        const userId = user.user_id || user._id || user.id;
+        if (userId) {
+          config.headers['X-User-Id'] = userId;
+        }
+      } catch (e) {
+        // Ignore parsing error
+      }
+    }
+
     return config;
   },
   (error) => {
@@ -203,6 +219,7 @@ export const attendanceAPI = {
   closeSession: (sessionId) => api.post(`/attendance/sessions/${sessionId}/close`),
   getSessionRecords: (sessionId) => api.get(`/attendance/sessions/${sessionId}/records`),
   getClassroomSessions: (classroomId, params) => api.get(`/attendance/classrooms/${classroomId}/sessions`, { params }),
+  getStudentStatus: () => api.get('/attendance/student/status'),
 };
 
 export default api;

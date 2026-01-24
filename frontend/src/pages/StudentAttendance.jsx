@@ -16,6 +16,7 @@ const StudentAttendance = () => {
   const [loading, setLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [hasRegisteredIP, setHasRegisteredIP] = useState(false);
+  const [registeredIPAddress, setRegisteredIPAddress] = useState(null);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -49,10 +50,17 @@ const StudentAttendance = () => {
   }, [canMark]);
 
   const checkIPRegistration = async () => {
-    // Check if user has a classroom to monitor
-    // This would come from their enrolled classes
-    // For now, we'll let them enter it manually
-    setHasRegisteredIP(true);
+    try {
+      const response = await attendanceAPI.getStudentStatus();
+      setHasRegisteredIP(response.data.is_registered);
+      if (response.data.registered_ip) {
+        setRegisteredIPAddress(response.data.registered_ip);
+      }
+    } catch (error) {
+      console.error('Error checking IP registration:', error);
+      // Fallback to false if error, forcing registration attempt which will fail/succeed with proper error
+      setHasRegisteredIP(false);
+    }
   };
 
   const registerIP = async () => {
@@ -60,7 +68,8 @@ const StudentAttendance = () => {
       setLoading(true);
       await attendanceAPI.bindIP();
       toast.success('Device registered successfully!');
-      setHasRegisteredIP(true);
+      // Re-check status to confirm
+      await checkIPRegistration();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to register device');
     } finally {
@@ -135,14 +144,28 @@ const StudentAttendance = () => {
 
   const capturePhoto = () => {
     return new Promise((resolve) => {
+      if (!videoRef.current || videoRef.current.readyState !== 4) { // HAVE_ENOUGH_DATA
+        console.warn("Video not ready for capture");
+        // Try anyway, or handle error?
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = 640;
       canvas.height = 480;
 
       const context = canvas.getContext('2d');
+      // Flip horizontally for consistency with user-facing camera if needed
+      // context.translate(canvas.width, 0);
+      // context.scale(-1, 1);
+
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-      const photoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+      // Verify not empty
+      const pixelData = context.getImageData(0, 0, 1, 1).data;
+      console.log('Capture sample pixel:', pixelData);
+
+      const photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      console.log('Photo captured, length:', photoBase64.length);
       resolve(photoBase64);
     });
   };
@@ -206,12 +229,22 @@ const StudentAttendance = () => {
         <h1 className="text-3xl font-bold mb-6">Mark Attendance</h1>
 
         {/* Step 1: Register IP */}
-        {!hasRegisteredIP && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Step 1: Register Your Device</h2>
-            <p className="text-gray-600 mb-4">
-              First, you need to register the device you'll use for attendance.
-            </p>
+        <div className={`bg-white rounded-lg shadow p-6 mb-6 transition-opacity ${hasRegisteredIP ? 'opacity-75' : 'opacity-100'}`}>
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                Step 1: Register Your Device
+                {hasRegisteredIP && <span className="text-green-500 text-sm">✓ Completed</span>}
+              </h2>
+              <p className="text-gray-600 mb-4">
+                {hasRegisteredIP
+                  ? `Device registered successfully. IP: ${registeredIPAddress}`
+                  : "First, you need to register the device you'll use for attendance."}
+              </p>
+            </div>
+          </div>
+
+          {!hasRegisteredIP && (
             <button
               onClick={registerIP}
               disabled={loading}
@@ -219,12 +252,12 @@ const StudentAttendance = () => {
             >
               {loading ? 'Registering...' : 'Register This Device'}
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Step 2: Enter Classroom ID */}
         {hasRegisteredIP && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-6 mb-6 animate-fade-in-up">
             <h2 className="text-xl font-semibold mb-4">Step 2: Enter Classroom</h2>
             <div className="flex gap-4">
               <input
@@ -298,13 +331,18 @@ const StudentAttendance = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Capture Your Photo</h2>
 
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
-                className="w-full max-w-2xl mx-auto rounded-lg border-4 border-blue-500"
+                muted
+                className="w-full max-w-2xl mx-auto rounded-lg border-4 border-blue-500 bg-black"
+                style={{ minHeight: '300px' }}
               />
+              <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs animate-pulse">
+                REC
+              </div>
             </div>
 
             <div className="text-center">

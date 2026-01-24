@@ -12,6 +12,7 @@ from math import radians, sin, cos, sqrt, atan2
 
 from models.database import (
     db,
+    USERS,
     STUDENTS,
     ATTENDANCE_SESSIONS,
     ATTENDANCE_RECORDS,
@@ -25,6 +26,70 @@ logger = get_logger(__name__)
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
+
+def get_student_or_create_stub(student_id):
+    """
+    Robustly find a student profile, or create a stub if User exists but Student profile is missing.
+    Returns (student_dict, error_response_tuple)
+    If student found/created: returns (student, None)
+    If error: returns (None, (jsonify(...), status_code))
+    """
+    if not student_id:
+        return None, (jsonify({'error': 'User ID required'}), 401)
+
+    # 1. Try finding student by _id (which should be user_id)
+    student = db[STUDENTS].find_one({'_id': student_id})
+    
+    # 2. Key fallbacks
+    if not student:
+        student = db[STUDENTS].find_one({'user_id': student_id})
+    
+    if not student and len(student_id) == 24:
+        try:
+             student = db[STUDENTS].find_one({'_id': ObjectId(student_id)})
+        except:
+             pass
+             
+    if not student and len(student_id) == 24:
+        try:
+             student = db[STUDENTS].find_one({'user_id': ObjectId(student_id)})
+        except:
+             pass
+
+    # 3. If found, return
+    if student:
+        return student, None
+        
+    # 4. REPAIR: Check if User exists
+    user = db[USERS].find_one({'_id': student_id})
+    # Try ObjectId for user too
+    if not user and len(student_id) == 24:
+        try:
+            user = db[USERS].find_one({'_id': ObjectId(student_id)})
+        except:
+             pass
+             
+    if user:
+        # User exists but Student profile missing. Create stub!
+        logger.warning(f"Repairing missing student profile for User: {student_id}")
+        new_student = {
+            '_id': str(user['_id']),
+            'user_id': str(user['_id']),
+            'first_name': user.get('username', 'Student'),
+            'last_name': '(Repaired)',
+            'grade_level': 1,
+            'section': 'General',
+            'created_at': datetime.utcnow(),
+            'registered_ip': None 
+        }
+        try:
+            db[STUDENTS].insert_one(new_student)
+            return new_student, None
+        except Exception as e:
+            logger.error(f"Failed to repair student profile: {e}")
+            
+    return None, (jsonify({'error': 'Student profile not found. Please contact admin.'}), 404)
+
 
 def get_current_user_id():
     """Get current user ID from JWT token (simplified)"""
@@ -53,6 +118,41 @@ def calculate_distance(lat1, lon1, lat2, lon2):
 # STUDENT ENDPOINTS
 # ============================================================================
 
+@attendance_bp.route('/student/status', methods=['GET'])
+def get_student_status():
+    """
+    Get student's attendance capability status
+
+    Request: GET /api/attendance/student/status
+    Headers: X-User-Id: <student_id>
+
+    Response:
+    {
+        "is_registered": true,
+        "registered_ip": "192.168.1.1"
+    }
+    """
+    try:
+        student_id = get_current_user_id()
+        if not student_id:
+            return jsonify({'error': 'User ID required'}), 401
+            
+        student, error_resp = get_student_or_create_stub(student_id)
+        if error_resp:
+            return error_resp
+
+        registered_ip = student.get('registered_ip')
+
+        return jsonify({
+            'is_registered': bool(registered_ip),
+            'registered_ip': registered_ip
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting status | Error: {str(e)}")
+        return jsonify({'error': 'Failed to get status'}), 500
+
+
 @attendance_bp.route('/bind-ip', methods=['POST'])
 def bind_ip():
     """
@@ -69,8 +169,9 @@ def bind_ip():
     """
     try:
         student_id = get_current_user_id()
-        if not student_id:
-            return jsonify({'error': 'User ID required'}), 401
+        student, error_resp = get_student_or_create_stub(student_id)
+        if error_resp:
+            return error_resp
 
         # Get IP address from request
         ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
@@ -79,15 +180,17 @@ def bind_ip():
 
         logger.info(f"Binding IP | Student: {student_id} | IP: {ip_address}")
 
-        # Update student record
+        # Update student record (using the ID we found/created)
+        student_oid = student['_id']
         result = db[STUDENTS].update_one(
-            {'_id': student_id},
+            {'_id': student_oid},
             {'$set': {'registered_ip': ip_address, 'ip_registered_at': datetime.utcnow()}}
         )
 
         if result.matched_count == 0:
-            logger.warning(f"Student not found | ID: {student_id}")
-            return jsonify({'error': 'Student not found'}), 404
+            # Should not happen since we just found/created it, but safe fallback
+            logger.warning(f"Student update failed | ID: {student_oid}")
+            return jsonify({'error': 'Student update failed'}), 500
 
         logger.info(f"IP bound successfully | Student: {student_id}")
         return jsonify({
@@ -129,44 +232,54 @@ def check_session(classroom_id):
         if ',' in student_ip:
             student_ip = student_ip.split(',')[0].strip()
 
-        logger.info(f"Checking session | Classroom: {classroom_id} | Student: {student_id}")
+        logger.info(f"Checking session | Input: {classroom_id} | Student User: {student_id}")
+
+        # 1. Resolve Classroom (Handle Join Code vs ID)
+        real_classroom_id = classroom_id
+        if len(classroom_id) < 10: # Assuming join codes are short
+            classroom = db[CLASSROOMS].find_one({'join_code': classroom_id})
+            if classroom:
+                real_classroom_id = str(classroom['_id'])
+                logger.info(f"Resolved join code {classroom_id} to {real_classroom_id}")
+            else:
+                # If valid join code not found, returns session none 
+                logger.warning(f"Join code not found: {classroom_id}")
+                return jsonify({
+                    'session': None,
+                    'can_mark': False,
+                    'reason': f'Invalid class code: {classroom_id}'
+                }), 200
 
         # Find active session
         session = db[ATTENDANCE_SESSIONS].find_one({
-            'classroom_id': classroom_id,
+            'classroom_id': real_classroom_id,
             'is_open': True,
             'closes_at': {'$gt': datetime.utcnow()}
         })
 
         if not session:
-            logger.info(f"No active session | Classroom: {classroom_id}")
+            logger.info(f"No active session | Classroom: {real_classroom_id}")
             return jsonify({
                 'session': None,
                 'can_mark': False,
                 'reason': 'No active attendance session'
             }), 200
 
+        # Resolve Student (Robust Lookup + Repair)
+        student, error_resp = get_student_or_create_stub(student_id)
+        if error_resp:
+            # Check if it was 404
+            if error_resp[1] == 404:
+                 logger.warning(f"Student not found for ID: {student_id}")
+            return error_resp
+            
+        actual_student_id = str(student['_id'])
+
         # Check if already marked
         already_marked = db[ATTENDANCE_RECORDS].find_one({
             'session_id': session['_id'],
-            'student_id': student_id
+            'student_id': actual_student_id
         })
-
-        if already_marked:
-            logger.info(f"Already marked | Student: {student_id} | Session: {session['_id']}")
-            return jsonify({
-                'session': {
-                    '_id': str(session['_id']),
-                    'closes_at': session['closes_at'].isoformat()
-                },
-                'can_mark': False,
-                'reason': 'Attendance already marked'
-            }), 200
-
-        # Get student's registered IP
-        student = db[STUDENTS].find_one({'_id': student_id})
-        if not student:
-            return jsonify({'error': 'Student not found'}), 404
 
         registered_ip = student.get('registered_ip')
 
@@ -182,12 +295,11 @@ def check_session(classroom_id):
                 'closes_at': session['closes_at'].isoformat(),
                 'radius_meters': session['radius_meters']
             },
-            'can_mark': ip_valid,
+            'can_mark': ip_valid and not already_marked,
             'registered_ip': registered_ip,
             'current_ip': student_ip,
-            'reason': None if ip_valid else 'IP address mismatch - please use your registered device'
+            'reason': None if (ip_valid and not already_marked) else ('Attendance already marked' if already_marked else 'IP address mismatch')
         }), 200
-
     except Exception as e:
         logger.error(f"Error checking session | Error: {str(e)}")
         return jsonify({'error': 'Failed to check session'}), 500
@@ -245,9 +357,9 @@ def mark_attendance():
             return jsonify({'error': 'Attendance session is not open or has expired'}), 403
 
         # Get student
-        student = db[STUDENTS].find_one({'_id': student_id})
-        if not student:
-            return jsonify({'error': 'Student not found'}), 404
+        student, error_resp = get_student_or_create_stub(student_id)
+        if error_resp:
+            return error_resp
 
         # VALIDATION 1: IP Match
         registered_ip = student.get('registered_ip')
@@ -364,7 +476,7 @@ def open_session():
         session = {
             "classroom_id": data['classroom_id'],
             "teacher_id": teacher_id,
-            "date": datetime.utcnow().date(),
+            "date": datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0),
             "is_open": True,
             "center_lat": data['latitude'],
             "center_lon": data['longitude'],
