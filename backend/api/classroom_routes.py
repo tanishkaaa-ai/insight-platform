@@ -1158,6 +1158,7 @@ def grade_submission(submission_id):
         update_data = {
             'grade': data.get('grade'),
             'teacher_feedback': data.get('teacher_feedback', ''),
+            'corrected_file': data.get('corrected_file'),
             'status': 'returned' if data.get('return_to_student') else 'graded',
             'graded_at': datetime.utcnow(),
             'updated_at': datetime.utcnow()
@@ -1229,6 +1230,7 @@ def get_student_assignments(student_id):
                     'points': details.get('points'),
                     'status': submission.get('status'),
                     'grade': submission.get('grade'),
+                    'corrected_file': submission.get('corrected_file'),
                     'is_late': submission.get('is_late'),
                     'submitted_at': submission.get('submitted_at').isoformat() if hasattr(submission.get('submitted_at'), 'isoformat') else submission.get('submitted_at')
                 })

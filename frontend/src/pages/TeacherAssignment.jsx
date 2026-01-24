@@ -83,6 +83,8 @@ const RubricGrading = ({ onGradeChange, currentGrade, maxPoints }) => {
     );
 };
 
+import CanvasAnnotation from '../components/CanvasAnnotation';
+
 const TeacherAssignment = () => {
     const { assignmentId } = useParams();
     const navigate = useNavigate();
@@ -93,6 +95,11 @@ const TeacherAssignment = () => {
     const [grade, setGrade] = useState('');
     const [feedback, setFeedback] = useState('');
     const [gradingLoading, setGradingLoading] = useState(false);
+
+    // Annotation State
+    const [isAnnotating, setIsAnnotating] = useState(false);
+    const [annotationImage, setAnnotationImage] = useState(null);
+    const [correctedFileUrl, setCorrectedFileUrl] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -120,6 +127,38 @@ const TeacherAssignment = () => {
         setSelectedSubmission(submission);
         setGrade(submission.grade || '');
         setFeedback(submission.teacher_feedback || '');
+        setCorrectedFileUrl(submission.corrected_file || null); // Load existing correction if any
+    };
+
+    const handleAnnotateClick = (url) => {
+        setAnnotationImage(url);
+        setIsAnnotating(true);
+    };
+
+    const handleSaveAnnotation = async (file) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload the annotated file
+            // Assuming we can use the same upload endpoint as students
+            const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+            const res = await fetch(`${apiBaseUrl}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+            setCorrectedFileUrl(data.file_url);
+            setIsAnnotating(false);
+            toast.success("Annotated file saved! Don't forget to submit the grade.");
+
+        } catch (error) {
+            console.error("Annotation upload failed", error);
+            toast.error("Failed to save annotation");
+        }
     };
 
     const submitGrade = async () => {
@@ -130,19 +169,27 @@ const TeacherAssignment = () => {
             await classroomAPI.gradeSubmission(selectedSubmission.submission_id, {
                 grade: parseFloat(grade),
                 teacher_feedback: feedback,
+                corrected_file: correctedFileUrl, // Include the annotated file
                 return_to_student: true
             });
 
-            toast.success("Grade saved!");
+            toast.success("Grade & Corrections saved!");
 
             // Update local state
             setSubmissions(prev => prev.map(sub =>
                 sub.submission_id === selectedSubmission.submission_id
-                    ? { ...sub, grade: parseFloat(grade), teacher_feedback: feedback, status: 'returned' }
+                    ? {
+                        ...sub,
+                        grade: parseFloat(grade),
+                        teacher_feedback: feedback,
+                        corrected_file: correctedFileUrl,
+                        status: 'returned'
+                    }
                     : sub
             ));
 
             setSelectedSubmission(null);
+            setCorrectedFileUrl(null);
         } catch (error) {
             console.error("Error saving grade:", error);
             toast.error("Failed to save grade");
@@ -158,6 +205,19 @@ const TeacherAssignment = () => {
                     <Loader className="animate-spin text-teal-600" size={32} />
                 </div>
             </TeacherLayout>
+        );
+    }
+
+    // Annotation Mode Intercept
+    if (isAnnotating && annotationImage) {
+        return (
+            <div className="fixed inset-0 z-50 bg-black">
+                <CanvasAnnotation
+                    imageUrl={annotationImage}
+                    onSave={handleSaveAnnotation}
+                    onCancel={() => setIsAnnotating(false)}
+                />
+            </div>
         );
     }
 
@@ -274,26 +334,50 @@ const TeacherAssignment = () => {
                                                 <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Attachments</h4>
                                                 <div className="space-y-2">
                                                     {selectedSubmission.attachments.map((att, idx) => (
-                                                        <a
-                                                            key={idx}
-                                                            href={att.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-sm transition-all group"
-                                                        >
-                                                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
-                                                                <FileText size={20} />
-                                                            </div>
-                                                            <div className="flex-1 overflow-hidden">
-                                                                <p className="font-bold text-gray-800 text-sm truncate">{att.name || 'Attached File'}</p>
-                                                                <p className="text-xs text-gray-500">Click to view</p>
-                                                            </div>
-                                                        </a>
+                                                        <div key={idx} className="flex flex-col gap-2">
+                                                            <a
+                                                                href={att.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-sm transition-all group"
+                                                            >
+                                                                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                                                                    <FileText size={20} />
+                                                                </div>
+                                                                <div className="flex-1 overflow-hidden">
+                                                                    <p className="font-bold text-gray-800 text-sm truncate">{att.name || 'Attached File'}</p>
+                                                                    <p className="text-xs text-gray-500">Click to view</p>
+                                                                </div>
+                                                            </a>
+
+                                                            {/* ANNOTATE BUTTON IF IMAGE */}
+                                                            {att.url && (att.url.match(/\.(jpeg|jpg|png)$/i) || att.type?.includes('image')) && (
+                                                                <button
+                                                                    onClick={() => handleAnnotateClick(att.url)}
+                                                                    className="w-full py-2 bg-indigo-50 text-indigo-600 font-bold text-xs rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+                                                                >
+                                                                    <PenTool size={14} /> Annotate / Correct Answer Sheet
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Corrected File Display */}
+                                    {correctedFileUrl && (
+                                        <div className="bg-green-50 p-3 rounded-xl border border-green-100">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h4 className="text-xs font-bold text-green-700 uppercase">Values Correction Pending Save</h4>
+                                                <button onClick={() => setCorrectedFileUrl(null)} className="text-xs text-red-500 hover:underline">Remove</button>
+                                            </div>
+                                            <a href={correctedFileUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-green-600 font-bold hover:underline flex items-center gap-2">
+                                                <Check size={14} /> View Annotated File
+                                            </a>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <h3 className="text-sm font-bold text-gray-500 mb-2">Rubric Grading</h3>

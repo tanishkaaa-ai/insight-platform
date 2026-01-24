@@ -93,9 +93,9 @@ const StudentAssignment = () => {
 
             // Trigger engagement update
             try {
-               await engagementAPI.analyzeEngagement({ student_id: user?.user_id || user?.id });
+                await engagementAPI.analyzeEngagement({ student_id: user?.user_id || user?.id });
             } catch (e) {
-               console.error("Failed to update engagement stats", e);
+                console.error("Failed to update engagement stats", e);
             }
 
             setTimeout(() => {
@@ -187,6 +187,23 @@ const StudentAssignment = () => {
                                                     {assignment.current_user_submission?.grade || 0} <span className="text-sm text-green-400 font-normal">/ {assignment.points || 100}</span>
                                                 </span>
                                             </div>
+
+                                            {/* Corrected File Display */}
+                                            {assignment.current_user_submission?.corrected_file && (
+                                                <div className="mb-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                                    <p className="text-sm font-bold text-indigo-800 mb-2">Teacher's Corrections:</p>
+                                                    <a
+                                                        href={assignment.current_user_submission.corrected_file}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 p-3 bg-white rounded-lg border border-indigo-200 hover:shadow-md transition-all text-indigo-700 font-bold"
+                                                    >
+                                                        <FileText size={20} />
+                                                        View Annotated Answer Sheet
+                                                    </a>
+                                                </div>
+                                            )}
+
                                             {assignment.current_user_submission?.teacher_feedback ? (
                                                 <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                                                     <p className="text-sm font-bold text-blue-800 mb-1">Teacher Feedback:</p>
