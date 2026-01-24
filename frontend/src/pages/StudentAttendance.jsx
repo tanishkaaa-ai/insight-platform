@@ -17,6 +17,7 @@ const StudentAttendance = () => {
   const [cameraActive, setCameraActive] = useState(false);
   const [hasRegisteredIP, setHasRegisteredIP] = useState(false);
   const [registeredIPAddress, setRegisteredIPAddress] = useState(null);
+  const [statusReason, setStatusReason] = useState(null); // Added statusReason
 
   const [capturedPhoto, setCapturedPhoto] = useState(null);
 
@@ -92,13 +93,15 @@ const StudentAttendance = () => {
 
       setValidationStatus({
         sessionOpen: !!data.session,
-        ipMatched: data.can_mark,
+        ipMatched: data.registered_ip === data.current_ip, // Check IP match directly
         locationValid: false // Will check when marking
       });
 
+      setStatusReason(data.reason); // Store the reason
+
       if (data.reason && !data.can_mark) {
         // Don't show toast repeatedly
-        console.log(data.reason);
+        // console.log(data.reason);
       }
     } catch (error) {
       console.error('Error checking session:', error);
@@ -203,6 +206,10 @@ const StudentAttendance = () => {
       // Clear state
       setCanMark(false);
       setCapturedPhoto(null);
+
+      // Refresh status immediately
+      await checkSession();
+      await checkIPRegistration();
 
     } catch (error) {
       toast.dismiss();
@@ -393,11 +400,15 @@ const StudentAttendance = () => {
 
         {/* Waiting state */}
         {!canMark && session && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <p className="text-yellow-800">
-              {validationStatus.ipMatched
+          <div className={`border rounded-lg p-6 text-center ${statusReason?.includes('already marked')
+              ? 'bg-green-50 border-green-200'
+              : 'bg-yellow-50 border-yellow-200'
+            }`}>
+            <p className={`text-lg font-medium ${statusReason?.includes('already marked') ? 'text-green-800' : 'text-yellow-800'
+              }`}>
+              {statusReason || (validationStatus.ipMatched
                 ? 'Waiting for teacher to open attendance...'
-                : 'Please use your registered device to mark attendance'}
+                : 'Please use your registered device to mark attendance')}
             </p>
           </div>
         )}

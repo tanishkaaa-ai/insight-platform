@@ -27,6 +27,25 @@ logger = get_logger(__name__)
 # HELPER FUNCTIONS
 # ============================================================================
 
+def normalize_ip(ip_address):
+    """
+    Normalize IP address to handle localhost variations and IPv6 mapping
+    ::1 -> 127.0.0.1
+    ::ffff:127.0.0.1 -> 127.0.0.1
+    """
+    if not ip_address:
+        return ip_address
+        
+    # Handle IPv6 localhost
+    if ip_address == '::1':
+        return '127.0.0.1'
+        
+    # Handle IPv4-mapped IPv6 addresses
+    if ip_address.startswith('::ffff:'):
+        return ip_address.replace('::ffff:', '')
+        
+    return ip_address
+
 def get_student_or_create_stub(student_id):
     """
     Robustly find a student profile, or create a stub if User exists but Student profile is missing.
@@ -58,6 +77,9 @@ def get_student_or_create_stub(student_id):
 
     # 3. If found, return
     if student:
+        # Normalize stored IP if present (migration for old records)
+        if student.get('registered_ip'):
+             student['registered_ip'] = normalize_ip(student['registered_ip'])
         return student, None
         
     # 4. REPAIR: Check if User exists
@@ -141,7 +163,7 @@ def get_student_status():
         if error_resp:
             return error_resp
 
-        registered_ip = student.get('registered_ip')
+        registered_ip = normalize_ip(student.get('registered_ip'))
 
         return jsonify({
             'is_registered': bool(registered_ip),
@@ -157,15 +179,6 @@ def get_student_status():
 def bind_ip():
     """
     Bind student's current IP address to their profile
-
-    Request: POST /api/attendance/bind-ip
-    Headers: X-User-Id: <student_id>
-
-    Response:
-    {
-        "message": "IP registered successfully",
-        "registered_ip": "192.168.1.1"
-    }
     """
     try:
         student_id = get_current_user_id()
@@ -177,6 +190,9 @@ def bind_ip():
         ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ',' in ip_address:
             ip_address = ip_address.split(',')[0].strip()
+            
+        # NORMALIZE IP
+        ip_address = normalize_ip(ip_address)
 
         if student.get('registered_ip'):
             logger.warning(f"Attempt to re-register device | Student: {student_id} | Existing: {student.get('registered_ip')}")
@@ -211,21 +227,6 @@ def bind_ip():
 def check_session(classroom_id):
     """
     Check if student can mark attendance for a classroom
-
-    Request: GET /api/attendance/check-session/<classroom_id>
-    Headers: X-User-Id: <student_id>
-
-    Response:
-    {
-        "session": {
-            "_id": "session_id",
-            "closes_at": "2024-01-24T10:15:00Z"
-        },
-        "can_mark": true,
-        "registered_ip": "192.168.1.1",
-        "current_ip": "192.168.1.1",
-        "reason": null
-    }
     """
     try:
         student_id = get_current_user_id()
@@ -235,6 +236,9 @@ def check_session(classroom_id):
         student_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ',' in student_ip:
             student_ip = student_ip.split(',')[0].strip()
+            
+        # NORMALIZE IP
+        student_ip = normalize_ip(student_ip)
 
         logger.info(f"Checking session | Input: {classroom_id} | Student User: {student_id}")
 
@@ -285,7 +289,7 @@ def check_session(classroom_id):
             'student_id': actual_student_id
         })
 
-        registered_ip = student.get('registered_ip')
+        registered_ip = normalize_ip(student.get('registered_ip'))
 
         # Check IP match
         ip_valid = (registered_ip == student_ip)
@@ -313,35 +317,22 @@ def check_session(classroom_id):
 def mark_attendance():
     """
     Mark attendance with photo and validation
-
-    Request: POST /api/attendance/mark
-    Headers: X-User-Id: <student_id>
-    Body:
-    {
-        "session_id": "session_id",
-        "latitude": 40.7128,
-        "longitude": -74.0060,
-        "photo": "data:image/jpeg;base64,..."
-    }
-
-    Response:
-    {
-        "message": "Attendance marked successfully",
-        "record_id": "record_id"
-    }
     """
     try:
         data = request.json
-        student_id = get_current_user_id()
+        student_id_from_header = get_current_user_id()
 
-        if not student_id:
+        if not student_id_from_header:
             return jsonify({'error': 'User ID required'}), 401
 
         student_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ',' in student_ip:
             student_ip = student_ip.split(',')[0].strip()
+            
+        # NORMALIZE IP
+        student_ip = normalize_ip(student_ip)
 
-        logger.info(f"Marking attendance | Student: {student_id} | Session: {data.get('session_id')}")
+        logger.info(f"Marking attendance | Student User: {student_id_from_header} | Session: {data.get('session_id')}")
 
         # Validate required fields
         required = ['session_id', 'latitude', 'longitude', 'photo']
@@ -360,15 +351,18 @@ def mark_attendance():
             logger.warning(f"Session not open | Session: {data['session_id']}")
             return jsonify({'error': 'Attendance session is not open or has expired'}), 403
 
-        # Get student
-        student, error_resp = get_student_or_create_stub(student_id)
+        # Get student (RESOLVE CANONICAL ID)
+        student, error_resp = get_student_or_create_stub(student_id_from_header)
         if error_resp:
             return error_resp
+            
+        # Use canonical student ID from database
+        actual_student_id = str(student['_id'])
 
         # VALIDATION 1: IP Match
-        registered_ip = student.get('registered_ip')
+        registered_ip = normalize_ip(student.get('registered_ip'))
         if registered_ip != student_ip:
-            logger.warning(f"IP mismatch | Student: {student_id} | Registered: {registered_ip} | Current: {student_ip}")
+            logger.warning(f"IP mismatch | Student: {actual_student_id} | Registered: {registered_ip} | Current: {student_ip}")
             return jsonify({'error': 'IP address mismatch - please use your registered device'}), 403
 
         # VALIDATION 2: Location within radius
@@ -378,25 +372,26 @@ def mark_attendance():
         )
 
         if distance > session['radius_meters']:
-            logger.warning(f"Location out of range | Student: {student_id} | Distance: {distance}m | Allowed: {session['radius_meters']}m")
+            logger.warning(f"Location out of range | Student: {actual_student_id} | Distance: {distance}m | Allowed: {session['radius_meters']}m")
             return jsonify({
                 'error': f'You are too far from the classroom ({int(distance)}m away). Please move closer.'
             }), 403
 
-        # VALIDATION 3: Not already marked
+        # VALIDATION 3: Not already marked (Use canonical ID)
         existing = db[ATTENDANCE_RECORDS].find_one({
             'session_id': session['_id'],
-            'student_id': student_id
+            'student_id': actual_student_id
         })
 
         if existing:
-            logger.warning(f"Already marked | Student: {student_id} | Session: {session['_id']}")
+            logger.warning(f"Already marked | Student: {actual_student_id} | Session: {session['_id']}")
             return jsonify({'error': 'Attendance already marked for this session'}), 409
 
         # All validations passed - create attendance record
         record = {
             "session_id": session['_id'],
-            "student_id": student_id,
+            "student_id": actual_student_id, # Use canonical ID
+            "user_id": student_id_from_header, # Keep track of original User ID too if needed
             "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip(),
             "marked_at": datetime.utcnow(),
             "student_ip": student_ip,
@@ -409,7 +404,7 @@ def mark_attendance():
         }
 
         result = db[ATTENDANCE_RECORDS].insert_one(record)
-        logger.info(f"Attendance marked | Student: {student_id} | Record: {result.inserted_id}")
+        logger.info(f"Attendance marked | Student: {actual_student_id} | Record: {result.inserted_id}")
 
         return jsonify({
             'message': 'Attendance marked successfully',
