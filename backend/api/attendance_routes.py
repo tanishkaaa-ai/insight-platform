@@ -178,6 +178,10 @@ def bind_ip():
         if ',' in ip_address:
             ip_address = ip_address.split(',')[0].strip()
 
+        if student.get('registered_ip'):
+            logger.warning(f"Attempt to re-register device | Student: {student_id} | Existing: {student.get('registered_ip')}")
+            return jsonify({'error': 'Device already registered. Please contact admin to reset.'}), 409
+
         logger.info(f"Binding IP | Student: {student_id} | IP: {ip_address}")
 
         # Update student record (using the ID we found/created)
