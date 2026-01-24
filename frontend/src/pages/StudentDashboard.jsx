@@ -51,7 +51,14 @@ const StudentDashboard = () => {
                 // Process Engagement/Gamification Data
                 let engagementData = { level: 1, xp: 0, streak: 0, nextLevelXp: 1000, badges: [] };
                 if (gamificationRes.status === 'fulfilled') {
-                    engagementData = { ...engagementData, ...gamificationRes.value.data };
+                    const gData = gamificationRes.value.data;
+                    engagementData = {
+                        level: gData.level || 1,
+                        xp: gData.current_level_xp || 0,
+                        streak: gData.streak || 0,
+                        nextLevelXp: gData.next_level_xp || 1000,
+                        badges: gData.badges || []
+                    };
                 }
 
                 // Process Mastery Data

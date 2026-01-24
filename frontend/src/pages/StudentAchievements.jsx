@@ -12,8 +12,8 @@ const AchievementCard = ({ achievement, index }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={`p-4 rounded-xl border-2 flex items-center gap-4 ${achievement.unlocked
-                    ? 'bg-white border-yellow-100 shadow-sm'
-                    : 'bg-gray-50 border-gray-100 opacity-60 grayscale'
+                ? 'bg-white border-yellow-100 shadow-sm'
+                : 'bg-gray-50 border-gray-100 opacity-60 grayscale'
                 }`}
         >
             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl shrink-0 ${achievement.unlocked ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-200 text-gray-400'
@@ -73,7 +73,7 @@ const StudentAchievements = () => {
     // Mock data if profile is empty (for demo purposes if backend data not fully populated)
     const displayProfile = profile || {
         level: 1,
-        current_xp: 0,
+        current_level_xp: 0,
         next_level_xp: 1000,
         badges: []
     };
@@ -88,7 +88,7 @@ const StudentAchievements = () => {
         { name: 'Mastermind', description: 'Master a difficult concept', xp: 300, icon: '🧠', unlocked: false },
     ];
 
-    const progressPercent = Math.min((displayProfile.current_xp / displayProfile.next_level_xp) * 100, 100);
+    const progressPercent = Math.min((displayProfile.current_level_xp / displayProfile.next_level_xp) * 100, 100);
 
     return (
         <DashboardLayout>
@@ -120,7 +120,7 @@ const StudentAchievements = () => {
                                 <p className="text-gray-500 text-sm">Keep earning XP to reach Level {displayProfile.level + 1}</p>
                             </div>
                             <div className="text-right">
-                                <span className="font-bold text-yellow-600 text-lg">{displayProfile.current_xp}</span>
+                                <span className="font-bold text-yellow-600 text-lg">{displayProfile.current_level_xp}</span>
                                 <span className="text-gray-400 font-medium"> / {displayProfile.next_level_xp} XP</span>
                             </div>
                         </div>
