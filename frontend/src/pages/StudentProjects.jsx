@@ -2,18 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import CreateTaskModal from '../components/CreateTaskModal';
-import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle, Target, ChevronDown, Trophy, Star, Award, Zap } from 'lucide-react';
+import TaskTransitionModal from '../components/TaskTransitionModal';
+import { Map, Plus, MoreHorizontal, CheckCircle, Clock, Circle, Loader2, AlertCircle, Target, ChevronDown, Trophy, Star, Award, Zap, ArrowRightCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { projectsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
-const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask }) => {
+const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask, onMoveTask, onDropTask }) => {
     const safeTasks = Array.isArray(tasks) ? tasks : [];
     const columnTasks = safeTasks.filter(t => t.status === status);
 
+    const handleDragStart = (e, task) => {
+        e.dataTransfer.setData('taskId', task.task_id || task._id);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('taskId');
+        if (taskId) {
+            onDropTask(taskId, status);
+        }
+    };
+
     return (
-        <div className="flex flex-col h-full bg-slate-50 rounded-2xl p-4 border border-slate-200">
+        <div
+            className="flex flex-col h-full bg-slate-50 rounded-2xl p-4 border border-slate-200 transition-colors hover:bg-slate-100"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+        >
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-700 flex items-center gap-2">
                     <Icon size={18} className={color} /> {title}
@@ -22,47 +45,83 @@ const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask }) =>
                 <button className="text-gray-400 hover:text-gray-600"><MoreHorizontal size={18} /></button>
             </div>
 
-            <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+            <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1 pb-10">
                 {columnTasks.map((task) => (
                     <motion.div
                         key={task.task_id || task._id}
                         layoutId={task.task_id || task._id}
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, task)}
                         whileHover={{ y: -2, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                        className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-grab active:cursor-grabbing"
+                        className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 group relative cursor-grab active:cursor-grabbing hover:border-blue-300 transition-colors"
                     >
-                        <div className="flex justify-between items-start mb-2">
+                        {/* Always Visible Move Button */}
+                        {status !== 'completed' && (
+                            <div className="absolute top-3 right-3">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onMoveTask(task, status === 'todo' ? 'in_progress' : 'completed');
+                                    }}
+                                    className={`p-1.5 rounded-full text-white shadow-md transition-transform hover:scale-110 flex items-center justify-center
+                                        ${status === 'todo' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'}`}
+                                    title={status === 'todo' ? "Start Task" : "Complete Task"}
+                                >
+                                    {status === 'todo' ? <ArrowRightCircle size={16} /> : <CheckCircle2 size={16} />}
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-start mb-2 pr-8">
                             <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-opacity-20 
                 ${task.priority === 'high' ? 'bg-red-500 text-red-700' : 'bg-blue-500 text-blue-700'}`}>
                                 {task.priority || 'medium'}
                             </span>
                         </div>
-                        <h4 className="font-bold text-gray-800 text-sm mb-3">{task.title}</h4>
+                        <h4 className="font-bold text-gray-800 text-sm mb-2">{task.title}</h4>
+
+                        {/* Description / Summary Preview */}
+                        {(task.description || task.completion_summary) && (
+                            <p className="text-xs text-gray-500 mb-3 line-clamp-2 leading-relaxed">
+                                {status === 'completed'
+                                    ? (task.completion_summary || task.description || 'No summary provided')
+                                    : (task.description || 'No description provided')}
+                            </p>
+                        )}
+
                         <div className="flex items-center justify-between border-t border-gray-50 pt-3">
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-full bg-orange-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-orange-600">
                                     {(task.assignee_name && task.assignee_name[0]) || '?'}
                                 </div>
-                                <span className="text-xs font-bold text-gray-600">
+                                <span className="text-xs font-bold text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap max-w-[80px]">
                                     {task.assignee_name || 'Unassigned'}
                                 </span>
                             </div>
-                            {/* <span className="text-xs text-gray-400">#PBL-{task.task_id ? task.task_id.slice(-4) : '...'}</span> */}
+                            {task.tentative_completion_date && status === 'in_progress' && (
+                                <div className="flex items-center gap-1 text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                                    <Clock size={10} />
+                                    {new Date(task.tentative_completion_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 ))}
                 {columnTasks.length === 0 && (
                     <div className="h-32 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-gray-400 text-sm italic">
-                        No tasks here
+                        Drop tasks here
                     </div>
                 )}
             </div>
 
-            <button
-                onClick={() => onAddTask(status)}
-                className="mt-3 w-full py-2 flex items-center justify-center gap-2 text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-sm font-bold"
-            >
-                <Plus size={16} /> Add Task
-            </button>
+            {status === 'todo' && (
+                <button
+                    onClick={() => onAddTask(status)}
+                    className="mt-3 w-full py-2 flex items-center justify-center gap-2 text-gray-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-sm font-bold"
+                >
+                    <Plus size={16} /> Add Task
+                </button>
+            )}
         </div>
     );
 };
@@ -250,6 +309,10 @@ const StudentProjects = () => {
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [newTaskStatus, setNewTaskStatus] = useState('todo');
 
+    // Task Transition
+    const [transitionTask, setTransitionTask] = useState(null);
+    const [targetStatus, setTargetStatus] = useState(null);
+
     const STUDENT_ID = getUserId();
 
     useEffect(() => {
@@ -344,6 +407,42 @@ const StudentProjects = () => {
             setTasks(Array.isArray(tasksRes.data?.tasks) ? tasksRes.data.tasks : (Array.isArray(tasksRes.data) ? tasksRes.data : []));
         }
     };
+
+    const handleMoveTask = (task, nextStatus) => {
+        setTransitionTask(task);
+        setTargetStatus(nextStatus);
+    };
+
+    const handleConfirmTransition = async (taskId, updateData) => {
+        try {
+            await projectsAPI.updateTask(taskId, updateData);
+
+            // Optimistic Update
+            setTasks(prev => prev.map(t =>
+                (t.task_id === taskId || t._id === taskId)
+                    ? { ...t, ...updateData }
+                    : t
+            ));
+
+            toast.success(`Task moved to ${updateData.status === 'in_progress' ? 'In Action' : 'Completed'}`);
+
+            // Check for achievements/gamification updates (could refresh team data here)
+            handleTaskCreated(); // Reuse refresh logic
+
+        } catch (error) {
+            console.error("Failed to update task", error);
+            toast.error("Failed to move task");
+        }
+    };
+
+    const handleDropTask = (taskId, newStatus) => {
+        const task = tasks.find(t => (t.task_id === taskId || t._id === taskId));
+        if (task && task.status !== newStatus) {
+            handleMoveTask(task, newStatus);
+        }
+    };
+
+
 
     if (loading) {
         return (
@@ -519,6 +618,8 @@ const StudentProjects = () => {
                         icon={Circle}
                         color="text-gray-400"
                         onAddTask={handleAddTask}
+                        onMoveTask={handleMoveTask}
+                        onDropTask={handleDropTask}
                     />
                     <StatusColumn
                         title="In Progress"
@@ -527,6 +628,8 @@ const StudentProjects = () => {
                         icon={Clock}
                         color="text-blue-500"
                         onAddTask={handleAddTask}
+                        onMoveTask={handleMoveTask}
+                        onDropTask={handleDropTask}
                     />
                     <StatusColumn
                         title="Completed"
@@ -535,6 +638,8 @@ const StudentProjects = () => {
                         icon={CheckCircle}
                         color="text-green-500"
                         onAddTask={handleAddTask}
+                        onMoveTask={handleMoveTask}
+                        onDropTask={handleDropTask}
                     />
                 </div>
             </div>
@@ -557,6 +662,14 @@ const StudentProjects = () => {
                 teamId={activeTeam?.team_id || activeTeam?._id}
                 initialStatus={newTaskStatus}
                 members={activeTeam?.members || []}
+            />
+
+            <TaskTransitionModal
+                isOpen={!!transitionTask}
+                onClose={() => { setTransitionTask(null); setTargetStatus(null); }}
+                task={transitionTask}
+                targetStatus={targetStatus}
+                onConfirm={handleConfirmTransition}
             />
 
         </DashboardLayout >

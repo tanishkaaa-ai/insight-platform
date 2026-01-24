@@ -1298,6 +1298,11 @@ def update_task(task_id):
             update_data['status'] = data['status']
             if data['status'] == 'completed':
                 update_data['completed_at'] = datetime.utcnow()
+        if 'tentative_completion_date' in data:
+             # Allow None to clear it, or date string
+             update_data['tentative_completion_date'] = datetime.fromisoformat(data['tentative_completion_date']) if data['tentative_completion_date'] else None
+        if 'completion_summary' in data:
+            update_data['completion_summary'] = data['completion_summary']
 
         if update_data:
             update_data['updated_at'] = datetime.utcnow()
