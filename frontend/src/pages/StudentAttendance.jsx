@@ -2,50 +2,50 @@ import React, { useState, useEffect, useRef } from 'react';
 import { attendanceAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { Clock, MapPin, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const StudentAttendance = () => {
   const { user } = useAuth();
-  const [classroomId, setClassroomId] = useState('');
-  const [session, setSession] = useState(null);
+
+  // State for active sessions list
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // State for marking flow
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [classroomId, setClassroomId] = useState(''); // Fallback input
+  const [manualMode, setManualMode] = useState(false);
+
   const [canMark, setCanMark] = useState(false);
-  const [validationStatus, setValidationStatus] = useState({
-    sessionOpen: false,
-    ipMatched: false,
-    locationValid: false
-  });
   const [loading, setLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [hasRegisteredIP, setHasRegisteredIP] = useState(false);
   const [registeredIPAddress, setRegisteredIPAddress] = useState(null);
-  const [statusReason, setStatusReason] = useState(null); // Added statusReason
+  const [statusReason, setStatusReason] = useState(null);
 
   const [capturedPhoto, setCapturedPhoto] = useState(null);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Register IP on first load
+  // Initial Data Load
   useEffect(() => {
     checkIPRegistration();
+    fetchActiveSessions();
   }, []);
 
-  // Check session every 5 seconds
+  // Poll for sessions if on list view
   useEffect(() => {
-    if (!classroomId) return;
+    if (selectedSession || manualMode) return;
 
     const interval = setInterval(() => {
-      checkSession();
-    }, 5000);
-
-    // Check immediately
-    checkSession();
-
+      fetchActiveSessions(true);
+    }, 10000); // Poll every 10s
     return () => clearInterval(interval);
-  }, [classroomId]);
+  }, [selectedSession, manualMode]);
 
-  // Start/stop camera based on eligibility
+  // Camera Logic
   useEffect(() => {
-    // Only start camera if we can mark AND we haven't already captured a photo
     if (canMark && !cameraActive && !capturedPhoto) {
       startCamera();
     } else if ((!canMark || capturedPhoto) && cameraActive) {
@@ -62,7 +62,6 @@ const StudentAttendance = () => {
       }
     } catch (error) {
       console.error('Error checking IP registration:', error);
-      // Fallback to false if error, forcing registration attempt which will fail/succeed with proper error
       setHasRegisteredIP(false);
     }
   };
@@ -72,7 +71,6 @@ const StudentAttendance = () => {
       setLoading(true);
       await attendanceAPI.bindIP();
       toast.success('Device registered successfully!');
-      // Re-check status to confirm
       await checkIPRegistration();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to register device');
@@ -81,30 +79,59 @@ const StudentAttendance = () => {
     }
   };
 
-  const checkSession = async () => {
-    if (!classroomId) return;
+  const fetchActiveSessions = async (silent = false) => {
+    if (!silent) setRefreshing(true);
+    try {
+      const response = await attendanceAPI.getStudentActiveSessions();
+      setActiveSessions(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch active sessions", error);
+      if (!silent) toast.error("Could not load active sessions");
+    } finally {
+      if (!silent) setRefreshing(false);
+    }
+  };
 
+  // Select a session from the list
+  const handleSelectSession = (session) => {
+    setSelectedSession(session);
+    setCanMark(session.can_mark);
+    setStatusReason(session.reason);
+    setCapturedPhoto(null); // Reset photo
+  };
+
+  const handleBackToList = () => {
+    setSelectedSession(null);
+    setManualMode(false);
+    setCanMark(false);
+    stopCamera();
+    setCapturedPhoto(null);
+    fetchActiveSessions(); // Refresh on back
+  };
+
+  // Manual Check (Fallback)
+  const checkManualSession = async () => {
+    if (!classroomId) return;
     try {
       const response = await attendanceAPI.checkSession(classroomId);
       const data = response.data;
 
-      setSession(data.session);
-      setCanMark(data.can_mark);
+      if (!data.session) {
+        toast.error(data.reason || "No active session found for this code");
+        return;
+      }
 
-      setValidationStatus({
-        sessionOpen: !!data.session,
-        ipMatched: data.registered_ip === data.current_ip, // Check IP match directly
-        locationValid: false // Will check when marking
+      handleSelectSession({
+        ...data.session,
+        classroom_name: 'Manual Entry', // We might not know the name yet if checking by code
+        teacher_name: 'Unknown',
+        can_mark: data.can_mark,
+        reason: data.reason
       });
 
-      setStatusReason(data.reason); // Store the reason
-
-      if (data.reason && !data.can_mark) {
-        // Don't show toast repeatedly
-        // console.log(data.reason);
-      }
     } catch (error) {
       console.error('Error checking session:', error);
+      toast.error('Failed to check session');
     }
   };
 
@@ -113,7 +140,6 @@ const StudentAttendance = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 }
       });
-
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
@@ -139,7 +165,6 @@ const StudentAttendance = () => {
         reject(new Error('Geolocation not supported'));
         return;
       }
-
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
         timeout: 10000,
@@ -149,52 +174,35 @@ const StudentAttendance = () => {
   };
 
   const capturePhoto = () => {
-    if (!videoRef.current || videoRef.current.readyState !== 4) { // HAVE_ENOUGH_DATA
-      console.warn("Video not ready for capture");
+    if (!videoRef.current || videoRef.current.readyState !== 4) {
       return;
     }
-
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
-
     const context = canvas.getContext('2d');
     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
     const photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
     setCapturedPhoto(photoBase64);
-    // Camera will stop automatically via useEffect when capturedPhoto is set
   };
 
   const retakePhoto = () => {
     setCapturedPhoto(null);
-    // Camera will start automatically via useEffect when capturedPhoto is null
   };
 
   const markAttendance = async () => {
-    if (!canMark) {
-      toast.error('Cannot mark attendance. Check requirements.');
-      return;
-    }
-
-    if (!capturedPhoto) {
-      toast.error('Please capture a photo first.');
-      return;
-    }
+    if (!canMark || !capturedPhoto) return;
 
     try {
       setLoading(true);
-
-      // Get current location
-      toast.loading('Getting your location...');
+      toast.loading('Getting location...');
       const position = await getCurrentLocation();
 
-      // Submit attendance
       toast.dismiss();
-      toast.loading('Submitting attendance...');
+      toast.loading('Submitting...');
 
       await attendanceAPI.markAttendance({
-        session_id: session._id,
+        session_id: selectedSession._id,
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         photo: capturedPhoto
@@ -203,216 +211,270 @@ const StudentAttendance = () => {
       toast.dismiss();
       toast.success('Attendance marked successfully! ✅');
 
-      // Clear state
-      setCanMark(false);
-      setCapturedPhoto(null);
-
-      // Refresh status immediately
-      await checkSession();
-      await checkIPRegistration();
+      // Return to list after successful mark
+      setTimeout(handleBackToList, 2000);
 
     } catch (error) {
       toast.dismiss();
       const errorMsg = error.response?.data?.error || 'Failed to mark attendance';
       toast.error(errorMsg);
-      console.error('Attendance error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Mark Attendance</h1>
 
-        {/* Step 1: Register IP */}
-        <div className={`bg-white rounded-lg shadow p-6 mb-6 transition-opacity ${hasRegisteredIP ? 'opacity-75' : 'opacity-100'}`}>
-          <div className="flex justify-between items-start">
+  // RENDER HELPERS
+  const renderStep = () => {
+    // 1. Device Registration (First Time)
+    if (!hasRegisteredIP) {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-8 text-center max-w-lg mx-auto mt-10">
+          <div className="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="text-orange-500" size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Device Registration Required</h2>
+          <p className="text-gray-600 mb-6">
+            You must register this device to mark attendance. <br />
+            <span className="font-bold text-orange-600">This is a one-time process.</span>
+          </p>
+          <button
+            onClick={registerIP}
+            disabled={loading}
+            className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {loading ? 'Registering...' : 'Register This Device'}
+          </button>
+        </div>
+      );
+    }
+
+    // 2. Active Session List
+    if (!selectedSession && !manualMode) {
+      return (
+        <div className="max-w-3xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                Step 1: Register Your Device
-                {hasRegisteredIP && <span className="text-green-500 text-sm">✓ Completed</span>}
-              </h2>
-              <p className="text-gray-600 mb-4">
-                {hasRegisteredIP
-                  ? `Device registered successfully. IP: ${registeredIPAddress}`
-                  : "Register the device you will use for attendance. ⚠️ This is a ONE-TIME process and cannot be changed."}
-              </p>
+              <h1 className="text-2xl font-bold text-gray-800">Attendance</h1>
+              <p className="text-gray-500">Select an active class to mark present.</p>
             </div>
+            <button
+              onClick={() => fetchActiveSessions()}
+              disabled={refreshing}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            >
+              <RefreshCw size={20} className={refreshing ? 'animate-spin' : ''} />
+            </button>
           </div>
 
-          {!hasRegisteredIP && (
-            <button
-              onClick={registerIP}
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading ? 'Registering...' : 'Register Device (Permanent)'}
-            </button>
+          {activeSessions.length > 0 ? (
+            <div className="grid gap-4">
+              {activeSessions.map(session => (
+                <div
+                  key={session._id}
+                  onClick={() => handleSelectSession(session)}
+                  className={`bg-white p-6 rounded-2xl border transition-all cursor-pointer shadow-sm hover:shadow-md
+                                    ${session.can_mark ? 'border-green-200 hover:border-green-400' : 'border-gray-200 opacity-75'}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-4">
+                      <div className={`p-3 rounded-xl ${session.can_mark ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                        <CheckCircle size={24} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-lg text-gray-800">{session.classroom_name}</h3>
+                        <p className="text-sm text-gray-600">{session.teacher_name}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 font-medium">
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} /> Ends {new Date(session.closes_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {session.room && (
+                            <span className="flex items-center gap-1">
+                              <MapPin size={12} /> {session.room}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {!session.can_mark && (
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded-full">
+                        {session.reason || 'Unavailable'}
+                      </span>
+                    )}
+                    {session.can_mark && (
+                      <span className="px-3 py-1 bg-green-100 text-green-600 text-xs font-bold rounded-full animate-pulse">
+                        Open for Attendance
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <Clock size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-600">No Active Sessions</h3>
+              <p className="text-gray-400 text-sm mb-6">Attendance is not currently open for any of your classes.</p>
+              <button
+                onClick={() => setManualMode(true)}
+                className="text-blue-600 text-sm font-bold hover:underline"
+              >
+                Enter Class Code Manually
+              </button>
+            </div>
           )}
         </div>
+      );
+    }
 
-        {/* Step 2: Enter Classroom ID */}
-        {hasRegisteredIP && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6 animate-fade-in-up">
-            <h2 className="text-xl font-semibold mb-4">Step 2: Enter Classroom</h2>
-            <div className="flex gap-4">
+    // 3. Mark Attendance Flow (Camera)
+    if (selectedSession) {
+      return (
+        <div className="max-w-2xl mx-auto">
+          <button onClick={handleBackToList} className="mb-4 text-gray-500 hover:text-gray-800 text-sm font-bold flex items-center gap-1">
+            ← Back to Sessions
+          </button>
+
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gray-50">
+              <h2 className="text-xl font-bold text-gray-800">{selectedSession.classroom_name}</h2>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-sm text-gray-500">Instructor: {selectedSession.teacher_name}</p>
+              </div>
+
+              {/* Restored Status Block */}
+              <div className="mt-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="text-green-500"><CheckCircle size={20} /></div>
+                  <span className="text-gray-700 font-medium">Session is Open</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={(!selectedSession.reason || !selectedSession.reason.includes('IP')) ? "text-green-500" : "text-red-500"}>
+                    {(!selectedSession.reason || !selectedSession.reason.includes('IP')) ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+                  </div>
+                  <span className={(!selectedSession.reason || !selectedSession.reason.includes('IP')) ? "text-gray-700 font-medium" : "text-red-600 font-medium"}>
+                    Device Verified
+                    {selectedSession.reason?.includes('IP') && <span className="block text-xs font-normal">Please use your registered device</span>}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-blue-500"><MapPin size={20} /></div>
+                  <span className="text-gray-700 font-medium">
+                    Location check on submit
+                    <span className="text-gray-500 font-normal text-sm ml-1">(Within {selectedSession.radius_meters || 100}m)</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {canMark ? (
+                <>
+                  <div className="mb-6 relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                    {capturedPhoto ? (
+                      <img src={capturedPhoto} alt="Capture" className="w-full h-full object-cover" />
+                    ) : (
+                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                    )}
+
+                    {!capturedPhoto && (
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        <span className="bg-red-600 w-3 h-3 rounded-full animate-pulse"></span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-center gap-4">
+                    {!capturedPhoto ? (
+                      <button
+                        onClick={capturePhoto}
+                        className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all transform active:scale-95 shadow-lg shadow-blue-200"
+                      >
+                        Capture Photo
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={retakePhoto}
+                          disabled={loading}
+                          className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                        >
+                          Retake
+                        </button>
+                        <button
+                          onClick={markAttendance}
+                          disabled={loading}
+                          className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-200 flex items-center gap-2 transition-all transform active:scale-95"
+                        >
+                          {loading ? 'Submitting...' : 'Submit Attendance'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-center text-xs text-gray-400 mt-4">
+                    Ensure your face fills the frame and location services are enabled.
+                  </p>
+                </>
+              ) : (
+                <div className="text-center py-10">
+                  <div className="inline-block p-4 bg-gray-100 rounded-full mb-4">
+                    <CheckCircle className="text-gray-400" size={32} />
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-2">Unavailable</h3>
+                  <p className="text-gray-500 text-sm px-8">
+                    {statusReason || "You cannot mark attendance for this session at this time."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 4. Manual Mode (Fallback)
+    if (manualMode) {
+      return (
+        <div className="max-w-md mx-auto mt-10">
+          <button onClick={handleBackToList} className="mb-4 text-gray-500 hover:text-gray-800 text-sm font-bold">
+            ← Back
+          </button>
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+            <h2 className="text-xl font-bold mb-4">Enter Class Code</h2>
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={classroomId}
                 onChange={(e) => setClassroomId(e.target.value)}
-                placeholder="Enter Classroom ID"
-                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g. MATH101"
+                className="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
-                onClick={checkSession}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={checkManualSession}
+                className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700"
               >
-                Check Session
+                Check
               </button>
             </div>
           </div>
-        )}
+        </div>
+      )
+    }
+  };
 
-        {/* Session Status */}
-        {session && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Session Status</h2>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <span className={`text-2xl ${validationStatus.sessionOpen ? 'text-green-500' : 'text-gray-300'}`}>
-                  {validationStatus.sessionOpen ? '✅' : '❌'}
-                </span>
-                <span className="text-lg">
-                  Session is Open
-                  {session.closes_at && (
-                    <span className="text-sm text-gray-500 ml-2">
-                      (Closes at {new Date(session.closes_at).toLocaleTimeString()})
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className={`text-2xl ${validationStatus.ipMatched ? 'text-green-500' : 'text-red-500'}`}>
-                  {validationStatus.ipMatched ? '✅' : '❌'}
-                </span>
-                <span className="text-lg">
-                  Device Verified
-                  {!validationStatus.ipMatched && (
-                    <span className="text-sm text-red-500 ml-2">
-                      (Please use your registered device)
-                    </span>
-                  )}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-2xl text-blue-500">📍</span>
-                <span className="text-lg">
-                  Location will be verified when you submit
-                  {session.radius_meters && (
-                    <span className="text-sm text-gray-500 ml-2">
-                      (Within {session.radius_meters}m)
-                    </span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Camera and Capture */}
-        {canMark && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              {capturedPhoto ? 'Review Photo' : 'Capture Your Photo'}
-            </h2>
-
-            <div className="mb-4 relative">
-              {capturedPhoto ? (
-                <img
-                  src={capturedPhoto}
-                  alt="Captured"
-                  className="w-full max-w-2xl mx-auto rounded-lg border-4 border-green-500"
-                  style={{ minHeight: '300px', objectFit: 'cover' }}
-                />
-              ) : (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full max-w-2xl mx-auto rounded-lg border-4 border-blue-500 bg-black"
-                  style={{ minHeight: '300px' }}
-                />
-              )}
-
-              {!capturedPhoto && (
-                <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs animate-pulse">
-                  REC
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-4">
-              {!capturedPhoto ? (
-                <button
-                  onClick={capturePhoto}
-                  className="px-8 py-4 bg-blue-600 text-white text-xl rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                >
-                  <span className="text-2xl">📸</span> Capture Photo
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={retakePhoto}
-                    disabled={loading}
-                    className="px-6 py-4 bg-gray-500 text-white text-lg rounded-lg hover:bg-gray-600 disabled:opacity-50"
-                  >
-                    Retake
-                  </button>
-                  <button
-                    onClick={markAttendance}
-                    disabled={loading}
-                    className="px-8 py-4 bg-green-600 text-white text-xl rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    Submit Attendance <span className="text-2xl">✅</span>
-                  </button>
-                </>
-              )}
-            </div>
-
-            <p className="text-center text-sm text-gray-500 mt-4">
-              Make sure your face is clearly visible in the frame
-            </p>
-          </div>
-        )}
-
-        {/* Waiting state */}
-        {!canMark && session && (
-          <div className={`border rounded-lg p-6 text-center ${statusReason?.includes('already marked')
-              ? 'bg-green-50 border-green-200'
-              : 'bg-yellow-50 border-yellow-200'
-            }`}>
-            <p className={`text-lg font-medium ${statusReason?.includes('already marked') ? 'text-green-800' : 'text-yellow-800'
-              }`}>
-              {statusReason || (validationStatus.ipMatched
-                ? 'Waiting for teacher to open attendance...'
-                : 'Please use your registered device to mark attendance')}
-            </p>
-          </div>
-        )}
-      </div>
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {renderStep()}
     </div>
   );
 };

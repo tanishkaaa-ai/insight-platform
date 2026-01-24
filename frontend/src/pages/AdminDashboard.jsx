@@ -124,8 +124,8 @@ const AdminDashboard = () => {
                             <StatCard
                                 icon={Shield}
                                 label="Intervention Rate"
-                                value={`${interventionStats.success_rate || 0}%`}
-                                subtext={`${interventionStats.resolved} Resolved cases`}
+                                value={`${interventionStats.intervention_rate || 0}%`}
+                                subtext={`${metrics?.active_alerts?.CRITICAL || 0} Critical / ${interventionStats.active} Active`}
                                 color="orange"
                             />
                         </div>
@@ -202,6 +202,15 @@ const AdminDashboard = () => {
                                         <div className="text-3xl font-bold text-red-800">{metrics?.active_alerts?.CRITICAL || 0}</div>
                                         <div className="text-xs text-red-600 mt-1">Students at immediate drop-out risk</div>
                                     </div>
+
+                                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-bold text-slate-700">System Stability</span>
+                                        </div>
+                                        <div className="text-3xl font-bold text-slate-800">{metrics?.system_health?.stability || 99.8}%</div>
+                                        <div className="text-xs text-slate-600 mt-1">Latency: {metrics?.system_health?.latency || 12}ms</div>
+                                    </div>
+
                                     <div className="pt-2">
                                         <button onClick={() => window.location.href = '/admin/health'} className="w-full py-2 text-sm text-blue-600 font-bold hover:bg-blue-50 rounded-lg transition-colors">
                                             View Detailed Health Report →
@@ -309,24 +318,25 @@ const AdminDashboard = () => {
                                     <span className="font-bold text-slate-800 text-lg">System Stability</span>
                                     <CheckCircle size={24} className="text-slate-500" />
                                 </div>
-                                <div className="text-5xl font-extrabold text-slate-900 mb-2">99.8%</div>
-                                <p className="text-sm text-slate-600">All services operational. Database latency: 12ms.</p>
+                                <div className="text-5xl font-extrabold text-slate-900 mb-2">{metrics?.system_health?.stability || 0}%</div>
+                                <p className="text-sm text-slate-600">All services operational. Database latency: {metrics?.system_health?.latency || 0}ms.</p>
                             </div>
                         </div>
 
                         <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200">
                             <h3 className="font-bold text-slate-700 mb-4">Maintenance Logs</h3>
                             <div className="space-y-2">
-                                <div className="flex items-center gap-3 text-sm text-slate-600">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    <span className="font-mono text-xs opacity-70">2026-01-24 10:00:00</span>
-                                    <span>Database backup completed successfully.</span>
-                                </div>
-                                <div className="flex items-center gap-3 text-sm text-slate-600">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    <span className="font-mono text-xs opacity-70">2026-01-24 08:30:00</span>
-                                    <span>System update v2.4 applied.</span>
-                                </div>
+                                {metrics?.maintenance_logs && metrics.maintenance_logs.length > 0 ? (
+                                    metrics.maintenance_logs.map((log, idx) => (
+                                        <div key={idx} className="flex items-center gap-3 text-sm text-slate-600">
+                                            <div className={`w-2 h-2 rounded-full ${log.status === 'Success' || log.status === 'Operational' ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+                                            <span className="font-mono text-xs opacity-70">{log.date}</span>
+                                            <span>{log.action} - {log.status}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-gray-400 text-sm">No maintenance logs available.</div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -16,7 +16,9 @@ from models.database import (
     STUDENTS,
     ATTENDANCE_SESSIONS,
     ATTENDANCE_RECORDS,
-    CLASSROOMS
+    CLASSROOMS,
+    CLASSROOM_MEMBERSHIPS,
+    TEACHERS
 )
 from utils.logger import get_logger
 
@@ -544,6 +546,116 @@ def close_session(session_id):
     except Exception as e:
         logger.error(f"Error closing session | Error: {str(e)}")
         return jsonify({'error': 'Failed to close session'}), 500
+
+
+@attendance_bp.route('/student/sessions/active', methods=['GET'])
+def get_active_student_sessions():
+    """
+    Get all active attendance sessions for classrooms the student is enrolled in.
+    
+    Request: GET /api/attendance/student/sessions/active
+    Headers: X-User-Id: <student_id>
+    
+    Response:
+    [
+        {
+            "_id": "session_id",
+            "classroom_name": "Math 101",
+            "date": "2024-01-24",
+            "closes_at": "2024-01-24T09:15:00Z",
+            "teacher_name": "Mr. Smith",
+            "can_mark": true,
+            "reason": null
+        }
+    ]
+    """
+    try:
+        student_id_from_header = get_current_user_id()
+        if not student_id_from_header:
+            return jsonify({'error': 'User ID required'}), 401
+            
+        logger.info(f"Getting active student sessions | Student User: {student_id_from_header}")
+
+        # 1. Resolve Student
+        student, error_resp = get_student_or_create_stub(student_id_from_header)
+        if error_resp:
+            return error_resp
+            
+        actual_student_id = str(student['_id'])
+        student_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        student_ip = normalize_ip(student_ip.split(',')[0].strip() if ',' in student_ip else student_ip)
+        registered_ip = normalize_ip(student.get('registered_ip'))
+        ip_valid = (registered_ip == student_ip)
+
+        # 2. Get Student's Enrolled Classrooms
+        memberships = list(db[CLASSROOM_MEMBERSHIPS].find(
+            {'student_id': actual_student_id, 'is_active': True}
+        ))
+        
+        if not memberships:
+             return jsonify([]), 200
+             
+        classroom_ids = [m['classroom_id'] for m in memberships]
+        
+        # 3. Find Active Sessions
+        active_sessions = list(db[ATTENDANCE_SESSIONS].find({
+            'classroom_id': {'$in': classroom_ids},
+            'is_open': True,
+            'closes_at': {'$gt': datetime.utcnow()}
+        }))
+        
+        if not active_sessions:
+            return jsonify([]), 200
+            
+        results = []
+        for session in active_sessions:
+            # Get Classroom Info
+            classroom = db[CLASSROOMS].find_one({'_id': session['classroom_id']})
+            if not classroom:
+                continue
+                
+            # Get Teacher Info
+            teacher = db[USERS].find_one({'_id': session['teacher_id']})
+            teacher_name = "Unknown"
+            if teacher:
+                # Try to get better name from TEACHERS profile
+                t_profile = db[TEACHERS].find_one({'user_id': session['teacher_id']})
+                if t_profile:
+                     teacher_name = f"{t_profile.get('first_name', '')} {t_profile.get('last_name', '')}".strip()
+                else:
+                     teacher_name = teacher.get('username', 'Teacher')
+
+            # Check if already marked
+            already_marked = db[ATTENDANCE_RECORDS].find_one({
+                'session_id': session['_id'],
+                'student_id': actual_student_id
+            })
+            
+            can_mark = ip_valid and not already_marked
+            reason = None
+            if already_marked:
+                reason = "Already marked"
+            elif not ip_valid:
+                reason = "IP Mismatch"
+
+            results.append({
+                '_id': str(session['_id']),
+                'classroom_id': str(session['classroom_id']),
+                'classroom_name': classroom.get('class_name', 'Unknown Class'),
+                'room': classroom.get('room', ''),
+                'teacher_name': teacher_name,
+                'closes_at': session['closes_at'].isoformat(),
+                'radius_meters': session.get('radius_meters', 100),
+                'can_mark': can_mark,
+                'reason': reason
+            })
+            
+        logger.info(f"Found {len(results)} active sessions for student {actual_student_id}")
+        return jsonify(results), 200
+
+    except Exception as e:
+        logger.error(f"Error getting active student sessions | Error: {str(e)}")
+        return jsonify({'error': 'Failed to get sessions'}), 500
 
 
 @attendance_bp.route('/sessions/<session_id>/records', methods=['GET'])

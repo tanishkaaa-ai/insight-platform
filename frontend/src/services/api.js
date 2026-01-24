@@ -215,6 +215,7 @@ export const attendanceAPI = {
   // Student endpoints
   bindIP: () => api.post('/attendance/bind-ip'),
   checkSession: (classroomId) => api.get(`/attendance/check-session/${classroomId}`),
+  getStudentActiveSessions: () => api.get('/attendance/student/sessions/active'),
   markAttendance: (data) => api.post('/attendance/mark', data),
 
   // Teacher endpoints
