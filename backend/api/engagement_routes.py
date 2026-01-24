@@ -619,6 +619,50 @@ def acknowledge_alert(alert_id):
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
 
 
+@engagement_bp.route('/violation', methods=['POST'])
+def report_violation():
+    """
+    Report an academic integrity violation (tab switching)
+    """
+    try:
+        data = request.json
+        student_id = data.get('student_id')
+        activity_type = data.get('activity_type')
+        activity_id = data.get('activity_id')
+        violation_type = data.get('violation_type', 'TAB_SWITCH')
+        
+        logger.warning(f"Academic integrity violation reported | Student: {student_id} | Type: {violation_type}")
+        
+        # Create CRITICAL alert
+        alert_doc = {
+            '_id': str(ObjectId()),
+            'student_id': student_id,
+            'engagement_score': 0,
+            'engagement_level': 'CRITICAL',
+            'severity': 'CRITICAL',
+            'alert_type': 'ACADEMIC_INTEGRITY',
+            'activity_type': activity_type,
+            'activity_id': activity_id,
+            'behaviors': [{'type': violation_type, 'description': 'Student switched tabs during active session'}],
+            'recommendations': ['Immediate Intervention Required', 'Review Session Logs'],
+            'detected_at': datetime.utcnow(),
+            'acknowledged': False
+        }
+        
+        insert_one(DISENGAGEMENT_ALERTS, alert_doc)
+        
+        # Notify teachers via WebSocket (if class logic exists to find teacher)
+        # For now, we rely on the teacher dashboard polling or existing subscription
+        
+        return jsonify({'message': 'Violation recorded', 'alert_id': alert_doc['_id']}), 201
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Internal server error',
+            'detail': str(e)
+        }), 500
+
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================

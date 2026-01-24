@@ -85,7 +85,6 @@ const TeacherDashboard = () => {
         // 2. Fetch Alerts
         try {
           const alertsRes = await dashboardAPI.getAlerts({
-            severity: 'AT_RISK',
             teacher_id: userId
           });
           console.log("TeacherDashboard: Alerts fetched:", alertsRes.data);

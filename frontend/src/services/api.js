@@ -97,6 +97,7 @@ export const engagementAPI = {
   acknowledgeAlert: (alertId) => api.post(`/engagement/alerts/${alertId}/acknowledge`),
   getStudentEngagementHistory: (studentId, days) => api.get(`/engagement/student/${studentId}/history`, { params: { days } }),
   getGamificationProfile: (studentId) => api.get(`/engagement/student/${studentId}/gamification`),
+  reportViolation: (data) => api.post('/engagement/violation', data),
 };
 
 export const pollsAPI = {
