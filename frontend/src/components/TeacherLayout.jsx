@@ -14,10 +14,9 @@ import {
     ChevronLeft,
     BookOpen,
     ClipboardList,
-
-
     CheckCircle,
-    Award
+    Award,
+    UserCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -75,6 +74,7 @@ const TeacherLayout = ({ children }) => {
         { icon: Award, text: 'Grading & APPROVALS', to: '/teacher/grading' }, // Combined
         { icon: BookOpen, text: 'Practice Manager', to: '/teacher/practice-manager' },
         { icon: Users, text: 'Soft Skills', to: '/teacher/soft-skills' }, // Added
+        { icon: UserCheck, text: 'Attendance', to: '/teacher/attendance' },
         { icon: Library, text: 'Templates', to: '/teacher/templates' },
     ];
 

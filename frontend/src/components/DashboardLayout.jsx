@@ -14,7 +14,8 @@ import {
     ChevronLeft,
     Users,
     Trophy,
-    Settings
+    Settings,
+    UserCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -70,6 +71,7 @@ const DashboardLayout = ({ children }) => {
         { icon: Target, text: 'Milestones', to: '/student/milestones' },
         { icon: Users, text: 'Peer Review', to: '/student/peer-review' },
         { icon: Radio, text: 'Live Polls', to: '/student/polls' },
+        { icon: UserCheck, text: 'Attendance', to: '/student/attendance' },
         { icon: Trophy, text: 'Achievements', to: '/student/achievements' },
     ];
 

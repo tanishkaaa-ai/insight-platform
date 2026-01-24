@@ -103,6 +103,7 @@ def register_blueprints(app):
     from api.pbl_crud_extensions import pbl_crud_bp
     from api.polling_template_crud import poll_template_crud_bp
     from api.upload_routes import upload_bp
+    from api.attendance_routes import attendance_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     logger.info("Registered: /api/auth")
@@ -142,6 +143,9 @@ def register_blueprints(app):
 
     app.register_blueprint(upload_bp, url_prefix="/api")
     logger.info("Registered: /api/upload")
+
+    app.register_blueprint(attendance_bp, url_prefix="/api/attendance")
+    logger.info("Registered: /api/attendance")
 
     logger.info("All blueprints registered successfully")
 

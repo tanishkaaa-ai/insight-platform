@@ -101,6 +101,10 @@ INSTITUTIONAL_METRICS = 'institutional_metrics'
 TEACHER_INTERVENTIONS = 'teacher_interventions'
 PRACTICE_ITEMS = 'practice_items'
 
+# Attendance Collections
+ATTENDANCE_SESSIONS = 'attendance_sessions'
+ATTENDANCE_RECORDS = 'attendance_records'
+
 # Classroom Management Collections
 CLASSROOMS = 'classrooms'
 CLASSROOM_MEMBERSHIPS = 'classroom_memberships'
@@ -301,6 +305,22 @@ def init_db(app=None):
     db[CLASSROOM_NOTIFICATIONS].create_index([('user_id', ASCENDING), ('is_read', ASCENDING), ('created_at', DESCENDING)])
     db[CLASSROOM_NOTIFICATIONS].create_index([('classroom_id', ASCENDING)])
     print(f"[OK] {CLASSROOM_NOTIFICATIONS} collection initialized")
+
+    # Attendance Sessions collection
+    db[ATTENDANCE_SESSIONS].create_index([('classroom_id', ASCENDING), ('date', DESCENDING)])
+    db[ATTENDANCE_SESSIONS].create_index([('is_open', ASCENDING)])
+    db[ATTENDANCE_SESSIONS].create_index([('teacher_id', ASCENDING)])
+    db[ATTENDANCE_SESSIONS].create_index([('closes_at', ASCENDING)])
+    print(f"[OK] {ATTENDANCE_SESSIONS} collection initialized")
+
+    # Attendance Records collection
+    db[ATTENDANCE_RECORDS].create_index([('session_id', ASCENDING)])
+    db[ATTENDANCE_RECORDS].create_index([('student_id', ASCENDING), ('marked_at', DESCENDING)])
+    db[ATTENDANCE_RECORDS].create_index([
+        ('session_id', ASCENDING),
+        ('student_id', ASCENDING)
+    ], unique=True)
+    print(f"[OK] {ATTENDANCE_RECORDS} collection initialized")
 
     # PBL Tasks collection
     db[PROJECT_TASKS].create_index([('team_id', ASCENDING)])

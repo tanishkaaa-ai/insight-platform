@@ -32,6 +32,8 @@ import TeacherProjectGrading from './pages/TeacherProjectGrading';
 import StudentPeerReview from './pages/StudentPeerReview';
 import StudentAchievements from './pages/StudentAchievements';
 import StudentProfile from './pages/StudentProfile';
+import StudentAttendance from './pages/StudentAttendance';
+import TeacherAttendance from './pages/TeacherAttendance';
 
 function MainLayout({ isConnected }) {
   const location = useLocation();
@@ -74,6 +76,7 @@ function MainLayout({ isConnected }) {
         <Route path="/teacher/interventions" element={<ProtectedRoute requiredRole="teacher"><TeacherInterventions /></ProtectedRoute>} />
         <Route path="/teacher/practice-manager" element={<ProtectedRoute requiredRole="teacher"><TeacherPracticeManager /></ProtectedRoute>} />
         <Route path="/teacher/templates" element={<ProtectedRoute requiredRole="teacher"><TemplateLibrary /></ProtectedRoute>} />
+        <Route path="/teacher/attendance" element={<ProtectedRoute requiredRole="teacher"><TeacherAttendance /></ProtectedRoute>} />
 
         <Route path="/polling" element={<ProtectedRoute requiredRole="teacher"><LivePolling /></ProtectedRoute>} />
         <Route path="/projects" element={<ProtectedRoute requiredRole="teacher"><PBLWorkspace /></ProtectedRoute>} />
@@ -92,6 +95,7 @@ function MainLayout({ isConnected }) {
         <Route path="/student/achievements" element={<ProtectedRoute requiredRole="student"><StudentAchievements /></ProtectedRoute>} />
         <Route path="/student/polls" element={<ProtectedRoute requiredRole="student"><StudentPolls /></ProtectedRoute>} />
         <Route path="/student/profile" element={<ProtectedRoute requiredRole="student"><StudentProfile /></ProtectedRoute>} />
+        <Route path="/student/attendance" element={<ProtectedRoute requiredRole="student"><StudentAttendance /></ProtectedRoute>} />
       </Routes>
     </>
   );

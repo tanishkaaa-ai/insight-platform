@@ -44,6 +44,11 @@ class PollType(str, Enum):
     UNDERSTANDING = "understanding"
     FACT_BASED = "fact_based"
 
+class AttendanceStatus(str, Enum):
+    PRESENT = "present"
+    LATE = "late"
+    ABSENT = "absent"
+
 # ============================================================================
 # USER SCHEMAS
 # ============================================================================
@@ -593,3 +598,35 @@ class EngagementAlertEvent(BaseModel):
     alert_type: str
     severity: str
     message: str
+
+# ============================================================================
+# ATTENDANCE SCHEMAS
+# ============================================================================
+
+class OpenAttendanceSessionRequest(BaseModel):
+    """Request to open attendance session"""
+    classroom_id: str
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    radius: int = Field(100, ge=10, le=5000, description="Radius in meters")
+    duration: int = Field(15, ge=1, le=180, description="Duration in minutes")
+
+class MarkAttendanceRequest(BaseModel):
+    """Request to mark attendance"""
+    session_id: str
+    latitude: float = Field(..., ge=-90, le=90)
+    longitude: float = Field(..., ge=-180, le=180)
+    photo: str = Field(..., description="Base64 encoded photo")
+
+class AttendanceRecordResponse(BaseModel):
+    """Attendance record response"""
+    record_id: str
+    student_id: str
+    student_name: str
+    marked_at: datetime
+    distance_meters: float
+    photo_base64: str
+    status: AttendanceStatus
+
+    class Config:
+        from_attributes = True
