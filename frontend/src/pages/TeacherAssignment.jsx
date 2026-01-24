@@ -352,12 +352,16 @@ const TeacherAssignment = () => {
 
                                                             {/* ANNOTATE BUTTON IF IMAGE */}
                                                             {att.url && (att.url.match(/\.(jpeg|jpg|png)$/i) || att.type?.includes('image')) && (
-                                                                <button
-                                                                    onClick={() => handleAnnotateClick(att.url)}
-                                                                    className="w-full py-2 bg-indigo-50 text-indigo-600 font-bold text-xs rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
-                                                                >
-                                                                    <PenTool size={14} /> Annotate / Correct Answer Sheet
-                                                                </button>
+                                                                <div className="mt-2 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                                                                    <p className="text-xs font-bold text-indigo-800 mb-2 uppercase tracking-wide">Digital Correction Available</p>
+                                                                    <button
+                                                                        onClick={() => handleAnnotateClick(att.url)}
+                                                                        className="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-lg hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
+                                                                    >
+                                                                        <PenTool size={18} />
+                                                                        Launch Correction Tool
+                                                                    </button>
+                                                                </div>
                                                             )}
                                                         </div>
                                                     ))}

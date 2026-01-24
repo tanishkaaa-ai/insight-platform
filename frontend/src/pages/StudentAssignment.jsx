@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
-import { ArrowLeft, Clock, FileText, Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, FileText, Upload, CheckCircle, AlertCircle, Loader2, PenTool, ArrowRight } from 'lucide-react';
 import { classroomAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -190,17 +190,27 @@ const StudentAssignment = () => {
 
                                             {/* Corrected File Display */}
                                             {assignment.current_user_submission?.corrected_file && (
-                                                <div className="mb-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
-                                                    <p className="text-sm font-bold text-indigo-800 mb-2">Teacher's Corrections:</p>
-                                                    <a
-                                                        href={assignment.current_user_submission.corrected_file}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 p-3 bg-white rounded-lg border border-indigo-200 hover:shadow-md transition-all text-indigo-700 font-bold"
-                                                    >
-                                                        <FileText size={20} />
-                                                        View Annotated Answer Sheet
-                                                    </a>
+                                                <div className="mb-6 bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="bg-indigo-600 p-3 rounded-xl text-white shadow-lg">
+                                                            <PenTool size={24} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-bold text-indigo-900 text-lg mb-1">Teacher Corrections Available</h4>
+                                                            <p className="text-indigo-700 text-sm mb-4">Your teacher has annotated your answer sheet with specific feedback.</p>
+
+                                                            <a
+                                                                href={assignment.current_user_submission.corrected_file}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-white text-indigo-600 font-bold rounded-xl border border-indigo-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group"
+                                                            >
+                                                                <FileText size={18} className="text-indigo-500 group-hover:text-indigo-600" />
+                                                                View Marked Answer Sheet
+                                                                <ArrowRight size={16} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
 
