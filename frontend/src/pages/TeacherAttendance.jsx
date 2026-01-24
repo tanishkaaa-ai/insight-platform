@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { attendanceAPI, classroomAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import TeacherLayout from '../components/TeacherLayout';
 
 const TeacherAttendance = () => {
   const { user } = useAuth();
@@ -179,8 +180,8 @@ const TeacherAttendance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <TeacherLayout>
+      <div>
         <h1 className="text-3xl font-bold mb-6">Attendance Management</h1>
 
         {/* Classroom Selection */}
@@ -269,8 +270,8 @@ const TeacherAttendance = () => {
         {/* Active Session */}
         {activeSession && (
           <div className={`border-2 rounded-lg p-6 mb-6 ${activeSession.is_open
-              ? 'bg-green-50 border-green-500'
-              : 'bg-gray-50 border-gray-200'
+            ? 'bg-green-50 border-green-500'
+            : 'bg-gray-50 border-gray-200'
             }`}>
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -405,7 +406,7 @@ const TeacherAttendance = () => {
           </div>
         </div>
       )}
-    </div>
+    </TeacherLayout>
   );
 };
 
