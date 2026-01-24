@@ -15,7 +15,9 @@ import {
   Lightbulb,
   Megaphone,
   Loader,
-  Trash2
+  Trash2,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateInterventionModal from '../components/CreateInterventionModal';
@@ -156,6 +158,27 @@ const TeacherDashboard = () => {
   const [institutionalStats, setInstitutionalStats] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState(null);
+
+  const handleDismissAlert = async (studentId) => {
+    try {
+      await dashboardAPI.dismissStudentAlerts(studentId);
+      toast.success("Alert dismissed");
+      setAtRiskStudents(prev => prev.filter(a => a.student_id !== studentId));
+    } catch (error) {
+      console.error("Failed to dismiss alert", error);
+      toast.error("Failed to dismiss");
+    }
+  };
+
+  const handleResolveAlert = async (studentId) => {
+    try {
+      await dashboardAPI.dismissStudentAlerts(studentId);
+      toast.success("Issue resolved & removed");
+      setAtRiskStudents(prev => prev.filter(a => a.student_id !== studentId));
+    } catch (error) {
+      toast.error("Failed to resolve");
+    }
+  };
 
   const handleDeleteClick = (e, cls) => {
     e.preventDefault(); // Prevent navigation
@@ -368,11 +391,34 @@ const TeacherDashboard = () => {
               <div className="p-2">
                 {atRiskStudents.length > 0 ? (atRiskStudents.map((alert) => (
                   <div
-                    key={alert.alert_id}
+                    key={alert.alert_id} // Unique key
                     onClick={() => setInterventionStudent({ student_id: alert.student_id, name: alert.student_name })}
-                    className="p-3 transition-colors hover:bg-red-50/50 rounded-xl cursor-pointer"
+                    className="p-3 transition-colors hover:bg-red-50/50 rounded-xl cursor-pointer group relative"
                   >
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleResolveAlert(alert.student_id);
+                        }}
+                        className="text-gray-300 hover:text-green-500 p-1 hover:bg-green-50 rounded"
+                        title="Mark as Done"
+                      >
+                        <CheckCircle size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDismissAlert(alert.student_id);
+                        }}
+                        className="text-gray-300 hover:text-red-500 p-1 hover:bg-red-50 rounded"
+                        title="Dismiss/Delete Alert"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="flex justify-between items-start mb-1 pr-6">
                       <span className="font-bold text-gray-800 text-sm">{alert.student_name}</span>
                       <span className="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full uppercase">
                         {alert.severity} Risk
@@ -380,7 +426,11 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {alert.behaviors?.map((b, i) => (
-                        <span key={i} className="text-[10px] text-red-500 bg-white border border-red-100 px-1 rounded">
+                        <span key={i} className={`text-[10px] bg-white border px-1 rounded
+                              ${(typeof b === 'string' ? b : b.type) === 'productive_struggle' || (typeof b === 'string' ? b : b.type) === 'concept_struggle'
+                            ? 'text-orange-600 border-orange-200'
+                            : 'text-red-500 border-red-100'}`}
+                        >
                           {typeof b === 'string' ? b : b.description || b.type}
                         </span>
                       ))}
@@ -423,7 +473,7 @@ const TeacherDashboard = () => {
             teacherId={getUserId()}
             initialData={{}}
             onClose={() => setInterventionStudent(null)}
-            triggerRefresh={() => { }} // Optional: refresh alerts
+            triggerRefresh={() => setAtRiskStudents(prev => prev.filter(a => a.student_id !== interventionStudent.student_id))}
           />
         )
       }
