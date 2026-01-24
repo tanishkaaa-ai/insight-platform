@@ -748,6 +748,26 @@ def get_student_interventions(student_id):
         }), 500
 
 
+@dashboard_bp.route('/interventions/<intervention_id>', methods=['DELETE'])
+def delete_intervention(intervention_id):
+    """
+    Delete a teacher intervention
+    """
+    try:
+        from models.database import delete_one
+        result = delete_one(TEACHER_INTERVENTIONS, {'_id': intervention_id})
+        
+        if result == 0:
+            return jsonify({'error': 'Intervention not found'}), 404
+            
+        logger.info(f"Intervention deleted | intervention_id: {intervention_id}")
+        return jsonify({'message': 'Intervention deleted successfully'}), 200
+        
+    except Exception as e:
+        logger.error(f"Error deleting intervention | error: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+
 # ============================================================================
 # UNIFIED INSTITUTIONAL METRICS (BR8)
 # ============================================================================

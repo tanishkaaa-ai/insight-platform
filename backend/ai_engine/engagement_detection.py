@@ -36,6 +36,8 @@ class DisengagementBehavior(Enum):
     LOW_LOGIN_FREQUENCY = "low_login_frequency"
     DECLINING_PERFORMANCE = "declining_performance"
     LONG_INACTIVITY = "long_inactivity"
+    PRODUCTIVE_STRUGGLE = "productive_struggle"
+    CONCEPT_STRUGGLE = "concept_struggle"
 
 @dataclass
 class ImplicitSignals:
@@ -128,17 +130,41 @@ class EngagementDetectionEngine:
                 'detected_at': datetime.now().isoformat()
             })
         
-        # 3. Many Attempts Detection
-        many_attempts = sum(
-            1 for r in recent_responses
-            if r.get('attempts', 1) > self.MANY_ATTEMPTS_THRESHOLD
-        )
-        if many_attempts >= 3:
-            behaviors.append({
-                'type': DisengagementBehavior.MANY_ATTEMPTS,
-                'severity': 'MONITOR',
-                'count': many_attempts,
-                'description': 'Random clicking/guessing on multiple questions',
+        # 3. Many Attempts Analysis (Gaming vs Struggle)
+        # Filter for high attempts first
+        high_attempt_responses = [r for r in recent_responses if r.get('attempts', 1) > self.MANY_ATTEMPTS_THRESHOLD]
+        
+        if len(high_attempt_responses) >= 2:
+            # Check interaction speed
+            avg_attempt_time = np.mean([r.get('response_time', 0) for r in high_attempt_responses])
+            
+            if avg_attempt_time < 5.0:
+                # Case A: Fast clicks + Many attempts = GAMING
+                behaviors.append({
+                    'type': DisengagementBehavior.MANY_ATTEMPTS, # Keep legacy name or change to GAMING
+                    'severity': 'MONITOR',
+                    'count': len(high_attempt_responses),
+                    'description': 'Rapidly guessing multiple times (Gaming)',
+                    'detected_at': datetime.now().isoformat()
+                })
+            elif avg_attempt_time > 15.0:
+                # Case B: Slow time + Many attempts = PRODUCTIVE STRUGGLE
+                behaviors.append({
+                    'type': DisengagementBehavior.PRODUCTIVE_STRUGGLE,
+                    'severity': 'AT_RISK', # Academic risk, not behavioral
+                    'count': len(high_attempt_responses),
+                    'description': 'Struggling with concept (High effort, multiple retries)',
+                    'detected_at': datetime.now().isoformat()
+                })
+
+        # 3.5. Concept Struggle (High Effort / Low Mastery)
+        # Time on task is High (> 45m/week normalized) BUT Quiz Accuracy is Low (< 60%)
+        if implicit_signals.time_on_task > 40 and explicit_signals.quiz_accuracy < 0.6:
+             behaviors.append({
+                'type': DisengagementBehavior.CONCEPT_STRUGGLE,
+                'severity': 'AT_RISK',
+                'description': 'High effort but low mastery detected (Slow Learner Pattern)',
+                'metrics': f"Time: {int(implicit_signals.time_on_task)}m, Acc: {int(explicit_signals.quiz_accuracy*100)}%",
                 'detected_at': datetime.now().isoformat()
             })
         
@@ -356,6 +382,14 @@ class EngagementDetectionEngine:
         
         if DisengagementBehavior.DECLINING_PERFORMANCE in behavior_types:
             recommendations.append("Review recent topic - may indicate knowledge gap")
+
+        if DisengagementBehavior.PRODUCTIVE_STRUGGLE in behavior_types:
+            recommendations.append("Provide worked-out examples or video walkthroughs")
+            recommendations.append("Suggest lower-difficulty practice set first")
+
+        if DisengagementBehavior.CONCEPT_STRUGGLE in behavior_types:
+            recommendations.append("Assign personalized remediation or tutor session")
+            recommendations.append("Check for foundational knowledge gaps")
         
         return recommendations
     
