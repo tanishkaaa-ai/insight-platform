@@ -545,10 +545,29 @@ const StudentProjects = () => {
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex -space-x-3">
-                            {/* Mock Avatars for Team Members */}
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">?</div>
-                            ))}
+                            {/* Team Member Avatars */}
+                            {activeTeam.members && activeTeam.members.length > 0 ? (
+                                activeTeam.members.map((member, index) => {
+                                    const name = member.student_name || member.name || member.username || 'User';
+                                    const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                                    const colors = ['bg-red-100 text-red-600', 'bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-purple-100 text-purple-600', 'bg-yellow-100 text-yellow-600'];
+                                    const colorClass = colors[index % colors.length];
+
+                                    return (
+                                        <div
+                                            key={member.student_id || member.user_id || index}
+                                            className={`w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-xs font-bold ${colorClass}`}
+                                            title={name}
+                                        >
+                                            {initials}
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-400" title="No members">
+                                    --
+                                </div>
+                            )}
                         </div>
                         <button
                             onClick={() => setShowAchievements(true)}

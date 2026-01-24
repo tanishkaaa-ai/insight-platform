@@ -24,6 +24,7 @@ from models.database import (
     find_many,
     insert_one,
     update_one,
+    update_many,
     aggregate,
     count_documents
 )
@@ -516,23 +517,48 @@ def get_engagement_alerts():
             sort=[('detected_at', -1)]
         )
         
-        formatted_alerts = []
-        for alert in alerts:
-            student = find_one(STUDENTS, {'_id': alert['student_id']})
-            
-            formatted_alerts.append({
-                'alert_id': alert['_id'],
-                'student_id': alert['student_id'],
-                'student_name': f"{student.get('first_name', '')} {student.get('last_name', '')}" if student else 'Unknown',
-                'engagement_score': alert.get('engagement_score'),
-                'engagement_level': alert.get('engagement_level'),
-                'severity': alert.get('severity'),
-                'behaviors': alert.get('behaviors', []),
-                'recommendations': alert.get('recommendations', []),
-                'detected_at': alert.get('detected_at').isoformat() if alert.get('detected_at') else None
-            })
+        # Deduplication Logic
+        aggregated_alerts = {}
         
-        return jsonify(formatted_alerts), 200
+        for alert in alerts:
+            student_id = alert['student_id']
+            
+            if student_id not in aggregated_alerts:
+                # First alert found for this student (since sorted by time desc, this is the LATEST)
+                student = find_one(STUDENTS, {'_id': student_id})
+                
+                aggregated_alerts[student_id] = {
+                    'alert_id': alert['_id'], # Use the latest alert ID as the handle
+                    'student_id': student_id,
+                    'student_name': f"{student.get('first_name', '')} {student.get('last_name', '')}" if student else 'Unknown',
+                    'engagement_score': alert.get('engagement_score'), # Keep latest score
+                    'engagement_level': alert.get('engagement_level'), # Keep latest level
+                    'severity': alert.get('severity'), # Keep latest severity (or could take max)
+                    'behaviors': [], # Will aggregate unique behaviors
+                    'recommendations': [], # Will aggregate unique recommendations
+                    'detected_at': alert.get('detected_at').isoformat() if alert.get('detected_at') else None
+                }
+                
+            # Aggregate Behaviors (Unique)
+            current_behaviors = alert.get('behaviors', [])
+            for b in current_behaviors:
+                # Handle both string and dict formats
+                b_str = b.get('description', b.get('type')) if isinstance(b, dict) else b
+                existing_behaviors = [
+                    (eb.get('description', eb.get('type')) if isinstance(eb, dict) else eb) 
+                    for eb in aggregated_alerts[student_id]['behaviors']
+                ]
+                
+                if b_str not in existing_behaviors:
+                    aggregated_alerts[student_id]['behaviors'].append(b)
+
+            # Aggregate Recommendations (Unique)
+            current_recs = alert.get('recommendations', [])
+            for r in current_recs:
+                if r not in aggregated_alerts[student_id]['recommendations']:
+                    aggregated_alerts[student_id]['recommendations'].append(r)
+
+        return jsonify(list(aggregated_alerts.values())), 200
         
     except Exception as e:
         return jsonify({
@@ -609,6 +635,26 @@ def delete_alert(alert_id):
         return jsonify({'message': 'Alert dismissed successfully'}), 200
     except Exception as e:
         return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
+@engagement_bp.route('/alerts/student/<student_id>/dismiss', methods=['POST'])
+def dismiss_student_alerts(student_id):
+    """
+    Dismiss ALL active alerts for a specific student (Bulk Acknowledge)
+    """
+    try:
+        # Mark all unacknowledged alerts for this student as acknowledged
+        # Use update_many from models.database which wraps pymongo's update_many
+        result = update_many(
+            DISENGAGEMENT_ALERTS,
+            {'student_id': student_id, 'acknowledged': False},
+            {'$set': {'acknowledged': True, 'acknowledged_at': datetime.utcnow()}}
+        )
+        
+        return jsonify({'message': f'Alerts dismissed for student'}), 200
+        
+    except Exception as e:
+        return jsonify({'error': 'Internal server error', 'detail': str(e)}), 500
+
 
 @engagement_bp.route('/alerts/<alert_id>/acknowledge', methods=['POST'])
 def acknowledge_alert(alert_id):

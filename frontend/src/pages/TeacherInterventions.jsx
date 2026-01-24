@@ -13,7 +13,8 @@ import {
     Search,
     Plus,
     Loader,
-    TrendingUp
+    TrendingUp,
+    Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
@@ -151,6 +152,18 @@ const TeacherInterventions = () => {
         }
     };
 
+    const handleDeleteIntervention = async (interventionId) => {
+        if (!window.confirm("Are you sure you want to delete this intervention?")) return;
+        try {
+            await dashboardAPI.deleteIntervention(interventionId);
+            toast.success("Intervention deleted");
+            fetchInterventions();
+        } catch (error) {
+            console.error("Delete failed", error);
+            toast.error("Failed to delete intervention");
+        }
+    };
+
     const filteredInterventions = Array.isArray(interventions) ? interventions.filter(i => {
         if (filterStatus === 'all') return true;
         if (filterStatus === 'active') return i.status !== 'completed';
@@ -259,6 +272,19 @@ const TeacherInterventions = () => {
                                                         className="text-teal-600 font-bold text-sm hover:underline bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100"
                                                     >
                                                         Create Plan
+                                                    </button>
+                                                )}
+                                                {/* Delete Button for Interventions */}
+                                                {(item.type === 'intervention' || item.intervention) && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteIntervention(item.intervention ? item.intervention.intervention_id : item.id);
+                                                        }}
+                                                        className="ml-2 text-gray-300 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Delete Intervention"
+                                                    >
+                                                        <Trash2 size={14} />
                                                     </button>
                                                 )}
                                             </td>

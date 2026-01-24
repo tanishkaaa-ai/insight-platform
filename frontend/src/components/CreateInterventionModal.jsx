@@ -59,6 +59,15 @@ const CreateInterventionModal = ({ studentId, alertId, isOpen, onClose }) => {
                 toast.success(`Intervention created! Follow-up: ${new Date(response.data.follow_up_date).toLocaleDateString()}`);
             }
 
+            // Auto-resolve/Dismiss alerts for this student as the teacher has taken action
+            try {
+                await dashboardAPI.dismissStudentAlerts(studentId);
+                console.info('[INTERVENTION] Auto-dismissed alerts for student');
+            } catch (dismissError) {
+                console.warn('Failed to auto-dismiss alerts', dismissError);
+            }
+
+            if (triggerRefresh) triggerRefresh();
             onClose();
 
         } catch (error) {
