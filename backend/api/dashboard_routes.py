@@ -1105,25 +1105,32 @@ def update_intervention_outcome(intervention_id):
         if status == 'completed':
             update_data['measured_at'] = datetime.utcnow()
 
+        # Helper to find intervention
+        intervention = find_one(TEACHER_INTERVENTIONS, {'_id': intervention_id})
+        current_id = intervention_id
+        
+        if not intervention:
+            # Try ObjectId
+            if len(intervention_id) == 24:
+                try:
+                    intervention = find_one(TEACHER_INTERVENTIONS, {'_id': ObjectId(intervention_id)})
+                    if intervention:
+                        current_id = ObjectId(intervention_id)
+                except:
+                    pass
+        
+        if not intervention:
+            return jsonify({'error': 'Intervention not found'}), 404
+
+        # Update using the found ID
         result = update_one(
             TEACHER_INTERVENTIONS,
-            {'_id': intervention_id}, # trying string ID first
+            {'_id': current_id},
             {'$set': update_data}
         )
         
-        if result.matched_count == 0:
-            # Try ObjectId
-            try:
-                result = update_one(
-                    TEACHER_INTERVENTIONS,
-                    {'_id': ObjectId(intervention_id)},
-                    {'$set': update_data}
-                )
-            except:
-                pass
-        
-        if result.matched_count == 0:
-            return jsonify({'error': 'Intervention not found'}), 404
+        # We don't need to check result.matched_count because we know it exists
+        # result is modified_count, which is fine to ignore for now or check if > 0 (but 0 is valid if no change)
 
         return jsonify({'message': 'Intervention updated successfully'}), 200
 

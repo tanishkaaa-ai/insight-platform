@@ -392,9 +392,9 @@ const TeacherDashboard = () => {
                     No critical alerts at this time.
                   </div>
                 )}
-                <button className="w-full text-center py-3 text-xs font-bold text-gray-400 hover:text-gray-600 border-t border-gray-50 mt-1">
+                <NavLink to="/teacher/interventions" className="block w-full text-center py-3 text-xs font-bold text-gray-400 hover:text-gray-600 border-t border-gray-50 mt-1">
                   View All Alerts
-                </button>
+                </NavLink>
               </div>
             </div>
 
