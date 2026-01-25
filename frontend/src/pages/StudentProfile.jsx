@@ -68,7 +68,7 @@ const StudentProfile = () => {
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto space-y-6">
-                <h1 className="text-3xl font-extrabold text-gray-800">Account Settings</h1>
+                <h1 className="text-3xl font-extrabold text-[#EAE0CF]">Account Settings</h1>
 
                 <div className="flex flex-col md:flex-row gap-8">
                     {/* Sidebar Tabs */}
@@ -76,21 +76,21 @@ const StudentProfile = () => {
                         <button
                             onClick={() => setActiveTab('profile')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'profile' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                                ${activeTab === 'profile' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
                         >
                             <User size={20} /> Profile
                         </button>
                         <button
                             onClick={() => setActiveTab('security')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'security' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                                ${activeTab === 'security' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
                         >
                             <Shield size={20} /> Security
                         </button>
                         <button
                             onClick={() => setActiveTab('notifications')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'notifications' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+                                ${activeTab === 'notifications' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
                         >
                             <Bell size={20} /> Notifications
                         </button>
@@ -99,57 +99,57 @@ const StudentProfile = () => {
                     {/* Content Area */}
                     <div className="flex-1">
                         {activeTab === 'profile' && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <User className="text-blue-500" /> Personal Information
+                            <div className="bg-[#213448] rounded-2xl shadow-sm border border-[#EAE0CF]/20 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <h2 className="text-xl font-bold text-[#EAE0CF] mb-6 flex items-center gap-2">
+                                    <User className="text-[#EAE0CF]" /> Personal Information
                                 </h2>
 
-                                <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-100">
-                                    <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-3xl font-bold text-blue-600 border-4 border-white shadow-sm">
+                                <div className="flex items-center gap-6 mb-8 pb-8 border-b border-[#EAE0CF]/10">
+                                    <div className="w-24 h-24 rounded-full bg-[#547792] flex items-center justify-center text-3xl font-bold text-[#EAE0CF] border-4 border-[#213448] shadow-sm">
                                         {profileData.name.charAt(0)}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg text-gray-800">{profileData.name}</h3>
-                                        <p className="text-gray-500">Student • {profileData.grade}</p>
-                                        <button className="text-sm text-blue-600 font-bold mt-2 hover:underline">Change Avatar</button>
+                                        <h3 className="font-bold text-lg text-[#EAE0CF]">{profileData.name}</h3>
+                                        <p className="text-[#EAE0CF]/60">Student • {profileData.grade}</p>
+                                        <button className="text-sm text-[#EAE0CF] font-bold mt-2 hover:underline">Change Avatar</button>
                                     </div>
                                 </div>
 
                                 <form onSubmit={handleProfileUpdate} className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">Full Name</label>
                                         <input
                                             type="text"
                                             value={profileData.name}
                                             onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full bg-[#1a2c3d] border border-[#EAE0CF]/20 rounded-lg px-4 py-2 text-[#EAE0CF] focus:ring-2 focus:ring-[#547792] outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">Email Address</label>
                                         <div className="relative">
-                                            <Mail className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                            <Mail className="absolute left-3 top-2.5 text-[#EAE0CF]/40" size={18} />
                                             <input
                                                 type="email"
                                                 value={profileData.email}
                                                 disabled
-                                                className="w-full bg-gray-100 border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-gray-500 cursor-not-allowed"
+                                                className="w-full bg-[#1a2c3d]/50 border border-[#EAE0CF]/10 rounded-lg pl-10 pr-4 py-2 text-[#EAE0CF]/40 cursor-not-allowed"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Bio</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">Bio</label>
                                         <textarea
                                             value={profileData.bio}
                                             onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                                            className="w-full bg-[#1a2c3d] border border-[#EAE0CF]/20 rounded-lg px-4 py-2 text-[#EAE0CF] focus:ring-2 focus:ring-[#547792] outline-none h-24 resize-none"
                                         />
                                     </div>
                                     <div className="pt-4">
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                            className="px-6 py-2 bg-[#EAE0CF] text-[#213448] font-bold rounded-xl hover:bg-white transition-colors disabled:opacity-50 flex items-center gap-2"
                                         >
                                             <Save size={18} /> Save Changes
                                         </button>
@@ -159,43 +159,43 @@ const StudentProfile = () => {
                         )}
 
                         {activeTab === 'security' && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Lock className="text-red-500" /> Security Settings
+                            <div className="bg-[#213448] rounded-2xl shadow-sm border border-[#EAE0CF]/20 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <h2 className="text-xl font-bold text-[#EAE0CF] mb-6 flex items-center gap-2">
+                                    <Lock className="text-red-400" /> Security Settings
                                 </h2>
                                 <form onSubmit={handlePasswordChange} className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Current Password</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">Current Password</label>
                                         <input
                                             type="password"
                                             value={securityData.currentPassword}
                                             onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                            className="w-full bg-[#1a2c3d] border border-[#EAE0CF]/20 rounded-lg px-4 py-2 text-[#EAE0CF] focus:ring-2 focus:ring-red-400 outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">New Password</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">New Password</label>
                                         <input
                                             type="password"
                                             value={securityData.newPassword}
                                             onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                            className="w-full bg-[#1a2c3d] border border-[#EAE0CF]/20 rounded-lg px-4 py-2 text-[#EAE0CF] focus:ring-2 focus:ring-red-400 outline-none"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Confirm New Password</label>
+                                        <label className="block text-sm font-bold text-[#EAE0CF]/80 mb-1">Confirm New Password</label>
                                         <input
                                             type="password"
                                             value={securityData.confirmPassword}
                                             onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
-                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                            className="w-full bg-[#1a2c3d] border border-[#EAE0CF]/20 rounded-lg px-4 py-2 text-[#EAE0CF] focus:ring-2 focus:ring-red-400 outline-none"
                                         />
                                     </div>
                                     <div className="pt-4">
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                            className="px-6 py-2 bg-red-900/40 text-red-300 border border-red-500/50 font-bold rounded-xl hover:bg-red-900/60 transition-colors disabled:opacity-50 flex items-center gap-2"
                                         >
                                             <Shield size={18} /> Update Password
                                         </button>
@@ -205,20 +205,20 @@ const StudentProfile = () => {
                         )}
 
                         {activeTab === 'notifications' && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                                    <Bell className="text-yellow-500" /> Notification Preferences
+                            <div className="bg-[#213448] rounded-2xl shadow-sm border border-[#EAE0CF]/20 p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                <h2 className="text-xl font-bold text-[#EAE0CF] mb-6 flex items-center gap-2">
+                                    <Bell className="text-yellow-400" /> Notification Preferences
                                 </h2>
                                 <div className="space-y-6">
                                     {Object.entries(notifications).map(([key, value]) => (
-                                        <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                        <div key={key} className="flex items-center justify-between p-4 bg-[#1a2c3d] rounded-xl border border-[#EAE0CF]/10">
                                             <div>
-                                                <h4 className="font-bold text-gray-800 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                                                <p className="text-sm text-gray-500">Receive alerts via email and push notification.</p>
+                                                <h4 className="font-bold text-[#EAE0CF] capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                                                <p className="text-sm text-[#EAE0CF]/60">Receive alerts via email and push notification.</p>
                                             </div>
                                             <button
                                                 onClick={() => setNotifications({ ...notifications, [key]: !value })}
-                                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${value ? 'bg-green-500' : 'bg-gray-300'}`}
+                                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${value ? 'bg-green-500' : 'bg-gray-600'}`}
                                             >
                                                 <div className={`w-5 h-5 bg-white rounded-full shadow-sm absolute transition-transform ${value ? 'translate-x-6' : 'translate-x-1'}`} />
                                             </button>

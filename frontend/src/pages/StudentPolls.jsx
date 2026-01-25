@@ -100,15 +100,15 @@ const StudentPolls = () => {
         <DashboardLayout>
             <div className="max-w-6xl mx-auto py-10 px-4">
                 <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-extrabold text-gray-900">Live Session</h1>
-                    <p className="text-gray-500 mt-2">Real-time feedback & anonymous polling.</p>
+                    <h1 className="text-3xl font-extrabold text-[#EAE0CF]">Live Session</h1>
+                    <p className="text-[#EAE0CF]/60 mt-2">Real-time feedback & anonymous polling.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Sidebar for multiple polls */}
                     {activePolls.length > 0 && (
                         <div className="lg:col-span-1 space-y-3">
-                            <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-4">
+                            <h3 className="font-bold text-[#EAE0CF]/80 flex items-center gap-2 mb-4">
                                 <List size={20} /> Active Polls
                             </h3>
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto p-2">
@@ -117,28 +117,28 @@ const StudentPolls = () => {
                                         key={poll.poll_id}
                                         onClick={() => setActivePoll(poll)}
                                         className={`w-full text-left p-4 rounded-xl transition-all border group relative overflow-hidden ${activePoll?.poll_id === poll.poll_id
-                                            ? 'bg-orange-50 border-orange-300 shadow-md transform scale-[1.02]'
-                                            : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200 shadow-sm'
+                                            ? 'bg-orange-900/20 border-orange-500/50 shadow-md transform scale-[1.02]'
+                                            : 'bg-[#213448] border-[#EAE0CF]/10 hover:bg-[#547792]/20 hover:border-[#EAE0CF]/30 shadow-sm'
                                             }`}
                                     >
-                                        <div className="text-sm font-bold text-gray-800 line-clamp-2">{poll.question}</div>
+                                        <div className="text-sm font-bold text-[#EAE0CF] line-clamp-2">{poll.question}</div>
                                         <div className="flex justify-between items-center mt-3">
-                                            <span className="text-xs text-gray-400 font-medium">
+                                            <span className="text-xs text-[#EAE0CF]/40 font-medium">
                                                 {new Date(poll.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {poll.has_responded ? (
-                                                <div className="bg-green-100 text-green-700 p-1 rounded-full">
+                                                <div className="bg-green-900/40 text-green-400 p-1 rounded-full">
                                                     <CheckCircle size={14} />
                                                 </div>
                                             ) : (
-                                                <div className="bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                                                <div className="bg-orange-900/40 text-orange-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
                                                     Vote
                                                 </div>
                                             )}
                                         </div>
                                         {/* Class ID badge if available in future */}
                                         {poll.classroom_id && (
-                                            <div className="mt-1 text-[10px] text-gray-400 truncate">
+                                            <div className="mt-1 text-[10px] text-[#EAE0CF]/30 truncate">
                                                 Class: {poll.classroom_id}
                                             </div>
                                         )}
@@ -155,27 +155,27 @@ const StudentPolls = () => {
                                 key={activePoll.poll_id}
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                className="bg-white rounded-3xl shadow-lg border border-orange-200 p-8 relative overflow-hidden min-h-[400px]"
+                                className="bg-[#213448] rounded-3xl shadow-lg border border-[#EAE0CF]/20 p-8 relative overflow-hidden min-h-[400px]"
                             >
-                                <div className="inline-flex items-center gap-2 bg-red-100 text-red-600 px-4 py-1 rounded-full text-sm font-bold animate-pulse mb-6">
-                                    <span className="w-2 h-2 bg-red-600 rounded-full" /> LIVE POLL ACTIVE
+                                <div className="inline-flex items-center gap-2 bg-red-900/20 text-red-400 px-4 py-1 rounded-full text-sm font-bold animate-pulse mb-6 border border-red-500/30">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full" /> LIVE POLL ACTIVE
                                 </div>
 
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6 relative z-10">{activePoll.question}</h2>
+                                <h2 className="text-2xl font-bold text-[#EAE0CF] mb-6 relative z-10">{activePoll.question}</h2>
 
                                 {!hasResponded ? (
                                     <div className="space-y-4 relative z-10 max-w-2xl">
                                         {activePoll.options.map((option, idx) => (
                                             <motion.button
                                                 key={idx}
-                                                whileHover={{ scale: 1.01, backgroundColor: '#fff7ed', borderColor: '#fdba74' }}
+                                                whileHover={{ scale: 1.01, backgroundColor: '#1a2c3d', borderColor: '#547792' }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => submitResponse(option)}
                                                 disabled={loading}
-                                                className="w-full p-5 text-left border-2 border-gray-200 rounded-2xl transition-all font-medium text-gray-700 flex items-center justify-between group disabled:opacity-50"
+                                                className="w-full p-5 text-left border-2 border-[#EAE0CF]/10 rounded-2xl transition-all font-medium text-[#EAE0CF]/80 flex items-center justify-between group disabled:opacity-50 hover:text-[#EAE0CF]"
                                             >
                                                 <span>{option}</span>
-                                                <span className="w-6 h-6 rounded-full border-2 border-gray-200 group-hover:border-orange-400 flex items-center justify-center">
+                                                <span className="w-6 h-6 rounded-full border-2 border-[#EAE0CF]/30 group-hover:border-orange-400 flex items-center justify-center">
                                                     <span className="w-3 h-3 bg-orange-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 </span>
                                             </motion.button>
@@ -186,13 +186,13 @@ const StudentPolls = () => {
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
-                                            className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6"
+                                            className="w-20 h-20 bg-green-900/40 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6"
                                         >
                                             <CheckCircle size={40} />
                                         </motion.div>
-                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">Response Submitted!</h3>
-                                        <p className="text-gray-500 max-w-sm mx-auto">
-                                            You selected <span className="font-bold text-gray-800">"{selectedOption}"</span>.
+                                        <h3 className="text-2xl font-bold text-[#EAE0CF] mb-2">Response Submitted!</h3>
+                                        <p className="text-[#EAE0CF]/60 max-w-sm mx-auto">
+                                            You selected <span className="font-bold text-[#EAE0CF]">"{selectedOption}"</span>.
                                             Waiting for teacher to close the poll...
                                         </p>
                                         <div className="mt-8 flex justify-center">
@@ -205,13 +205,13 @@ const StudentPolls = () => {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center h-[400px] flex flex-col items-center justify-center"
+                                className="bg-[#1a2c3d] border-2 border-dashed border-[#EAE0CF]/10 rounded-3xl p-12 text-center h-[400px] flex flex-col items-center justify-center"
                             >
-                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-gray-400">
+                                <div className="w-16 h-16 bg-[#213448] rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-[#EAE0CF]/20">
                                     <Clock size={32} />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-700 mb-2">No Active Poll</h3>
-                                <p className="text-gray-500">Sit tight! When your teacher launches a question, it will appear here automatically.</p>
+                                <h3 className="text-xl font-bold text-[#EAE0CF]/70 mb-2">No Active Poll</h3>
+                                <p className="text-[#EAE0CF]/50">Sit tight! When your teacher launches a question, it will appear here automatically.</p>
                             </motion.div>
                         )}
                     </div>
