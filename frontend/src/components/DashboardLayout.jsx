@@ -66,7 +66,7 @@ const DashboardLayout = ({ children }) => {
     };
 
     const navItems = [
-        { icon: LayoutDashboard, text: 'Dashboard', to: '/student/dashboard', end: true },
+        { icon: LayoutDashboard, text: 'Dashboard', to: '/student', end: true },
         { icon: BookOpen, text: 'My Classes', to: '/student/classes' },
         { icon: Target, text: 'Practice Zone', to: '/student/practice' },
         { icon: MapIcon, text: 'Projects', to: '/student/projects' },
