@@ -92,15 +92,83 @@ export const classroomAPI = {
   getTeacherClasses: (teacherId) => api.get(`/classroom/teacher/${teacherId}/classrooms`),
   joinClass: (data) => api.post('/classroom/classrooms/join', data),
   getClassStream: (classId) => api.get(`/classroom/classrooms/${classId}/stream`),
-  getAssignment: (assignmentId) => api.get(`/classroom/assignments/${assignmentId}`),
-  submitAssignment: (assignmentId, data) => api.post(`/classroom/assignments/${assignmentId}/submit`, data),
-  getStudentAssignments: (studentId, status) => api.get(`/classroom/students/${studentId}/assignments`, { params: { status } }),
+
+  getAssignment: async (assignmentId) => {
+    console.log(`[classroomAPI] getAssignment | id: ${assignmentId}`);
+    try {
+      const res = await api.get(`/classroom/assignments/${assignmentId}`);
+      console.log(`[classroomAPI] getAssignment success`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] getAssignment error`, err);
+      throw err;
+    }
+  },
+
+  submitAssignment: async (assignmentId, data) => {
+    console.log(`[classroomAPI] submitAssignment | id: ${assignmentId}`, data);
+    try {
+      const res = await api.post(`/classroom/assignments/${assignmentId}/submit`, data);
+      console.log(`[classroomAPI] submitAssignment success`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] submitAssignment error`, err);
+      throw err;
+    }
+  },
+
+  getStudentAssignments: async (studentId, status) => {
+    console.log(`[classroomAPI] getStudentAssignments | studentId: ${studentId} | status: ${status}`);
+    try {
+      const res = await api.get(`/classroom/students/${studentId}/assignments`, { params: { status } });
+      console.log(`[classroomAPI] getStudentAssignments success | count: ${res.data?.length}`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] getStudentAssignments error`, err);
+      throw err;
+    }
+  },
+
   getClassroom: (classroomId) => api.get(`/classroom/classrooms/${classroomId}`),
   getClassroomStudents: (classroomId) => api.get(`/classroom/classrooms/${classroomId}/students`),
   createClass: (data) => api.post('/classroom/classrooms', data),
-  createPost: (classroomId, data) => api.post(`/classroom/classrooms/${classroomId}/posts`, data),
-  getAssignmentSubmissions: (assignmentId, status) => api.get(`/classroom/assignments/${assignmentId}/submissions`, { params: { status } }),
-  gradeSubmission: (submissionId, data) => api.post(`/classroom/submissions/${submissionId}/grade`, data),
+
+  createPost: async (classroomId, data) => {
+    console.log(`[classroomAPI] createPost | classroomId: ${classroomId} | type: ${data.post_type}`);
+    try {
+      const res = await api.post(`/classroom/classrooms/${classroomId}/posts`, data);
+      console.log(`[classroomAPI] createPost success`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] createPost error`, err);
+      throw err;
+    }
+  },
+
+  getAssignmentSubmissions: async (assignmentId, status) => {
+    console.log(`[classroomAPI] getAssignmentSubmissions | assignmentId: ${assignmentId}`);
+    try {
+      const res = await api.get(`/classroom/assignments/${assignmentId}/submissions`, { params: { status } });
+      console.log(`[classroomAPI] getAssignmentSubmissions success`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] getAssignmentSubmissions error`, err);
+      throw err;
+    }
+  },
+
+  gradeSubmission: async (submissionId, data) => {
+    console.log(`[classroomAPI] gradeSubmission | submissionId: ${submissionId}`, data);
+    try {
+      const res = await api.post(`/classroom/submissions/${submissionId}/grade`, data);
+      console.log(`[classroomAPI] gradeSubmission success`);
+      return res;
+    } catch (err) {
+      console.error(`[classroomAPI] gradeSubmission error`, err);
+      throw err;
+    }
+  },
+
   deleteClassroom: (classroomId) => api.delete(`/classroom/classrooms/${classroomId}`),
 };
 

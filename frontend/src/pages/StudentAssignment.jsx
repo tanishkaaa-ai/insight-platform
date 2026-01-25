@@ -22,6 +22,7 @@ const StudentAssignment = () => {
         const fetchAssignment = async () => {
             try {
                 const response = await classroomAPI.getAssignment(assignmentId);
+                console.log("[StudentAssignment] Loaded assignment:", response.data.title);
                 setAssignment(response.data);
 
                 if (response.data.current_user_submission) {
@@ -44,6 +45,7 @@ const StudentAssignment = () => {
     }, [assignmentId]);
 
     const uploadFile = async (file) => {
+        console.log("[StudentAssignment] Uploading file:", file.name);
         const formData = new FormData();
         formData.append('file', file);
 
@@ -55,6 +57,7 @@ const StudentAssignment = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Upload failed');
+            console.log("[StudentAssignment] Upload success:", data.file_url);
             return data.file_url;
         } catch (e) {
             console.error("Upload error:", e);
@@ -64,6 +67,7 @@ const StudentAssignment = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("[StudentAssignment] Submitting assignment...");
         if (!submissionText.trim() && !attachment) return;
 
         try {
@@ -88,6 +92,7 @@ const StudentAssignment = () => {
                 submission_text: submissionText,
                 attachments: attachments
             });
+            console.log("[StudentAssignment] Submission success");
             setSubmitted(true);
 
             // Trigger engagement update
