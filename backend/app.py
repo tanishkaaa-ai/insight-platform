@@ -155,6 +155,10 @@ def register_blueprints(app):
     app.register_blueprint(interest_bp, url_prefix="/api/interest")
     logger.info("Registered: /api/interest")
 
+    from api.achievement_routes import achievement_bp
+    app.register_blueprint(achievement_bp, url_prefix="/api/achievements")
+    logger.info("Registered: /api/achievements")
+
     logger.info("All blueprints registered successfully")
 
 

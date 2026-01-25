@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { dashboardAPI } from '../services/api';
+import { dashboardAPI, achievementsAPI } from '../services/api';
 import {
     Users,
     School,
@@ -11,7 +11,12 @@ import {
     AlertTriangle,
     Clock,
     TrendingUp,
-    Shield
+    Shield,
+    Trophy,
+    Calendar,
+    Link as LinkIcon,
+    XCircle,
+    Loader
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -44,11 +49,114 @@ const StatCard = ({ icon: Icon, label, value, subtext, color = 'blue' }) => {
     );
 };
 
+const AdminAchievementsModal = ({ isOpen, onClose }) => {
+    const [achievements, setAchievements] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (isOpen) {
+            const fetchAchievements = async () => {
+                try {
+                    const res = await achievementsAPI.getAllStudentAchievements();
+                    setAchievements(res.data);
+                } catch (error) {
+                    console.error("Failed to load achievements", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchAchievements();
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-2xl p-6 w-full max-w-4xl shadow-xl max-h-[85vh] flex flex-col"
+            >
+                <div className="flex justify-between items-center mb-6 shrink-0">
+                    <div>
+                        <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <Trophy className="text-yellow-500" /> All Student Achievements
+                        </h3>
+                        <p className="text-gray-500 text-sm">Global view of external awards across the institution</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
+                        <XCircle size={24} />
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto pr-2 custom-scrollbar flex-1">
+                    {loading ? (
+                        <div className="py-20 flex justify-center">
+                            <Loader className="animate-spin text-blue-600" size={40} />
+                        </div>
+                    ) : achievements.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {achievements.map((achievement) => (
+                                <div key={achievement._id} className="bg-gray-50 p-5 rounded-xl border border-gray-100 relative group hover:border-blue-200 transition-colors">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-yellow-500 shadow-sm shrink-0 border border-gray-100">
+                                            <Trophy size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-gray-800 text-lg leading-tight">{achievement.title}</h4>
+                                                <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded ml-2 whitespace-nowrap">
+                                                    {achievement.category}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 mt-1 mb-2">
+                                                <span className="font-bold text-gray-700 text-sm">{achievement.student_name}</span>
+                                                <span className="text-gray-300">•</span>
+                                                <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200">
+                                                    {achievement.classes && achievement.classes.length > 0 ? achievement.classes.join(', ') : 'No Class'}
+                                                </span>
+                                            </div>
+
+                                            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{achievement.description || 'No description provided.'}</p>
+
+                                            <div className="flex flex-wrap gap-2 text-xs">
+                                                <span className="px-2 py-1 bg-white border border-gray-200 text-gray-500 rounded flex items-center gap-1">
+                                                    <Calendar size={12} /> {achievement.date ? new Date(achievement.date).toLocaleDateString() : 'No Date'}
+                                                </span>
+                                                {achievement.proof_link && (
+                                                    <a href={achievement.proof_link} target="_blank" rel="noopener noreferrer" className="px-2 py-1 bg-blue-50 text-blue-600 rounded flex items-center gap-1 hover:underline">
+                                                        <LinkIcon size={12} /> View Proof
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                            <Trophy className="mx-auto text-gray-300 mb-4 opacity-50" size={48} />
+                            <p className="text-gray-500 font-bold text-lg">No achievements found</p>
+                            <p className="text-gray-400 text-sm">Students haven't added any external achievements yet.</p>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 const AdminDashboard = () => {
     const location = useLocation();
     const [metrics, setMetrics] = useState(null);
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [achievementsModalOpen, setAchievementsModalOpen] = useState(false);
 
     const isView = (path) => location.pathname.includes(path);
     const activeView = isView('/teachers') ? 'teachers' : isView('/health') ? 'health' : 'overview';
@@ -87,13 +195,23 @@ const AdminDashboard = () => {
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">
-                        {activeView === 'teachers' ? 'Teacher Management' : activeView === 'health' ? 'System Health' : 'Institutional Overview'}
-                    </h1>
-                    <p className="text-gray-500">
-                        {activeView === 'teachers' ? 'Monitor and manage teaching staff performance.' : activeView === 'health' ? 'Critical system alerts and academic risk factors.' : 'Monitor system health, engagement, and teacher effectiveness.'}
-                    </p>
+                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {activeView === 'teachers' ? 'Teacher Management' : activeView === 'health' ? 'System Health' : 'Institutional Overview'}
+                        </h1>
+                        <p className="text-gray-500">
+                            {activeView === 'teachers' ? 'Monitor and manage teaching staff performance.' : activeView === 'health' ? 'Critical system alerts and academic risk factors.' : 'Monitor system health, engagement, and teacher effectiveness.'}
+                        </p>
+                    </div>
+                    {activeView === 'overview' && (
+                        <button
+                            onClick={() => setAchievementsModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 font-bold rounded-xl hover:bg-yellow-100 transition-colors shadow-sm border border-yellow-200"
+                        >
+                            <Trophy size={18} /> Student Achievements
+                        </button>
+                    )}
                 </div>
 
                 {/* Overview View */}
@@ -343,6 +461,11 @@ const AdminDashboard = () => {
                 )}
 
             </div>
+            {/* Achievements Modal */}
+            <AdminAchievementsModal
+                isOpen={achievementsModalOpen}
+                onClose={() => setAchievementsModalOpen(false)}
+            />
         </AdminLayout>
     );
 };

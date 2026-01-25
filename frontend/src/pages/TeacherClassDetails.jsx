@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, NavLink, useLocation } from 'react-router-dom';
 import TeacherLayout from '../components/TeacherLayout';
-import { classroomAPI } from '../services/api';
+import { classroomAPI, achievementsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
     Users,
@@ -14,7 +14,10 @@ import {
     FileText,
     Loader,
     ArrowLeft,
-    Send
+    Send,
+    Award,
+    X,
+    Link as LinkIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -54,6 +57,23 @@ const TeacherClassDetails = () => {
     };
 
     const [gradesData, setGradesData] = useState({});
+    const [viewingStudentAchievements, setViewingStudentAchievements] = useState(null);
+    const [studentExAchievements, setStudentExAchievements] = useState([]);
+    const [loadingAchievements, setLoadingAchievements] = useState(false);
+
+    const handleViewAchievements = async (student) => {
+        setViewingStudentAchievements(student);
+        setLoadingAchievements(true);
+        try {
+            const res = await achievementsAPI.getStudentAchievements(student.student_id);
+            setStudentExAchievements(res.data);
+        } catch (error) {
+            console.error("Failed to load achievements", error);
+            setStudentExAchievements([]);
+        } finally {
+            setLoadingAchievements(false);
+        }
+    };
 
     useEffect(() => {
         if (classroomId) {
@@ -388,8 +408,8 @@ const TeacherClassDetails = () => {
                                                     <span className="font-bold text-gray-700">{student.name}</span>
                                                     {student.overall_mastery !== undefined && (
                                                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full w-fit ${student.overall_mastery >= 80 ? 'bg-green-100 text-green-700' :
-                                                                student.overall_mastery >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                                                                    'bg-red-100 text-red-700'
+                                                            student.overall_mastery >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-red-100 text-red-700'
                                                             }`}>
                                                             Mastery: {student.overall_mastery}%
                                                         </span>
@@ -462,12 +482,21 @@ const TeacherClassDetails = () => {
                                                         );
                                                     })}
                                                     <td className="px-6 py-4 text-right sticky right-0 bg-white hover:bg-gray-50 z-10">
-                                                        <button
-                                                            onClick={() => alert(`Message to ${student.name}`)}
-                                                            className="text-teal-600 hover:text-teal-800 font-bold text-xs px-3 py-1.5 rounded hover:bg-teal-50 transition-colors"
-                                                        >
-                                                            Message
-                                                        </button>
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => handleViewAchievements(student)}
+                                                                className="text-purple-600 hover:text-purple-800 font-bold text-xs px-3 py-1.5 rounded hover:bg-purple-50 transition-colors flex items-center gap-1"
+                                                                title="View Achievements"
+                                                            >
+                                                                <Award size={14} /> <span className="hidden xl:inline">Achievements</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => alert(`Message to ${student.name}`)}
+                                                                className="text-teal-600 hover:text-teal-800 font-bold text-xs px-3 py-1.5 rounded hover:bg-teal-50 transition-colors"
+                                                            >
+                                                                Message
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -500,6 +529,73 @@ const TeacherClassDetails = () => {
 
                 </div>
             </div>
+            {/* Achievements Modal */}
+            <AnimatePresence>
+                {viewingStudentAchievements && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] overflow-y-auto"
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                        <Award className="text-purple-500" />
+                                        {viewingStudentAchievements.name}'s Achievements
+                                    </h3>
+                                    <p className="text-gray-500 text-sm">External awards and certifications</p>
+                                </div>
+                                <button
+                                    onClick={() => setViewingStudentAchievements(null)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {loadingAchievements ? (
+                                <div className="py-12 flex justify-center">
+                                    <Loader className="animate-spin text-purple-500" size={32} />
+                                </div>
+                            ) : studentExAchievements.length > 0 ? (
+                                <div className="grid grid-cols-1 gap-4">
+                                    {studentExAchievements.map((achievement) => (
+                                        <div key={achievement._id} className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-purple-600 shadow-sm shrink-0">
+                                                <Award size={24} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-gray-800 text-lg">{achievement.title}</h4>
+                                                <p className="text-gray-600 text-sm mb-2">{achievement.description || 'No description provided.'}</p>
+                                                <div className="flex flex-wrap gap-2 text-xs">
+                                                    <span className="px-2 py-1 bg-white border border-gray-200 text-gray-600 rounded flex items-center gap-1">
+                                                        <Calendar size={12} /> {achievement.date ? new Date(achievement.date).toLocaleDateString() : 'No Date'}
+                                                    </span>
+                                                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded font-medium">
+                                                        {achievement.category}
+                                                    </span>
+                                                    {achievement.proof_link && (
+                                                        <a href={achievement.proof_link} target="_blank" rel="noopener noreferrer" className="px-2 py-1 bg-green-100 text-green-700 rounded flex items-center gap-1 hover:underline">
+                                                            <LinkIcon size={12} /> View Proof
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    <Award className="mx-auto mb-2 opacity-50" size={32} />
+                                    <p>No external achievements recorded.</p>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </TeacherLayout>
     );
 };

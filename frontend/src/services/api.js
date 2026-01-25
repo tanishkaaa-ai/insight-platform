@@ -242,4 +242,12 @@ export const resourcesAPI = {
   getQuestionBankDetail: (id) => api.get(`/resources/question-banks/${id}`)
 };
 
+export const achievementsAPI = {
+  addExternal: (data) => api.post('/achievements/external', data),
+  getStudentAchievements: (studentId) => api.get(`/achievements/student/${studentId}`),
+  getTeacherStudentsAchievements: (teacherId) => api.get(`/achievements/teacher/${teacherId}/students`),
+  getAllStudentAchievements: () => api.get('/achievements/all'),
+  deleteExternal: (id) => api.delete(`/achievements/external/${id}`)
+};
+
 export default api;

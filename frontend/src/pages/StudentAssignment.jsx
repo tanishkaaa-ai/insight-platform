@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
 import { ArrowLeft, Clock, FileText, Upload, CheckCircle, AlertCircle, Loader2, PenTool, ArrowRight } from 'lucide-react';
-import { classroomAPI } from '../services/api';
+import { classroomAPI, engagementAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const StudentAssignment = () => {
