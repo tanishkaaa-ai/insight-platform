@@ -298,10 +298,10 @@ const StudentPractice = () => {
                 {/* Header */}
                 <div className="mb-6 flex justify-between items-end">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-[#EAE0CF] flex items-center gap-2">
-                            <Target className="text-green-400" /> Practice Zone
+                        <h1 className="text-3xl font-extrabold text-[#065F46] flex items-center gap-2">
+                            <Target className="text-[#065F46]" /> Practice Zone
                         </h1>
-                        <p className="text-[#EAE0CF]/60 mt-1">Master concepts to unlock new levels and earn XP!</p>
+                        <p className="text-[#065F46]/70 mt-1">Master concepts to unlock new levels and earn XP!</p>
 
                         <div className="mt-4 w-64">
                             <select

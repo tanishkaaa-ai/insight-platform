@@ -128,8 +128,8 @@ const StudentPeerReview = () => {
     return (
         <DashboardLayout>
             <div className="bg-[#213448] rounded-2xl shadow-sm border border-[#EAE0CF]/20 p-6 mb-8">
-                <h2 className="font-bold text-[#EAE0CF] mb-4 flex items-center gap-2 text-lg">
-                    <User size={20} className="text-[#EAE0CF]" />
+                <h2 className="font-bold text-white mb-4 flex items-center gap-2 text-lg">
+                    <User size={20} className="text-white" />
                     Select Team Member to Review
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -143,10 +143,10 @@ const StudentPeerReview = () => {
                                 onClick={() => !isCompleted && setSelectedReviewee(member.student_id)}
                                 disabled={isCompleted}
                                 className={`p-4 rounded-xl border-2 transition-all text-left relative overflow-hidden ${selectedReviewee === member.student_id
-                                    ? 'border-[#EAE0CF] bg-[#1a2c3d] shadow-md ring-2 ring-[#EAE0CF]/20'
+                                    ? 'border-white bg-[#1a2c3d] shadow-md ring-2 ring-white/20'
                                     : isCompleted
                                         ? 'border-green-900/30 bg-green-900/10 cursor-default opacity-60 grayscale'
-                                        : 'border-[#EAE0CF]/10 bg-[#1a2c3d] hover:border-[#EAE0CF]/30 hover:bg-[#1a2c3d]/80'
+                                        : 'border-white/10 bg-[#1a2c3d] hover:border-white/30 hover:bg-[#1a2c3d]/80'
                                     }`}
                             >
                                 {isCompleted && (
@@ -155,13 +155,13 @@ const StudentPeerReview = () => {
                                     </div>
                                 )}
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-0 ${isCompleted ? 'bg-green-900/20 text-green-400' : 'bg-[#547792] text-[#EAE0CF] border border-[#EAE0CF]/20'
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold mb-0 ${isCompleted ? 'bg-green-900/20 text-green-400' : 'bg-[#547792] text-white border border-white/20'
                                         }`}>
                                         {member.student_name ? member.student_name[0] : '?'}
                                     </div>
                                     <div>
-                                        <p className="font-bold text-[#EAE0CF]">{member.student_name || 'Unknown Student'}</p>
-                                        <p className="text-xs text-[#EAE0CF]/60 uppercase tracking-wider font-bold">{member.role || 'Member'}</p>
+                                        <p className="font-bold text-white">{member.student_name || 'Unknown Student'}</p>
+                                        <p className="text-xs text-white/60 uppercase tracking-wider font-bold">{member.role || 'Member'}</p>
                                     </div>
                                 </div>
                             </motion.button>

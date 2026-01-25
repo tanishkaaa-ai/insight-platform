@@ -77,11 +77,11 @@ const InterestPath = () => {
         <DashboardLayout>
             <div className="space-y-8 pb-12">
                 <header className="mb-10">
-                    <h1 className="text-3xl font-bold text-[#EAE0CF] flex items-center gap-3">
-                        <Compass className="text-orange-500" size={32} />
+                    <h1 className="text-3xl font-bold text-[#065F46] flex items-center gap-3">
+                        <Compass className="text-[#065F46]" size={32} />
                         Your Interest NavigatR
                     </h1>
-                    <p className="text-[#EAE0CF]/60 mt-2">AI-driven analysis of your learning journey & career potential.</p>
+                    <p className="text-[#065F46]/70 mt-2">AI-driven analysis of your learning journey & career potential.</p>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -141,10 +141,10 @@ const StudentAchievements = () => {
         <DashboardLayout>
             <div className="space-y-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-[#EAE0CF] flex items-center gap-3">
-                        <Trophy className="text-yellow-500" size={32} /> Trophy Case
+                    <h1 className="text-3xl font-extrabold text-[#065F46] flex items-center gap-3">
+                        <Trophy className="text-[#065F46]" size={32} /> Trophy Case
                     </h1>
-                    <p className="text-[#EAE0CF]/60 mt-2">Track your progress and unlocked achievements</p>
+                    <p className="text-[#065F46]/70 mt-2">Track your progress and unlocked achievements</p>
                 </div>
 
                 {/* Level Progress Card */}
@@ -163,8 +163,8 @@ const StudentAchievements = () => {
                     <div className="flex-1 w-full">
                         <div className="flex justify-between items-end mb-2">
                             <div>
-                                <h3 className="font-bold text-xl text-[#EAE0CF]">Experience Points</h3>
-                                <p className="text-[#EAE0CF]/60 text-sm">Keep earning XP to reach Level {displayProfile.level + 1}</p>
+                                <h3 className="font-bold text-xl text-[#065F46]">Experience Points</h3>
+                                <p className="text-[#065F46]/70 text-sm">Keep earning XP to reach Level {displayProfile.level + 1}</p>
                             </div>
                             <div className="text-right">
                                 <span className="font-bold text-yellow-500 text-lg">{displayProfile.current_level_xp}</span>
@@ -183,8 +183,8 @@ const StudentAchievements = () => {
 
                 {/* Achievements Grid */}
                 <div>
-                    <h2 className="font-bold text-xl text-[#EAE0CF] mb-6 flex items-center gap-2">
-                        <Medal className="text-orange-500" /> All Achievements
+                    <h2 className="font-bold text-xl text-[#065F46] mb-6 flex items-center gap-2">
+                        <Medal className="text-[#065F46]" /> All Achievements
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {badges.map((badge, idx) => (
@@ -196,9 +196,9 @@ const StudentAchievements = () => {
                 {/* External Achievements Section */}
                 <div>
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="font-bold text-xl text-[#EAE0CF] flex items-center gap-2">
-                            <Star className="text-purple-500" /> External Achievements
-                            <span className="text-sm font-normal text-[#EAE0CF]/60 ml-2">({externalAchievements.length})</span>
+                        <h2 className="font-bold text-xl text-[#065F46] flex items-center gap-2">
+                            <Star className="text-[#065F46]" /> External Achievements
+                            <span className="text-sm font-normal text-[#065F46]/60 ml-2">({externalAchievements.length})</span>
                         </h2>
                         <button
                             onClick={() => setShowModal(true)}
