@@ -177,6 +177,7 @@ const DashboardLayout = ({ children }) => {
                                     <NavLink
                                         key={idx}
                                         to={item.to}
+                                        end={item.end}
                                         onClick={() => setIsMobileMenuOpen(false)}
                                         className={({ isActive }) =>
                                             `flex items-center gap-3 px-4 py-3 rounded-xl transition-colors
