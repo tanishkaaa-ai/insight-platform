@@ -2,26 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { projectsAPI } from '../services/api';
 import { Loader2, TrendingUp, AlertCircle, CheckCircle, BarChart2 } from 'lucide-react';
 
-const StudentSoftSkillsProfile = ({ studentId }) => {
+const StudentSoftSkillsProfile = ({ studentId, teamId: propTeamId }) => {
     const [skills, setSkills] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSkills = async () => {
-            console.info('[SOFT_SKILLS] Fetching profile:', { student_id: studentId });
+            console.info('[SOFT_SKILLS] Fetching profile:', { student_id: studentId, team_id: propTeamId });
 
             try {
-                // Find team ID first for context (needed by API if structured that way, or just pass null if API handles it)
-                const teamsRes = await projectsAPI.getStudentTeams(studentId);
-                const teamId = teamsRes.data.teams?.[0]?.team_id;
+                let targetTeamId = propTeamId;
 
-                const response = await projectsAPI.getStudentSoftSkills(studentId, teamId);
-                setSkills(response.data);
+                // If no teamId provided, try to find one from student's teams
+                if (!targetTeamId) {
+                    const teamsRes = await projectsAPI.getStudentTeams(studentId);
+                    // Use the most recent team if available (assuming list might not be sorted, we take the first as fallback or sort?)
+                    // For now, keeping existing behavior of taking the first one if not provided
+                    targetTeamId = teamsRes.data.teams?.[0]?.team_id;
+                }
 
-                console.info('[SOFT_SKILLS] Profile loaded:', {
-                    overall_score: response.data.overall_soft_skills_score,
-                    reviews_count: response.data.total_reviews_received
-                });
+                if (targetTeamId) {
+                    const response = await projectsAPI.getStudentSoftSkills(studentId, targetTeamId);
+                    setSkills(response.data);
+
+                    console.info('[SOFT_SKILLS] Profile loaded:', {
+                        overall_score: response.data.overall_soft_skills_score,
+                        reviews_count: response.data.total_reviews_received
+                    });
+                } else {
+                    // No team found, maybe fetch aggregate? 
+                    // API supports fetching without team_id for aggregate (implied by pbl_workflow_routes.py analysis)
+                    // Let's try fetching without teamId if none found
+                    const response = await projectsAPI.getStudentSoftSkills(studentId, null);
+                    setSkills(response.data);
+                }
+
             } catch (error) {
                 console.error('[SOFT_SKILLS] Failed to load:', error);
             } finally {
@@ -32,7 +47,7 @@ const StudentSoftSkillsProfile = ({ studentId }) => {
         if (studentId) {
             fetchSkills();
         }
-    }, [studentId]);
+    }, [studentId, propTeamId]);
 
     if (loading) return (
         <div className="bg-white p-6 rounded-2xl border border-gray-100 flex items-center justify-center min-h-[300px]">

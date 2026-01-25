@@ -43,8 +43,7 @@ const StudentDashboard = () => {
                 setLoading(true);
 
                 // Parallel data fetching
-                const [engagementRes, masteryRes, assignmentsRes, classesRes, gamificationRes, projectsRes] = await Promise.allSettled([
-                    engagementAPI.getStudentEngagementHistory(STUDENT_ID, 30),
+                const [masteryRes, assignmentsRes, classesRes, gamificationRes, projectsRes] = await Promise.allSettled([
                     masteryAPI.getStudentMastery(STUDENT_ID),
                     classroomAPI.getStudentAssignments(STUDENT_ID, 'assigned'),
                     classroomAPI.getStudentClasses(STUDENT_ID),
@@ -99,6 +98,23 @@ const StudentDashboard = () => {
                     }));
                 }
 
+                // Process Projects Data
+                let activeProject = null;
+                if (projectsRes.status === 'fulfilled') {
+                    // The backend returns { projects: [...] }
+                    const projects = projectsRes.value.data.projects || [];
+                    // Find the most relevant active project (status 'active' or 'in_progress')
+                    activeProject = projects.find(p => p.status === 'active' || p.status === 'in_progress');
+
+                    // If we found a project, ensure it has the necessary fields for the UI
+                    if (activeProject) {
+                        // The backend returns 'stage' (e.g., 'DEFINE'). The UI might want to show this nicely.
+                        // The backend also returns 'title'.
+                        // We might want to ensure 'stage' is formatted or just use it as is.
+                        // The UI currently expects: { title, stage }
+                    }
+                }
+
                 // Process Next Class (Real Schedule)
                 let nextClass = { subject: 'No Upcoming Classes', time: '--:--', topic: 'Relax!' };
                 if (classesRes.status === 'fulfilled' && classesRes.value.data.length > 0) {
@@ -139,6 +155,7 @@ const StudentDashboard = () => {
                     badges: engagementData.badges || [],
                     masteryScore: Math.round(masteryScore),
                     pendingAssignments: pendingCount,
+                    activeProject: activeProject,
                     nextClass: nextClass,
                     recentActivity: [...recentMasteryActivity, ...recentAssignmentActivity]
                 }));
@@ -400,7 +417,7 @@ const StudentDashboard = () => {
 
                     {/* Soft Skills Profile */}
                     <div className="lg:col-span-1">
-                        <StudentSoftSkillsProfile studentId={STUDENT_ID} />
+                        <StudentSoftSkillsProfile studentId={STUDENT_ID} teamId={data.activeProject?.team_id} />
                     </div>
 
                     {/* Recent Activity Feed */}
