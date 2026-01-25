@@ -190,26 +190,30 @@ const StudentAssignment = () => {
 
                                             {/* Corrected File Display */}
                                             {assignment.current_user_submission?.corrected_file && (
-                                                <div className="mb-6 bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-2xl border border-indigo-100 shadow-sm">
-                                                    <div className="flex items-start gap-4">
-                                                        <div className="bg-indigo-600 p-3 rounded-xl text-white shadow-lg">
-                                                            <PenTool size={24} />
+                                                <div className="mb-6 bg-gradient-to-br from-indigo-50 to-blue-50 p-5 rounded-2xl border border-indigo-100 shadow-sm">
+                                                    <div className="flex flex-col gap-4">
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="bg-indigo-600 p-2.5 rounded-lg text-white shadow-md mt-1">
+                                                                <PenTool size={20} />
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-indigo-900 text-base leading-snug mb-1">Teacher Corrections Available</h4>
+                                                                <p className="text-indigo-700 text-sm leading-relaxed">
+                                                                    Your teacher has annotated your answer sheet with specific feedback.
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <h4 className="font-bold text-indigo-900 text-lg mb-1">Teacher Corrections Available</h4>
-                                                            <p className="text-indigo-700 text-sm mb-4">Your teacher has annotated your answer sheet with specific feedback.</p>
 
-                                                            <a
-                                                                href={assignment.current_user_submission.corrected_file}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-white text-indigo-600 font-bold rounded-xl border border-indigo-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all group"
-                                                            >
-                                                                <FileText size={18} className="text-indigo-500 group-hover:text-indigo-600" />
-                                                                View Marked Answer Sheet
-                                                                <ArrowRight size={16} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
-                                                            </a>
-                                                        </div>
+                                                        <a
+                                                            href={assignment.current_user_submission.corrected_file}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-center gap-2 w-full py-3 bg-white text-indigo-600 text-sm font-bold rounded-xl border border-indigo-200 shadow-sm hover:shadow-md hover:border-indigo-300 active:scale-[0.98] transition-all group"
+                                                        >
+                                                            <FileText size={18} className="text-indigo-500 group-hover:text-indigo-600" />
+                                                            View Marked Answer Sheet
+                                                            <ArrowRight size={16} className="text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                                                        </a>
                                                     </div>
                                                 </div>
                                             )}
