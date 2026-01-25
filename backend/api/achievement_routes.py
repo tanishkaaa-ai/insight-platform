@@ -143,6 +143,77 @@ def get_teacher_students_achievements(teacher_id):
         logger.error(f"Error fetching teacher students achievements: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@achievement_bp.route('/all', methods=['GET'])
+def get_all_achievements():
+    """
+    Get all external achievements (Admin)
+    """
+    try:
+        achievements = find_many(
+            EXTERNAL_ACHIEVEMENTS,
+            {},
+            sort=[('date', -1)]
+        )
+
+        # Enhance with Student Name and Class info
+        # 1. Collect student IDs
+        student_ids = list(set([a['student_id'] for a in achievements]))
+
+        # 2. Get Student Docs (map user_id -> student_doc)
+        students = find_many(STUDENTS, {'user_id': {'$in': student_ids}})
+        student_map = {s.get('user_id'): s for s in students}
+        
+        # 3. Get Class Memberships for these students to find their classes
+        # We need mapping: user_id -> [class_names]
+        student_doc_ids = [str(s['_id']) for s in students]
+        memberships = find_many(CLASSROOM_MEMBERSHIPS, {'student_id': {'$in': student_doc_ids}, 'is_active': True})
+        
+        # Get all classrooms involved
+        classroom_ids = list(set([m['classroom_id'] for m in memberships]))
+        classrooms = find_many(CLASSROOMS, {'_id': {'$in': classroom_ids}})
+        class_name_map = {str(c['_id']): c.get('class_name') for c in classrooms}
+
+        student_classes = {} # user_id -> [class names]
+        for m in memberships:
+            # map back student_doc_id to user_id (inefficient but works for reasonable scale)
+             # Better: create map student_doc_id -> user_id
+             pass
+        
+        # Optimization: Map student_doc_id -> user_id
+        doc_to_user_map = {str(s['_id']): s.get('user_id') for s in students}
+        
+        student_classes_map = {} # user_id -> Set(class_names)
+        
+        for m in memberships:
+            sid = m['student_id']
+            uid = doc_to_user_map.get(sid)
+            cid = m['classroom_id']
+            cname = class_name_map.get(cid)
+            
+            if uid and cname:
+                if uid not in student_classes_map:
+                    student_classes_map[uid] = set()
+                student_classes_map[uid].add(cname)
+
+        enriched_achievements = []
+        for ach in achievements:
+            uid = ach['student_id']
+            student = student_map.get(uid)
+            student_name = f"{student.get('first_name', '')} {student.get('last_name', '')}".strip() if student else 'Unknown'
+            classes = list(student_classes_map.get(uid, []))
+            
+            enriched_achievements.append({
+                **ach,
+                'student_name': student_name,
+                'classes': classes
+            })
+
+        return jsonify(enriched_achievements), 200
+
+    except Exception as e:
+        logger.error(f"Error fetching all achievements: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @achievement_bp.route('/external/<achievement_id>', methods=['DELETE'])
 def delete_external_achievement(achievement_id):
     """

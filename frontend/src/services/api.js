@@ -246,6 +246,7 @@ export const achievementsAPI = {
   addExternal: (data) => api.post('/achievements/external', data),
   getStudentAchievements: (studentId) => api.get(`/achievements/student/${studentId}`),
   getTeacherStudentsAchievements: (teacherId) => api.get(`/achievements/teacher/${teacherId}/students`),
+  getAllStudentAchievements: () => api.get('/achievements/all'),
   deleteExternal: (id) => api.delete(`/achievements/external/${id}`)
 };
 
