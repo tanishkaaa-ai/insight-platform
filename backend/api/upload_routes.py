@@ -19,11 +19,15 @@ def allowed_file(filename):
 def upload_file():
     try:
         if 'file' not in request.files:
+            logger.error("Upload error: No 'file' part in request.files")
             return jsonify({'error': 'No file part'}), 400
         
         file = request.files['file']
         
+        logger.info(f"Upload request | filename: {file.filename} | content_type: {file.content_type}")
+        
         if file.filename == '':
+            logger.error("Upload error: No selected file")
             return jsonify({'error': 'No selected file'}), 400
             
         if file and allowed_file(file.filename):

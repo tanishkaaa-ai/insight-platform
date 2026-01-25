@@ -976,6 +976,7 @@ def submit_assignment(assignment_id):
     try:
         data = request.json
         logger.info(f"Assignment submission | assignment_id: {assignment_id} | student_id: {data.get('student_id')}")
+        logger.info(f"Submission payload | attachments: {data.get('attachments')} | text: {data.get('submission_text')}")
 
         if not data.get('student_id'):
             return jsonify({'error': 'student_id is required'}), 400

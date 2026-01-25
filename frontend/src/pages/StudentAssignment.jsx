@@ -57,7 +57,8 @@ const StudentAssignment = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Upload failed');
-            console.log("[StudentAssignment] Upload success:", data.file_url);
+            console.log("[StudentAssignment] Upload success, URL:", data.file_url);
+            console.log("[StudentAssignment] Full upload response:", data);
             return data.file_url;
         } catch (e) {
             console.error("Upload error:", e);
@@ -88,6 +89,11 @@ const StudentAssignment = () => {
             }] : [];
 
             await classroomAPI.submitAssignment(assignmentId, {
+                student_id: user?.user_id || user?.id,
+                submission_text: submissionText,
+                attachments: attachments
+            });
+            console.log("[StudentAssignment] Submission payload:", {
                 student_id: user?.user_id || user?.id,
                 submission_text: submissionText,
                 attachments: attachments

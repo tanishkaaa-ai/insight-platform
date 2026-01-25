@@ -112,6 +112,7 @@ const TeacherAssignment = () => {
                 setSubmissions(subsRes.data);
                 console.log("[TeacherAssignment] Loaded assignment:", assignRes.data.title);
                 console.log("[TeacherAssignment] Loaded submissions:", subsRes.data.length);
+                console.log("[TeacherAssignment] Submissions Data:", subsRes.data);
             } catch (error) {
                 console.error("Error fetching assignment data:", error);
                 toast.error("Failed to load assignment details");
