@@ -65,6 +65,7 @@ def seed_users():
             'grade_level': 10,
             'section': 'A',
             'enrollment_date': datetime.utcnow(),
+            'parent_email': 'parent_demo@amep.edu',
             'created_at': datetime.utcnow()
         })
     else:

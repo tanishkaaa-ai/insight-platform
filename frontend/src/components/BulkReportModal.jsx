@@ -44,7 +44,7 @@ const BulkReportModal = ({ isOpen, onClose, teacherId }) => {
     const handleSendAll = async () => {
         try {
             setSending(true);
-            const res = await dashboardAPI.sendBatchReports({ reports: students });
+            const res = await dashboardAPI.sendBatchReports({ reports: students, teacher_id: teacherId });
             toast.success(res.data.message || `Successfully sent ${res.data.sent_count} reports!`);
             onClose();
         } catch (error) {
@@ -78,7 +78,7 @@ const BulkReportModal = ({ isOpen, onClose, teacherId }) => {
                             </span>
                             Weekly Student Summaries
                         </h2>
-                        <p className="text-gray-500 text-sm mt-1">Review performance and add personal remarks before emailing students.</p>
+                        <p className="text-gray-500 text-sm mt-1">Review performance and add personal remarks before emailing student's parents.</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-black/5 rounded-full transition-colors">
                         <X size={24} className="text-gray-400" />
@@ -116,7 +116,7 @@ const BulkReportModal = ({ isOpen, onClose, teacherId }) => {
                             className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50"
                         >
                             {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                            Send to All Students
+                            Send to parent of each student
                         </button>
                     </div>
                 </div>
@@ -151,7 +151,13 @@ const BulkReportModal = ({ isOpen, onClose, teacherId }) => {
                                         <td className="py-4 px-4">
                                             <div className="font-bold text-gray-800">{s.name}</div>
                                             <div className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">
-                                                {s.parent_email ? `Parent: ${s.parent_email}` : <span className="text-amber-500 italic">No Parent Email</span>}
+                                                {s.parent_email ? (
+                                                    <span className="text-gray-600">Parent: {s.parent_email}</span>
+                                                ) : (
+                                                    <span className="text-amber-500 italic flex items-center gap-1">
+                                                        <AlertCircle size={10} /> No Parent Linked
+                                                    </span>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="py-4 px-4 text-center">

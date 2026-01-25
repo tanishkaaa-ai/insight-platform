@@ -1657,7 +1657,11 @@ def get_all_student_reports():
             if not student_doc: continue
                 
             name = student_doc.get('name', f"{student_doc.get('first_name','')} {student_doc.get('last_name','')}")
-            email = student_doc.get('email', 'No Email')
+            # Get email from USERS collection
+            user_doc = find_one(USERS, {'_id': student_doc.get('user_id')})
+            email = user_doc.get('email', 'No Email') if user_doc else 'No Email'
+            
+            # Get parent email from student profile
             parent_email = student_doc.get('parent_email', '')
             
             # Engagement
@@ -1693,6 +1697,8 @@ def get_all_student_reports():
         logger.error(f"Error generating bulk reports: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+from utils.email_sender import send_email
+
 @dashboard_bp.route('/reports/send-batch', methods=['POST'])
 def send_batch_reports():
     """
@@ -1701,15 +1707,37 @@ def send_batch_reports():
     try:
         data = request.json
         report_list = data.get('reports', [])
+        teacher_id = data.get('teacher_id') # Ensure frontend sends this
+        
         if not report_list:
             return jsonify({'message': 'No reports to send'}), 200
             
+        # properties of the teacher sending the email
+        teacher_email = 'no-reply@insight.edu'
+        teacher_name = 'Insight Teacher'
+        
+        if teacher_id:
+             teacher_record = find_one(TEACHERS, {'_id': teacher_id}) or find_one(TEACHERS, {'user_id': teacher_id})
+             if teacher_record:
+                 # Try to get email from User record
+                 teacher_user = find_one(USERS, {'_id': teacher_record.get('user_id')})
+                 if teacher_user:
+                     teacher_email = teacher_user.get('email', teacher_email)
+                 teacher_name = f"{teacher_record.get('first_name', '')} {teacher_record.get('last_name', '')}".strip() or teacher_name
+
         sent_count = 0
         for item in report_list:
             student = find_one(STUDENTS, {'_id': item.get('student_id')})
             if not student: continue
             
-            recipient = student.get('parent_email') or student.get('email') or 'No-Recipient'
+            # Fetch user email for fallback
+            user_doc = find_one(USERS, {'_id': student.get('user_id')})
+            student_email = user_doc.get('email') if user_doc else None
+            
+            recipient = student.get('parent_email') or student_email or 'No-Recipient'
+            if recipient == 'No-Recipient':
+                continue
+
             name = student.get('name', 'Student')
             remark = item.get('remark', 'Keep up the good work!')
             
@@ -1727,6 +1755,8 @@ def send_batch_reports():
                     th {{ background: #f8fafc; color: #64748b; font-weight: 600; }}
                     .remark {{ background: #f1f5f9; padding: 16px; border-left: 4px solid #4f46e5; border-radius: 4px; font-style: italic; }}
                     .footer {{ padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; background: #f8fafc; }}
+                    .badge {{ display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #fee2e2; color: #991b1b; }}
+                    .success {{ background: #dcfce7; color: #166534; }}
                 </style>
             </head>
             <body>
@@ -1735,8 +1765,8 @@ def send_batch_reports():
                         <h1>Weekly Performance Report</h1>
                     </div>
                     <div class="content">
-                        <p>Dear <strong>{name}</strong>,</p>
-                        <p>Here is your academic progress summary for the past week:</p>
+                        <p>Dear Parent/Guardian,</p>
+                        <p>Here is the weekly progress report for <strong>{name}</strong> covering recent academic performance and engagement.</p>
                         
                         <table>
                             <tr>
@@ -1749,11 +1779,17 @@ def send_batch_reports():
                             </tr>
                             <tr>
                                 <td>Mastery Index</td>
-                                <td><strong>{item.get('mastery_score')}%</strong></td>
+                                <td><strong>{item.get('mastery_score')}%</strong> ("{item.get('mastered_concepts')} concepts mastered")</td>
                             </tr>
                             <tr>
                                 <td>Attendance Rate</td>
                                 <td><strong>{item.get('attendance_pct')}%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Active Alerts</td>
+                                <td>
+                                    {f'<span class="badge">{item.get("alert_count")} Alerts</span>' if item.get("alert_count", 0) > 0 else '<span class="badge success">None</span>'}
+                                </td>
                             </tr>
                         </table>
 
@@ -1762,7 +1798,7 @@ def send_batch_reports():
                             "{remark}"
                         </div>
 
-                        <p style="margin-top: 30px;">Best regards,<br>Learning Support Team</p>
+                        <p style="margin-top: 30px;">Best regards,<br>{teacher_name}<br><em>{teacher_email}</em></p>
                     </div>
                     <div class="footer">
                         This is an automated report generated by the Insight Analytics Platform.
@@ -1771,7 +1807,11 @@ def send_batch_reports():
             </body>
             </html>
             """
-            logger.info(f"Report Sent to {recipient} ({'Parent' if student.get('parent_email') else 'Student'}) | Remark: {remark[:20]}...")
+            
+            # Send Email
+            subject = f"Weekly Report: {name}"
+            send_email(recipient, subject, email_body, from_email=teacher_email, from_name=teacher_name)
+            logger.info(f"Report Sent to {recipient} from {teacher_email}")
             sent_count += 1
             
         return jsonify({
@@ -1780,6 +1820,8 @@ def send_batch_reports():
         }), 200
     except Exception as e:
         logger.error(f"Error sending reports: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': 'Internal server error'}), 500
 
 logger.info("Dashboard routes initialized successfully")
