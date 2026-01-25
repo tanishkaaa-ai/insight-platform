@@ -223,30 +223,30 @@ const TeacherAssignment = () => {
     return (
         <TeacherLayout>
             <div className="space-y-6">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-teal-600 font-medium">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-[#065F46]/70 hover:text-[#065F46] font-medium">
                     <ArrowLeft size={18} /> Back to Class
                 </button>
 
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <div className="bg-[#F4FFFD] rounded-2xl p-8 shadow-sm border-2 border-[#065F46]/20">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800 mb-2">{assignment.title}</h1>
-                            <div className="flex items-center gap-4 text-gray-500 text-sm">
+                            <h1 className="text-3xl font-bold text-[#065F46] mb-2">{assignment.title}</h1>
+                            <div className="flex items-center gap-4 text-[#065F46]/70 text-sm">
                                 <span className="flex items-center gap-1"><Calendar size={14} /> Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'No Deadline'}</span>
                                 <span className="flex items-center gap-1"><Award size={14} /> Points: {assignment.points}</span>
                             </div>
                         </div>
-                        <div className="bg-teal-50 px-4 py-2 rounded-lg text-teal-800 font-bold">
+                        <div className="bg-[#AED6CF]/20 px-4 py-2 rounded-lg text-[#065F46] font-bold">
                             {submissions.length} Submissions
                         </div>
                     </div>
-                    <p className="text-gray-600 whitespace-pre-wrap">{assignment.content}</p>
+                    <p className="text-[#065F46]/80 whitespace-pre-wrap">{assignment.content}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Submission List */}
                     <div className="lg:col-span-2 space-y-4">
-                        <h2 className="font-bold text-xl text-gray-800">Student Submissions</h2>
+                        <h2 className="font-bold text-xl text-[#065F46]">Student Submissions</h2>
                         {submissions.length === 0 ? (
                             <div className="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-400">
                                 No submissions yet.
@@ -255,9 +255,9 @@ const TeacherAssignment = () => {
                             submissions.map(sub => (
                                 <div
                                     key={sub.submission_id}
-                                    className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer ${selectedSubmission?.submission_id === sub.submission_id
-                                        ? 'border-teal-500 ring-2 ring-teal-100'
-                                        : 'border-gray-200 hover:border-teal-300'
+                                    className={`bg-[#F4FFFD] p-4 rounded-xl shadow-sm border-2 transition-all cursor-pointer ${selectedSubmission?.submission_id === sub.submission_id
+                                        ? 'border-[#065F46] ring-2 ring-[#AED6CF]'
+                                        : 'border-[#065F46]/20 hover:border-[#065F46]/50'
                                         }`}
                                     onClick={() => handleGradeClick(sub)}
                                 >
@@ -296,7 +296,7 @@ const TeacherAssignment = () => {
 
                     {/* Grading Panel */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-6">
+                        <div className="bg-[#F4FFFD] rounded-2xl p-6 shadow-sm border-2 border-[#065F46]/20 sticky top-6">
                             <h2 className="font-bold text-xl text-gray-800 mb-4">Grading</h2>
 
                             {selectedSubmission ? (

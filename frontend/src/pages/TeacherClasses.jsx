@@ -49,7 +49,7 @@ const ClassCard = ({ cls, onDelete }) => {
     return (
         <motion.div
             whileHover={{ y: -5, rotate: 1 }}
-            className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex flex-col h-full transition-shadow hover:shadow-lg group"
+            className="bg-[#F4FFFD] rounded-2xl overflow-hidden border-2 border-[#065F46]/20 shadow-sm flex flex-col h-full transition-shadow hover:shadow-lg group"
         >
             <div
                 className="h-32 relative p-6 text-white overflow-hidden"
@@ -90,7 +90,7 @@ const ClassCard = ({ cls, onDelete }) => {
                 <div className="mt-6 pt-6 border-t border-gray-50 flex gap-2">
                     <NavLink
                         to={`/classroom/${cls.classroom_id}?tab=grades`}
-                        className="flex-1 py-2 text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors flex items-center justify-center"
+                        className="flex-1 py-2 text-sm font-bold text-[#065F46] bg-[#AED6CF]/30 hover:bg-[#AED6CF]/50 rounded-lg transition-colors flex items-center justify-center"
                     >
                         Gradebook
                     </NavLink>
@@ -320,27 +320,27 @@ const TeacherClasses = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">My Classes</h1>
-                        <p className="text-gray-500 mt-1">Manage your courses, students, and curriculum.</p>
+                        <h1 className="text-2xl font-bold text-[#065F46]">My Classes</h1>
+                        <p className="text-[#065F46]/70 mt-1">Manage your courses, students, and curriculum.</p>
                     </div>
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#065F46] text-white font-bold rounded-xl hover:bg-[#065F46]/90 transition-colors shadow-lg shadow-[#065F46]/20"
                     >
                         <Plus size={18} /> Create New Class
                     </button>
                 </div>
 
                 {/* Toolbar */}
-                <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4 bg-[#F4FFFD] p-4 rounded-xl shadow-sm border border-[#065F46]/20">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#065F46]/50" size={20} />
                         <input
                             type="text"
                             placeholder="Search classes..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-[#065F46]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#065F46]/20 focus:border-[#065F46] transition-all"
                         />
                     </div>
                     <div className="flex gap-2">
@@ -368,14 +368,14 @@ const TeacherClasses = () => {
                     {/* Add New Placeholder - now clickable */}
                     <motion.button
                         onClick={() => setIsCreateModalOpen(true)}
-                        whileHover={{ scale: 1.02, backgroundColor: "#f0fdf9", borderColor: "#2dd4bf" }}
+                        whileHover={{ scale: 1.02, backgroundColor: "#F0FFDF", borderColor: "#065F46" }}
                         whileTap={{ scale: 0.98 }}
-                        className="border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center p-8 gap-4 text-gray-400 transition-all duration-300 min-h-[300px] group cursor-pointer"
+                        className="border-2 border-dashed border-[#065F46]/30 rounded-2xl flex flex-col items-center justify-center p-8 gap-4 text-[#065F46]/50 transition-all duration-300 min-h-[300px] group cursor-pointer"
                     >
-                        <div className="w-16 h-16 rounded-full bg-gray-50 group-hover:bg-teal-100 flex items-center justify-center text-gray-400 group-hover:text-teal-600 transition-colors">
+                        <div className="w-16 h-16 rounded-full bg-[#AED6CF]/20 group-hover:bg-[#AED6CF] flex items-center justify-center text-[#065F46]/60 group-hover:text-[#065F46] transition-colors">
                             <Plus size={32} />
                         </div>
-                        <span className="font-bold group-hover:text-teal-700">Add Another Class</span>
+                        <span className="font-bold group-hover:text-[#065F46]">Add Another Class</span>
                     </motion.button>
                 </div>
             </div>

@@ -185,8 +185,8 @@ const TeacherAttendance = () => {
         <h1 className="text-3xl font-bold mb-6">Attendance Management</h1>
 
         {/* Classroom Selection */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Select Classroom</h2>
+        <div className="bg-[#F4FFFD] rounded-lg shadow-sm border-2 border-[#065F46]/20 p-6 mb-6">
+          <h2 className="text-xl font-bold text-[#065F46] mb-4">Select Classroom</h2>
 
           {classrooms.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -218,8 +218,8 @@ const TeacherAttendance = () => {
         </div>
 
         {selectedClassroom && !activeSession && (
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Open Attendance Session</h2>
+          <div className="bg-white rounded-lg shadow-sm border-2 border-[#065F46]/20 p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-[#00674F]">Open Attendance Session</h2>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
@@ -260,7 +260,7 @@ const TeacherAttendance = () => {
             <button
               onClick={openAttendanceSession}
               disabled={loading}
-              className="w-full px-6 py-3 bg-green-600 text-white text-lg rounded-lg hover:bg-green-700 disabled:opacity-50"
+              className="w-full px-6 py-3 bg-[#065F46] text-white text-lg rounded-lg hover:bg-[#044e3a] disabled:opacity-50"
             >
               {loading ? 'Opening Session...' : '🟢 Open Attendance Session'}
             </button>
@@ -298,8 +298,8 @@ const TeacherAttendance = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-lg p-4">
-              <h3 className="text-lg font-semibold mb-3">
+            <div className="bg-[#F4FFFD] rounded-lg p-4 border border-[#065F46]/10">
+              <h3 className="text-lg font-semibold mb-3 text-[#065F46]">
                 Attendance Records ({attendanceRecords.length} marked)
               </h3>
 
@@ -339,8 +339,8 @@ const TeacherAttendance = () => {
 
         {/* Past Sessions */}
         {selectedClassroom && sessions.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Past Sessions</h2>
+          <div className="bg-[#F4FFFD] rounded-lg shadow-sm border-2 border-[#065F46]/20 p-6">
+            <h2 className="text-xl font-semibold mb-4 text-[#065F46]">Past Sessions</h2>
             <div className="space-y-3">
               {sessions.map((session) => (
                 <div

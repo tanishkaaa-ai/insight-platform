@@ -119,7 +119,7 @@ const StartPage = () => {
                             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                 <button
                                     onClick={() => setView('role_selection')}
-                                    className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full font-bold text-lg shadow-orange-200 shadow-xl hover:shadow-2xl hover:brightness-110 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                                    className="px-8 py-4 bg-gradient-to-r from-[#78A5C7] to-[#5383a8] text-white rounded-full font-bold text-lg shadow-blue-200 shadow-xl hover:shadow-2xl hover:brightness-110 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 group"
                                 >
                                     Get Started Free
                                     <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
@@ -200,32 +200,32 @@ const StartPage = () => {
 
                 {/* Student Side */}
                 <div
-                    className="w-1/2 bg-gradient-to-br from-orange-400 to-yellow-300 flex flex-col items-center justify-center p-10 cursor-pointer transition-all hover:w-[55%] duration-500 relative group"
+                    className="w-1/2 bg-gradient-to-br from-[#78A5C7] to-[#5383a8] flex flex-col items-center justify-center p-10 cursor-pointer transition-all hover:w-[55%] duration-500 relative group"
                     onClick={() => handleRoleSelect('student')}
                 >
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="bg-white p-6 rounded-full shadow-lg mb-6 transform group-hover:scale-110 transition-transform">
-                        <GraduationCap size={64} className="text-orange-500" />
+                        <GraduationCap size={64} className="text-[#78A5C7]" />
                     </div>
                     <h1 className="text-5xl font-extrabold text-white mb-4 drop-shadow-md">I'm a Student</h1>
                     <p className="text-white text-xl font-medium text-center max-w-md">Connect with your class, track your mastery, and learn in a fun way!</p>
-                    <button className="mt-8 px-8 py-3 bg-white text-orange-500 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                    <button className="mt-8 px-8 py-3 bg-white text-[#78A5C7] rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
                         Enter Student Portal
                     </button>
                 </div>
 
                 {/* Teacher Side */}
                 <div
-                    className="w-1/2 bg-gradient-to-br from-teal-600 to-emerald-500 flex flex-col items-center justify-center p-10 cursor-pointer transition-all hover:w-[55%] duration-500 relative group"
+                    className="w-1/2 bg-gradient-to-br from-[#89CCBB] to-[#6aa898] flex flex-col items-center justify-center p-10 cursor-pointer transition-all hover:w-[55%] duration-500 relative group"
                     onClick={() => handleRoleSelect('teacher')}
                 >
                     <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="bg-white p-6 rounded-full shadow-lg mb-6 transform group-hover:scale-110 transition-transform">
-                        <School size={64} className="text-teal-600" />
+                        <School size={64} className="text-[#89CCBB]" />
                     </div>
                     <h1 className="text-5xl font-extrabold text-white mb-4 drop-shadow-md">I'm a Teacher</h1>
                     <p className="text-white text-xl font-medium text-center max-w-md">Manage classrooms, monitor analytics, and empower your students.</p>
-                    <button className="mt-8 px-8 py-3 bg-white text-teal-600 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                    <button className="mt-8 px-8 py-3 bg-white text-[#89CCBB] rounded-full font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
                         Access Dashboard
                     </button>
                 </div>
@@ -251,13 +251,13 @@ const StartPage = () => {
 
     // --- AUTH FORM VIEW ---
     return (
-        <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${role === 'student' ? 'bg-orange-50' : role === 'admin' ? 'bg-slate-50' : 'bg-teal-50'}`}>
+        <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${role === 'student' ? 'bg-gradient-to-br from-[#78A5C7] to-[#5383a8]' : role === 'admin' ? 'bg-gradient-to-br from-slate-200 to-slate-400' : 'bg-gradient-to-br from-[#89CCBB] to-[#6aa898]'}`}>
 
             {/* Background Shapes */}
             <div className={`absolute top-0 left-0 w-full h-full overflow-hidden -z-10`}>
-                <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full filter blur-3xl opacity-30 ${role === 'student' ? 'bg-orange-300' : role === 'admin' ? 'bg-slate-300' : 'bg-teal-300'}`} />
-                <div className={`absolute top-40 -right-20 w-72 h-72 rounded-full filter blur-3xl opacity-30 ${role === 'student' ? 'bg-yellow-300' : role === 'admin' ? 'bg-gray-300' : 'bg-emerald-300'}`} />
-                <div className={`absolute -bottom-20 left-1/3 w-96 h-96 rounded-full filter blur-3xl opacity-30 ${role === 'student' ? 'bg-red-200' : role === 'admin' ? 'bg-slate-400' : 'bg-blue-200'}`} />
+                <div className={`absolute -top-20 -left-20 w-96 h-96 rounded-full filter blur-3xl opacity-20 ${role === 'student' ? 'bg-white' : role === 'admin' ? 'bg-slate-300' : 'bg-emerald-300'}`} />
+                <div className={`absolute top-40 -right-20 w-72 h-72 rounded-full filter blur-3xl opacity-20 ${role === 'student' ? 'bg-sky-400' : role === 'admin' ? 'bg-gray-300' : 'bg-emerald-200'}`} />
+                <div className={`absolute -bottom-20 left-1/3 w-96 h-96 rounded-full filter blur-3xl opacity-20 ${role === 'student' ? 'bg-white' : role === 'admin' ? 'bg-slate-400' : 'bg-green-200'}`} />
             </div>
 
             <div className="bg-white/80 backdrop-blur-lg border border-white/50 shadow-2xl rounded-2xl p-8 w-full max-w-md relative animate-fade-in-up">
@@ -271,7 +271,7 @@ const StartPage = () => {
                 </button>
 
                 <div className="text-center mb-8 mt-4">
-                    <div className={`mx-auto p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 shadow-inner ${role === 'student' ? 'bg-orange-100 text-orange-600' : role === 'admin' ? 'bg-slate-100 text-slate-700' : 'bg-teal-100 text-teal-600'}`}>
+                    <div className={`mx-auto p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4 shadow-inner ${role === 'student' ? 'bg-[#78A5C7]/10 text-[#78A5C7]' : role === 'admin' ? 'bg-slate-100 text-slate-700' : 'bg-[#89CCBB]/10 text-[#89CCBB]'}`}>
                         {role === 'student' ? <GraduationCap size={40} /> : role === 'admin' ? <Lock size={40} /> : <School size={40} />}
                     </div>
                     <h2 className="text-3xl font-bold text-gray-800">{isRegistering ? 'Create Account' : `Welcome Back, ${role === 'student' ? 'Student' : role === 'admin' ? 'Administrator' : 'Teacher'}!`}</h2>
@@ -296,7 +296,7 @@ const StartPage = () => {
                                     onChange={handleInputChange}
                                     className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all font-medium placeholder-gray-400 text-gray-700 focus:bg-white"
                                     required
-                                    style={{ borderColor: role === 'student' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(13, 148, 136, 0.3)' }}
+                                    style={{ borderColor: role === 'student' ? '#78A5C7' : '#89CCBB' }}
                                 />
                             </div>
                             <div className="relative">
@@ -308,7 +308,7 @@ const StartPage = () => {
                                     onChange={handleInputChange}
                                     className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all font-medium placeholder-gray-400 text-gray-700 focus:bg-white"
                                     required
-                                    style={{ borderColor: role === 'student' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(13, 148, 136, 0.3)' }}
+                                    style={{ borderColor: role === 'student' ? '#78A5C7' : '#89CCBB' }}
                                 />
                             </div>
                         </div>
@@ -327,7 +327,7 @@ const StartPage = () => {
                                 onChange={handleInputChange}
                                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all font-medium placeholder-gray-400 text-gray-700 focus:bg-white"
                                 required
-                                style={{ borderColor: role === 'student' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(13, 148, 136, 0.3)' }}
+                                style={{ borderColor: role === 'student' ? '#78A5C7' : '#89CCBB' }}
                             />
                         </div>
                     )}
@@ -344,7 +344,7 @@ const StartPage = () => {
                             onChange={handleInputChange}
                             className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all font-medium placeholder-gray-400 text-gray-700 focus:bg-white"
                             required
-                            style={{ borderColor: role === 'student' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(13, 148, 136, 0.3)' }}
+                            style={{ borderColor: role === 'student' ? '#78A5C7' : '#89CCBB' }}
                         />
                     </div>
 
@@ -360,7 +360,7 @@ const StartPage = () => {
                             onChange={handleInputChange}
                             className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all font-medium placeholder-gray-400 text-gray-700 focus:bg-white"
                             required
-                            style={{ borderColor: role === 'student' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(13, 148, 136, 0.3)' }}
+                            style={{ borderColor: role === 'student' ? '#78A5C7' : '#89CCBB' }}
                         />
                         <button
                             type="button"
@@ -373,7 +373,7 @@ const StartPage = () => {
 
                     {!isRegistering && (
                         <div className="flex justify-end">
-                            <a href="#" className={`text-sm font-medium hover:underline ${role === 'student' ? 'text-orange-600' : 'text-teal-600'}`}>Forgot Password?</a>
+                            <a href="#" className={`text-sm font-medium hover:underline ${role === 'student' ? 'text-[#5383a8]' : 'text-[#6aa898]'}`}>Forgot Password?</a>
                         </div>
                     )}
 
@@ -382,8 +382,8 @@ const StartPage = () => {
                         disabled={loading}
                         className={`w-full py-4 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform transition-all active:scale-95 flex items-center justify-center gap-2
               ${role === 'student'
-                                ? 'bg-gradient-to-r from-orange-500 to-yellow-500 hover:brightness-110'
-                                : 'bg-gradient-to-r from-teal-600 to-emerald-500 hover:brightness-110'
+                                ? 'bg-gradient-to-r from-[#78A5C7] to-[#5383a8] hover:brightness-110'
+                                : 'bg-gradient-to-r from-[#89CCBB] to-[#6aa898] hover:brightness-110'
                             }
               ${loading ? 'opacity-70 cursor-not-allowed' : ''}
             `}
@@ -400,7 +400,7 @@ const StartPage = () => {
                     {isRegistering ? "Already have an account?" : "Don't have an account yet?"}{' '}
                     <button
                         onClick={() => setIsRegistering(!isRegistering)}
-                        className={`font-bold hover:underline ${role === 'student' ? 'text-orange-600' : 'text-teal-600'}`}
+                        className={`font-bold hover:underline ${role === 'student' ? 'text-[#5383a8]' : 'text-[#6aa898]'}`}
                     >
                         {isRegistering ? 'Sign In' : 'Sign Up'}
                     </button>

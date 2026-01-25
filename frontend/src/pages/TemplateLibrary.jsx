@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import TeacherLayout from '../components/TeacherLayout';
 
 const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
-  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:translate-y-[-2px] transition-transform duration-200">
+  <div className="bg-[#F4FFFD] p-6 rounded-2xl border-2 border-[#065F46]/20 shadow-sm hover:translate-y-[-2px] transition-transform duration-200">
     <div className="flex items-start justify-between mb-4">
       <div className={`p-3 rounded-lg ${color}`}>
         <Icon size={24} />
@@ -16,9 +16,9 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
         </span>
       )}
     </div>
-    <h3 className="text-3xl font-extrabold text-gray-800 mb-1">{value}</h3>
-    <p className="text-sm font-medium text-gray-500">{label}</p>
-    {subtext && <p className="text-xs text-gray-400 mt-2">{subtext}</p>}
+    <h3 className="text-3xl font-extrabold text-[#065F46] mb-1">{value}</h3>
+    <p className="text-sm font-medium text-[#065F46]/70">{label}</p>
+    {subtext && <p className="text-xs text-[#065F46]/50 mt-2">{subtext}</p>}
   </div>
 );
 
@@ -162,7 +162,7 @@ const TemplateLibrary = () => {
   };
 
   const TemplateCard = ({ template }) => (
-    <div className={`bg-white border border-gray-100 rounded-2xl p-6 hover:border-teal-200 transition-all duration-300 hover:shadow-lg hover:shadow-teal-100 ${template.usage_count > 1000 ? 'ring-2 ring-teal-500/10' : ''}`}>
+    <div className={`bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 hover:border-teal-500 transition-all duration-300 hover:shadow-lg hover:shadow-teal-100 ${template.usage_count > 1000 ? 'ring-2 ring-teal-500/10' : ''}`}>
       {template.usage_count > 1000 && (
         <div className="inline-flex items-center gap-1 px-3 py-1 bg-teal-50 border border-teal-100 rounded-full text-teal-600 text-xs font-bold mb-4">
           <Sparkles size={12} />
@@ -422,8 +422,8 @@ const TemplateLibrary = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Template Library</h1>
-            <p className="text-gray-500">Curriculum-Aligned Templates • Save 3 Hours Weekly</p>
+            <h1 className="text-3xl font-bold text-[#065F46] mb-2">Template Library</h1>
+            <p className="text-[#065F46]/70">Curriculum-Aligned Templates • Save 3 Hours Weekly</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -460,7 +460,7 @@ const TemplateLibrary = () => {
         {/* Search and Filters - Show only for Templates (or adapt for banks later) */}
         {activeTab === 'templates' && (
           <>
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 shadow-sm">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -550,7 +550,7 @@ const TemplateLibrary = () => {
                   {templates.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {templates.map(template => (
-                        <div key={template.template_id} className={`bg-white border border-gray-100 rounded-2xl p-6 hover:border-teal-200 transition-all duration-300 hover:shadow-lg hover:shadow-teal-100 ${template.usage_count > 1000 ? 'ring-2 ring-teal-500/10' : ''}`}>
+                        <div key={template.template_id} className={`bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 hover:border-teal-500 transition-all duration-300 hover:shadow-lg hover:shadow-teal-100 ${template.usage_count > 1000 ? 'ring-2 ring-teal-500/10' : ''}`}>
                           {template.usage_count > 1000 && (
                             <div className="inline-flex items-center gap-1 px-3 py-1 bg-teal-50 border border-teal-100 rounded-full text-teal-600 text-xs font-bold mb-4">
                               <Sparkles size={12} />
@@ -795,8 +795,8 @@ const TemplateLibrary = () => {
       {
         showCreateModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-              <h2 className="text-xl font-bold mb-4">Create New Template</h2>
+            <div className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl shadow-xl max-w-md w-full p-6">
+              <h2 className="text-xl font-bold mb-4 text-[#065F46]">Create New Template</h2>
               <form onSubmit={handleCreateTemplate} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>

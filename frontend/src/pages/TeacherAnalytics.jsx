@@ -168,12 +168,12 @@ const TeacherAnalytics = () => {
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Analytics Hub</h1>
-                        <p className="text-gray-500 mt-1">Deep dive into institutional metrics and student outcomes.</p>
+                        <h1 className="text-2xl font-bold text-[#065F46]">Analytics Hub</h1>
+                        <p className="text-[#065F46]/70 mt-1">Deep dive into institutional metrics and student outcomes.</p>
                     </div>
 
                     {/* Class Selector & Filters */}
-                    <div className="flex flex-wrap items-center gap-2 bg-white border border-gray-200 p-1.5 rounded-xl shadow-sm">
+                    <div className="flex flex-wrap items-center gap-2 bg-[#F4FFFD] border-2 border-[#065F46]/20 p-1.5 rounded-xl shadow-sm">
                         <div className="relative border-r border-gray-200 pr-2">
                             <select
                                 value={selectedClassId || ''}
@@ -209,11 +209,11 @@ const TeacherAnalytics = () => {
                     <>
                         {/* Overview Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Avg. Mastery</p>
-                                        <h3 className="text-3xl font-extrabold text-gray-800 mt-1">{avgMastery}%</h3>
+                                        <p className="text-xs font-bold text-[#065F46]/60 uppercase tracking-wider">Avg. Mastery</p>
+                                        <h3 className="text-3xl font-extrabold text-[#065F46] mt-1">{avgMastery}%</h3>
                                     </div>
                                     <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
                                         <TrendingUp size={12} /> +4.2%
@@ -222,11 +222,11 @@ const TeacherAnalytics = () => {
                                 <MockChart height="h-16" color="bg-green-500" data={[60, 65, 70, 68, 75, avgMastery]} />
                             </div>
 
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Class Engagement</p>
-                                        <h3 className="text-3xl font-extrabold text-gray-800 mt-1">{engagementIndex}%</h3>
+                                        <p className="text-xs font-bold text-[#065F46]/60 uppercase tracking-wider">Class Engagement</p>
+                                        <h3 className="text-3xl font-extrabold text-[#065F46] mt-1">{engagementIndex}%</h3>
                                     </div>
                                     <div className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 ${engagementIndex >= 70 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                         <TrendingUp size={12} /> {engagementTrends?.trend_direction || 'Stable'}
@@ -235,11 +235,11 @@ const TeacherAnalytics = () => {
                                 <MockChart height="h-16" color="bg-blue-500" data={engagementScores.slice(-7)} />
                             </div>
 
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Intervention Rate</p>
-                                        <h3 className="text-3xl font-extrabold text-gray-800 mt-1">{interventionRate}%</h3>
+                                        <p className="text-xs font-bold text-[#065F46]/60 uppercase tracking-wider">Intervention Rate</p>
+                                        <h3 className="text-3xl font-extrabold text-[#065F46] mt-1">{interventionRate}%</h3>
                                     </div>
                                     <div className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
                                         <AlertTriangle size={12} /> -2%
@@ -252,10 +252,10 @@ const TeacherAnalytics = () => {
                         {/* Detailed Charts */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-bold text-gray-800 text-lg">Concepts Needing Focus</h3>
-                                    <button className="text-gray-400 hover:text-teal-600"><Download size={20} /></button>
+                                    <h3 className="font-bold text-[#065F46] text-lg">Concepts Needing Focus</h3>
+                                    <button className="text-[#065F46]/60 hover:text-[#065F46]"><Download size={20} /></button>
                                 </div>
                                 <div className="space-y-4">
                                     {strugglingConcepts.length > 0 ? strugglingConcepts.map((concept, i) => (
@@ -274,10 +274,10 @@ const TeacherAnalytics = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-bold text-gray-800 text-lg">Student Activity Trends</h3>
-                                    <button className="text-gray-400 hover:text-teal-600"><Calendar size={20} /></button>
+                                    <h3 className="font-bold text-[#065F46] text-lg">Student Activity Trends</h3>
+                                    <button className="text-[#065F46]/60 hover:text-[#065F46]"><Calendar size={20} /></button>
                                 </div>
                                 <div className="h-64 flex items-end gap-4">
                                     {/* Simulated Complex Chart */}
@@ -300,13 +300,13 @@ const TeacherAnalytics = () => {
                             </div>
 
                             {/* Soft Skills Dashboard */}
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
+                            <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20 col-span-1 lg:col-span-2">
                                 <div className="flex justify-between items-center mb-6">
                                     <div>
-                                        <h3 className="font-bold text-gray-800 text-lg">Soft Skills Development</h3>
-                                        <p className="text-gray-500 text-xs">Based on peer reviews and assessments</p>
+                                        <h3 className="font-bold text-[#065F46] text-lg">Soft Skills Development</h3>
+                                        <p className="text-[#065F46]/60 text-xs">Based on peer reviews and assessments</p>
                                     </div>
-                                    <button className="text-gray-400 hover:text-teal-600"><Download size={20} /></button>
+                                    <button className="text-[#065F46]/60 hover:text-[#065F46]"><Download size={20} /></button>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                                     {softSkillsData?.dimension_scores?.length > 0 ? (
@@ -344,26 +344,26 @@ const TeacherAnalytics = () => {
 
                         {/* Institutional Metrics (Admin/Principal View) */}
                         {institutionalMetrics && (
-                            <div className="bg-indigo-50 p-6 rounded-2xl shadow-sm border border-indigo-100 mt-8">
-                                <h3 className="font-bold text-indigo-900 text-lg mb-4 flex items-center gap-2">
-                                    <Users className="text-indigo-600" /> Institutional Overview
+                            <div className="bg-[#065F46]/5 p-6 rounded-2xl shadow-sm border-2 border-[#065F46]/20 mt-8">
+                                <h3 className="font-bold text-[#065F46] text-lg mb-4 flex items-center gap-2">
+                                    <Users className="text-[#065F46]" /> Institutional Overview
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="bg-white p-4 rounded-xl shadow-sm">
-                                        <p className="text-xs text-gray-500 uppercase">Avg Engagement</p>
-                                        <p className="text-2xl font-bold text-gray-800">{institutionalMetrics.average_engagement ? institutionalMetrics.average_engagement.toFixed(1) : 0}%</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl shadow-sm border border-[#065F46]/10">
+                                        <p className="text-xs text-[#065F46]/60 uppercase">Avg Engagement</p>
+                                        <p className="text-2xl font-bold text-[#065F46]">{institutionalMetrics.average_engagement ? institutionalMetrics.average_engagement.toFixed(1) : 0}%</p>
                                     </div>
-                                    <div className="bg-white p-4 rounded-xl shadow-sm">
-                                        <p className="text-xs text-gray-500 uppercase">Avg Mastery</p>
-                                        <p className="text-2xl font-bold text-gray-800">{institutionalMetrics.average_mastery ? institutionalMetrics.average_mastery.toFixed(1) : 0}%</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl shadow-sm border border-[#065F46]/10">
+                                        <p className="text-xs text-[#065F46]/60 uppercase">Avg Mastery</p>
+                                        <p className="text-2xl font-bold text-[#065F46]">{institutionalMetrics.average_mastery ? institutionalMetrics.average_mastery.toFixed(1) : 0}%</p>
                                     </div>
-                                    <div className="bg-white p-4 rounded-xl shadow-sm">
-                                        <p className="text-xs text-gray-500 uppercase">Active Alerts</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl shadow-sm border border-[#065F46]/10">
+                                        <p className="text-xs text-[#065F46]/60 uppercase">Active Alerts</p>
                                         <p className="text-2xl font-bold text-red-600">{institutionalMetrics.active_alerts_total || 0}</p>
                                     </div>
-                                    <div className="bg-white p-4 rounded-xl shadow-sm">
-                                        <p className="text-xs text-gray-500 uppercase">Total Students</p>
-                                        <p className="text-2xl font-bold text-gray-800">{institutionalMetrics.total_students || 0}</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl shadow-sm border border-[#065F46]/10">
+                                        <p className="text-xs text-[#065F46]/60 uppercase">Total Students</p>
+                                        <p className="text-2xl font-bold text-[#065F46]">{institutionalMetrics.total_students || 0}</p>
                                     </div>
                                 </div>
                             </div>
@@ -371,42 +371,42 @@ const TeacherAnalytics = () => {
 
                         {/* Platform Health & Unified Metrics (New Section) */}
                         {unifiedMetrics && (
-                            <div className="bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-700 mt-8 text-white">
+                            <div className="bg-[#065F46] p-6 rounded-2xl shadow-lg border border-[#065F46]/50 mt-8 text-white">
                                 <h3 className="font-bold text-white text-lg mb-4 flex items-center gap-2">
                                     <BarChart2 className="text-teal-400" /> Platform Health & Unified Metrics
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                                        <p className="text-xs text-slate-400 uppercase">System Mastery Rate</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl border border-[#065F46]/20">
+                                        <p className="text-xs text-[#065F46]/70 uppercase">System Mastery Rate</p>
                                         <div className="flex items-end gap-2 mt-1">
-                                            <p className="text-3xl font-bold text-teal-400">{unifiedMetrics.mastery_rate}%</p>
+                                            <p className="text-3xl font-bold text-[#065F46]">{unifiedMetrics.mastery_rate}%</p>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                                        <p className="text-xs text-slate-400 uppercase">Teacher Adoption</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl border border-[#065F46]/20">
+                                        <p className="text-xs text-[#065F46]/70 uppercase">Teacher Adoption</p>
                                         <div className="flex items-end gap-2 mt-1">
-                                            <p className="text-3xl font-bold text-blue-400">{unifiedMetrics.teacher_adoption_rate}%</p>
+                                            <p className="text-3xl font-bold text-[#065F46]">{unifiedMetrics.teacher_adoption_rate}%</p>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                                        <p className="text-xs text-slate-400 uppercase">Admin Confidence</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl border border-[#065F46]/20">
+                                        <p className="text-xs text-[#065F46]/70 uppercase">Admin Confidence</p>
                                         <div className="flex items-end gap-2 mt-1">
-                                            <p className="text-3xl font-bold text-purple-400">{unifiedMetrics.admin_confidence_score}</p>
-                                            <span className="text-xs text-slate-500 mb-1">/ 100</span>
+                                            <p className="text-3xl font-bold text-[#065F46]">{unifiedMetrics.admin_confidence_score}</p>
+                                            <span className="text-xs text-[#065F46]/50 mb-1">/ 100</span>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 relative overflow-hidden">
-                                        <p className="text-xs text-slate-400 uppercase">Engagement Trend</p>
+                                    <div className="bg-[#F4FFFD] p-4 rounded-xl border border-[#065F46]/20 relative overflow-hidden">
+                                        <p className="text-xs text-[#065F46]/70 uppercase">Engagement Trend</p>
                                         <div className="mt-2 h-10 flex items-end gap-1">
                                             {unifiedTrends?.trends?.engagement_score?.slice(-10).map((t, i) => (
                                                 <div
                                                     key={i}
-                                                    className="flex-1 bg-green-500/50 rounded-t-sm"
+                                                    className="flex-1 bg-[#065F46]/50 rounded-t-sm"
                                                     style={{ height: `${t.value}%` }}
                                                     title={`${t.date}: ${t.value}%`}
                                                 />
                                             ))}
-                                            {!unifiedTrends?.has_data && <span className="text-xs text-slate-600">No trend data</span>}
+                                            {!unifiedTrends?.has_data && <span className="text-xs text-[#065F46]/50">No trend data</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -414,7 +414,7 @@ const TeacherAnalytics = () => {
                         )}
 
                         {/* Students At Risk Section */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-100 col-span-1 lg:col-span-2 mt-8">
+                        <div className="bg-[#F4FFFD] p-6 rounded-2xl shadow-sm border-2 border-red-100 col-span-1 lg:col-span-2 mt-8">
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">

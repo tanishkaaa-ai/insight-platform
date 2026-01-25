@@ -196,8 +196,8 @@ const TeacherClassDetails = () => {
                 </NavLink>
 
                 {/* Hero Section */}
-                <div className={`rounded-2xl overflow-hidden shadow-sm border border-gray-100 bg-white`}>
-                    <div className={`h-32 p-6 relative text-white ${classroom.theme_color ? classroom.theme_color : 'bg-teal-600'}`}>
+                <div className={`rounded-2xl overflow-hidden shadow-sm border-2 border-[#065F46]/20 bg-[#F4FFFD]`}>
+                    <div className={`h-32 p-6 relative text-white ${classroom.theme_color ? classroom.theme_color : 'bg-[#065F46]'}`}>
                         <div className="max-w-4xl">
                             <h1 className="text-3xl font-bold mb-2">{classroom.class_name}</h1>
                             <div className="flex items-center gap-4 text-white/90 font-medium">
@@ -220,8 +220,8 @@ const TeacherClassDetails = () => {
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
                                     className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === tab
-                                        ? 'bg-teal-50 text-teal-700'
-                                        : 'text-gray-500 hover:bg-gray-50'
+                                        ? 'bg-[#AED6CF] text-[#065F46]'
+                                        : 'text-[#065F46]/60 hover:bg-[#AED6CF]/30'
                                         }`}
                                 >
                                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -243,7 +243,7 @@ const TeacherClassDetails = () => {
                         {activeTab === 'stream' && (
                             <>
                                 {/* Create Post / Assignment Box */}
-                                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                                <div className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 shadow-sm">
                                     <div className="flex gap-4 mb-4">
                                         <button
                                             onClick={() => setPostType('announcement')}
@@ -260,7 +260,7 @@ const TeacherClassDetails = () => {
                                     </div>
 
                                     <div className="flex gap-4">
-                                        <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 font-bold shrink-0">
+                                        <div className="w-10 h-10 bg-[#AED6CF]/30 rounded-full flex items-center justify-center text-[#065F46] font-bold shrink-0">
                                             T
                                         </div>
                                         <div className="flex-1 space-y-4">
@@ -311,7 +311,7 @@ const TeacherClassDetails = () => {
                                                 </div>
                                                 <button
                                                     onClick={handleCreatePost}
-                                                    className="px-6 py-2 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                                    className="px-6 py-2 bg-[#065F46] text-white font-bold rounded-lg hover:bg-[#065F46]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                                                     disabled={!newPostContent.trim() || (postType === 'assignment' && !title.trim()) || submitting}
                                                 >
                                                     {submitting && <Loader className="animate-spin" size={16} />}
@@ -325,7 +325,7 @@ const TeacherClassDetails = () => {
                                 {/* Stream Posts */}
                                 <div className="space-y-4">
                                     {stream.map(post => (
-                                        <div key={post.post_id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                                        <div key={post.post_id} className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 shadow-sm">
                                             <div className="flex items-center gap-3 mb-4">
                                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${post.post_type === 'assignment' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
                                                     }`}>
@@ -392,7 +392,7 @@ const TeacherClassDetails = () => {
                         )}
 
                         {activeTab === 'students' && (
-                            <div className="bg-white border border-gray-200 rounded-2xl p-0 overflow-hidden shadow-sm">
+                            <div className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-0 overflow-hidden shadow-sm">
                                 <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                                     <h3 className="font-bold text-gray-700">Student Roster ({students.length})</h3>
                                     <button className="text-teal-600 font-bold text-sm hover:underline">+ Invite Students</button>
@@ -516,9 +516,9 @@ const TeacherClassDetails = () => {
 
                     {/* Sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <Calendar size={18} className="text-teal-600" /> Upcoming
+                        <div className="bg-[#F4FFFD] border-2 border-[#065F46]/20 rounded-2xl p-6 shadow-sm">
+                            <h3 className="font-bold text-[#065F46] mb-4 flex items-center gap-2">
+                                <Calendar size={18} className="text-[#065F46]" /> Upcoming
                             </h3>
                             <p className="text-gray-400 text-sm">No work due soon</p>
                             <button className="mt-4 w-full py-2 text-sm font-bold text-teal-600 hover:bg-teal-50 rounded-lg transition-colors text-right">

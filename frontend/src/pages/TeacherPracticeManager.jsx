@@ -237,10 +237,10 @@ const TeacherPracticeManager = () => {
             <div className="h-[calc(100vh-140px)] flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                            <BookOpen className="text-teal-600" /> Practice Content Manager
+                        <h1 className="text-2xl font-bold text-[#065F46] flex items-center gap-2">
+                            <BookOpen className="text-[#065F46]" /> Practice Content Manager
                         </h1>
-                        <p className="text-gray-500">Manage curriculum concepts and practice questions</p>
+                        <p className="text-[#065F46]/70">Manage curriculum concepts and practice questions</p>
                     </div>
                     {/* Class Selector */}
                     <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200">
@@ -262,7 +262,7 @@ const TeacherPracticeManager = () => {
 
                 <div className="flex flex-1 gap-6 overflow-hidden">
                     {/* Left: Concepts List */}
-                    <div className="w-1/3 bg-white rounded-2xl border border-gray-200 flex flex-col shadow-sm">
+                    <div className="w-1/3 bg-[#F4FFFD] rounded-2xl border-2 border-[#065F46]/20 flex flex-col shadow-sm">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
                             <h2 className="font-bold text-gray-700">Concepts</h2>
                             <button
@@ -283,10 +283,10 @@ const TeacherPracticeManager = () => {
                                     <div
                                         key={concept.concept_id}
                                         onClick={() => setSelectedConcept(concept)}
-                                        className={`p-4 rounded-xl cursor-pointer border transition-all hover:bg-teal-50 group relative
+                                        className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:bg-[#F0FFDF] group relative
                                             ${selectedConcept?.concept_id === concept.concept_id
-                                                ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500'
-                                                : 'bg-white border-gray-100 hover:border-teal-200'}`}
+                                                ? 'bg-[#F0FFDF] border-[#065F46] ring-1 ring-[#065F46]'
+                                                : 'bg-white border-gray-100 hover:border-[#065F46]/50'}`}
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
@@ -326,7 +326,7 @@ const TeacherPracticeManager = () => {
                     </div>
 
                     {/* Right: Items Manager */}
-                    <div className="flex-1 bg-white rounded-2xl border border-gray-200 flex flex-col shadow-sm">
+                    <div className="flex-1 bg-[#F4FFFD] rounded-2xl border-2 border-[#065F46]/20 flex flex-col shadow-sm">
                         {selectedConcept ? (
                             <>
                                 <div className="p-6 border-b border-gray-100 bg-gray-50 rounded-t-2xl flex justify-between items-start">
@@ -397,7 +397,7 @@ const TeacherPracticeManager = () => {
                                 </div>
                             </>
                         ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
+                            <div className="flex-1 flex flex-col items-center justify-center text-[#065F46]/40 p-8">
                                 <BookOpen size={64} className="mb-4 opacity-10" />
                                 <p className="text-lg font-medium">Select a concept to manage questions</p>
                             </div>

@@ -185,11 +185,11 @@ const TeacherProjectGrading = () => {
         <TeacherLayout>
             <div className="p-6">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-extrabold text-gray-800 flex items-center gap-3">
-                        <Award className="text-indigo-600" size={32} />
+                    <h1 className="text-3xl font-extrabold text-[#065F46] flex items-center gap-3">
+                        <Award className="text-[#065F46]" size={32} />
                         Grading Dashboard
                     </h1>
-                    <p className="text-gray-500 mt-2">Evaluate and grade student project deliverables & milestones.</p>
+                    <p className="text-[#065F46]/70 mt-2">Evaluate and grade student project deliverables & milestones.</p>
                 </div>
 
                 {/* Pending Section */}
@@ -253,7 +253,7 @@ const GradingCard = ({ item, onReview, readOnly = false }) => (
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between gap-6 hover:shadow-md transition-all"
+        className="bg-[#F4FFFD] p-6 rounded-xl shadow-sm border-2 border-[#065F46]/20 flex flex-col md:flex-row justify-between gap-6 hover:shadow-md transition-all"
     >
         <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
