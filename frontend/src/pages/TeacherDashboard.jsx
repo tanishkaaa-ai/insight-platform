@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import TeacherLayout from '../components/TeacherLayout';
 import { useAuth } from '../contexts/AuthContext';
-import { classroomAPI, dashboardAPI } from '../services/api';
+import { classroomAPI, dashboardAPI, achievementsAPI } from '../services/api';
 import {
   GraduationCap,
   LineChart,
@@ -17,7 +17,10 @@ import {
   Loader,
   Trash2,
   CheckCircle,
-  XCircle
+  XCircle,
+  Trophy,
+  Calendar,
+  Link as LinkIcon
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CreateInterventionModal from '../components/CreateInterventionModal';
@@ -43,6 +46,108 @@ const StatCard = ({ icon: Icon, label, value, trend, color, subtext }) => (
     {subtext && <p className="text-xs text-gray-400 mt-2">{subtext}</p>}
   </motion.div>
 );
+
+const TeacherAchievementsModal = ({ isOpen, onClose, teacherId }) => {
+  const [achievements, setAchievements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen && teacherId) {
+      const fetchAchievements = async () => {
+        try {
+          const res = await achievementsAPI.getTeacherStudentsAchievements(teacherId);
+          setAchievements(res.data);
+        } catch (error) {
+          console.error("Failed to load achievements", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchAchievements();
+    }
+  }, [isOpen, teacherId]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="bg-white rounded-2xl p-6 w-full max-w-4xl shadow-xl max-h-[85vh] flex flex-col"
+      >
+        <div className="flex justify-between items-center mb-6 shrink-0">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <Trophy className="text-yellow-500" /> Student Achievements
+            </h3>
+            <p className="text-gray-500 text-sm">External awards from all your classes</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600">
+            <XCircle size={24} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto pr-2 custom-scrollbar flex-1">
+          {loading ? (
+            <div className="py-20 flex justify-center">
+              <Loader className="animate-spin text-teal-600" size={40} />
+            </div>
+          ) : achievements.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {achievements.map((achievement) => (
+                <div key={achievement._id} className="bg-gray-50 p-5 rounded-xl border border-gray-100 relative group hover:border-teal-200 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-yellow-500 shadow-sm shrink-0 border border-gray-100">
+                      <Trophy size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-gray-800 text-lg leading-tight">{achievement.title}</h4>
+                        <span className="text-xs font-bold bg-teal-100 text-teal-700 px-2 py-1 rounded ml-2 whitespace-nowrap">
+                          {achievement.category}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1 mb-2">
+                        <span className="font-bold text-gray-700 text-sm">{achievement.student_name}</span>
+                        <span className="text-gray-300">•</span>
+                        <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded border border-gray-200">
+                          {achievement.classes && achievement.classes.length > 0 ? achievement.classes.join(', ') : 'No Class'}
+                        </span>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{achievement.description || 'No description provided.'}</p>
+
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span className="px-2 py-1 bg-white border border-gray-200 text-gray-500 rounded flex items-center gap-1">
+                          <Calendar size={12} /> {achievement.date ? new Date(achievement.date).toLocaleDateString() : 'No Date'}
+                        </span>
+                        {achievement.proof_link && (
+                          <a href={achievement.proof_link} target="_blank" rel="noopener noreferrer" className="px-2 py-1 bg-blue-50 text-blue-600 rounded flex items-center gap-1 hover:underline">
+                            <LinkIcon size={12} /> View Proof
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+              <Trophy className="mx-auto text-gray-300 mb-4 opacity-50" size={48} />
+              <p className="text-gray-500 font-bold text-lg">No achievements found</p>
+              <p className="text-gray-400 text-sm">Your students haven't added any external achievements yet.</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 const TeacherDashboard = () => {
   const { user, getUserId } = useAuth();
@@ -160,6 +265,7 @@ const TeacherDashboard = () => {
   const [institutionalStats, setInstitutionalStats] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState(null);
+  const [achievementsModalOpen, setAchievementsModalOpen] = useState(false);
 
   const handleDismissAlert = async (studentId) => {
     try {
@@ -234,8 +340,11 @@ const TeacherDashboard = () => {
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
               <Plus size={18} /> New Assignment
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200">
-              <Plus size={18} /> Start Live Session
+            <button
+              onClick={() => setAchievementsModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200"
+            >
+              <Trophy size={18} /> Student Achievements
             </button>
             <button
               onClick={() => setReportModalOpen(true)}
@@ -527,6 +636,15 @@ const TeacherDashboard = () => {
         onClose={() => setReportModalOpen(false)}
         teacherId={getUserId()}
       />
+
+      {/* Teacher Achievements Modal */}
+      {achievementsModalOpen && (
+        <TeacherAchievementsModal
+          isOpen={achievementsModalOpen}
+          onClose={() => setAchievementsModalOpen(false)}
+          teacherId={getUserId()}
+        />
+      )}
     </TeacherLayout >
   );
 };

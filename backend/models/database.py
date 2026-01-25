@@ -128,6 +128,7 @@ INTERVENTIONS = 'interventions'
 TEMPLATE_USAGE = 'template_usage'
 TEMPLATE_RATINGS = 'template_ratings'
 QUESTION_BANKS = 'question_banks'
+EXTERNAL_ACHIEVEMENTS = 'external_achievements'
 
 # ============================================================================
 # INITIALIZE COLLECTIONS & INDEXES
@@ -394,6 +395,11 @@ def init_db(app=None):
     db[STUDENT_LEARNING_PATHS].create_index([('student_id', ASCENDING)])
     db[STUDENT_LEARNING_PATHS].create_index([('created_at', DESCENDING)])
     print(f"[OK] {STUDENT_LEARNING_PATHS} collection initialized")
+
+    # External Achievements collection
+    db[EXTERNAL_ACHIEVEMENTS].create_index([('student_id', ASCENDING)])
+    db[EXTERNAL_ACHIEVEMENTS].create_index([('created_at', DESCENDING)])
+    print(f"[OK] {EXTERNAL_ACHIEVEMENTS} collection initialized")
 
     print("="*60)
     print("[OK] All MongoDB collections and indexes created successfully")
