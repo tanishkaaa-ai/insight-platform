@@ -285,7 +285,11 @@ const TeacherAssignment = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            {sub.grade !== null && sub.grade !== undefined ? (
+                                            {sub.status === 'assigned' ? (
+                                                <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-lg font-bold text-sm border border-gray-200">
+                                                    Assigned
+                                                </span>
+                                            ) : sub.grade !== null && sub.grade !== undefined ? (
                                                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg font-bold">
                                                     {sub.grade} / {assignment.points}
                                                 </span>

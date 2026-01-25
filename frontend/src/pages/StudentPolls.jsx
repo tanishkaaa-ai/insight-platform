@@ -100,15 +100,15 @@ const StudentPolls = () => {
         <DashboardLayout>
             <div className="max-w-6xl mx-auto py-10 px-4">
                 <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-extrabold text-[#EAE0CF]">Live Session</h1>
-                    <p className="text-[#EAE0CF]/60 mt-2">Real-time feedback & anonymous polling.</p>
+                    <h1 className="text-3xl font-extrabold text-[#065F46]">Live Session</h1>
+                    <p className="text-[#065F46]/70 mt-2">Real-time feedback & anonymous polling.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Sidebar for multiple polls */}
                     {activePolls.length > 0 && (
                         <div className="lg:col-span-1 space-y-3">
-                            <h3 className="font-bold text-[#EAE0CF]/80 flex items-center gap-2 mb-4">
+                            <h3 className="font-bold text-[#065F46] flex items-center gap-2 mb-4">
                                 <List size={20} /> Active Polls
                             </h3>
                             <div className="space-y-2 max-h-[60vh] overflow-y-auto p-2">
@@ -117,13 +117,15 @@ const StudentPolls = () => {
                                         key={poll.poll_id}
                                         onClick={() => setActivePoll(poll)}
                                         className={`w-full text-left p-4 rounded-xl transition-all border group relative overflow-hidden ${activePoll?.poll_id === poll.poll_id
-                                            ? 'bg-orange-900/20 border-orange-500/50 shadow-md transform scale-[1.02]'
+                                            ? 'bg-[#F4FFFD] border-[#065F46] shadow-md transform scale-[1.02]'
                                             : 'bg-[#213448] border-[#EAE0CF]/10 hover:bg-[#547792]/20 hover:border-[#EAE0CF]/30 shadow-sm'
                                             }`}
                                     >
-                                        <div className="text-sm font-bold text-[#EAE0CF] line-clamp-2">{poll.question}</div>
+                                        <div className={`text-sm font-bold line-clamp-2 ${activePoll?.poll_id === poll.poll_id ? 'text-[#065F46]' : 'text-[#EAE0CF]'}`}>
+                                            {poll.question}
+                                        </div>
                                         <div className="flex justify-between items-center mt-3">
-                                            <span className="text-xs text-[#EAE0CF]/40 font-medium">
+                                            <span className={`text-xs font-medium ${activePoll?.poll_id === poll.poll_id ? 'text-[#065F46]/60' : 'text-[#EAE0CF]/40'}`}>
                                                 {new Date(poll.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                             {poll.has_responded ? (

@@ -68,7 +68,7 @@ const StudentProfile = () => {
     return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto space-y-6">
-                <h1 className="text-3xl font-extrabold text-[#EAE0CF]">Account Settings</h1>
+                <h1 className="text-3xl font-extrabold text-[#065F46]">Account Settings</h1>
 
                 <div className="flex flex-col md:flex-row gap-8">
                     {/* Sidebar Tabs */}
@@ -76,21 +76,21 @@ const StudentProfile = () => {
                         <button
                             onClick={() => setActiveTab('profile')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'profile' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
+                                ${activeTab === 'profile' ? 'bg-[#065F46] text-[#F4FFFD] shadow-sm' : 'text-[#065F46]/60 hover:bg-[#065F46]/10'}`}
                         >
                             <User size={20} /> Profile
                         </button>
                         <button
                             onClick={() => setActiveTab('security')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'security' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
+                                ${activeTab === 'security' ? 'bg-[#065F46] text-[#F4FFFD] shadow-sm' : 'text-[#065F46]/60 hover:bg-[#065F46]/10'}`}
                         >
                             <Shield size={20} /> Security
                         </button>
                         <button
                             onClick={() => setActiveTab('notifications')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-left
-                                ${activeTab === 'notifications' ? 'bg-[#547792] text-[#EAE0CF] shadow-sm' : 'text-[#EAE0CF]/60 hover:bg-[#547792]/20'}`}
+                                ${activeTab === 'notifications' ? 'bg-[#065F46] text-[#F4FFFD] shadow-sm' : 'text-[#065F46]/60 hover:bg-[#065F46]/10'}`}
                         >
                             <Bell size={20} /> Notifications
                         </button>

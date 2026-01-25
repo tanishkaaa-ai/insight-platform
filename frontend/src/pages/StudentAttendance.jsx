@@ -31,6 +31,7 @@ const StudentAttendance = () => {
 
   // Initial Data Load
   useEffect(() => {
+    console.log('StudentAttendance mounted');
     checkIPRegistration();
     fetchActiveSessions();
   }, []);
@@ -56,7 +57,9 @@ const StudentAttendance = () => {
 
   const checkIPRegistration = async () => {
     try {
+      console.log('Checking IP Registration...');
       const response = await attendanceAPI.getStudentStatus();
+      console.log('IP Registration Status:', response.data);
       setHasRegisteredIP(response.data.is_registered);
       if (response.data.registered_ip) {
         setRegisteredIPAddress(response.data.registered_ip);
@@ -70,6 +73,7 @@ const StudentAttendance = () => {
   const registerIP = async () => {
     try {
       setLoading(true);
+      console.log('Registering current device IP...');
       await attendanceAPI.bindIP();
       toast.success('Device registered successfully!');
       await checkIPRegistration();
@@ -83,7 +87,9 @@ const StudentAttendance = () => {
   const fetchActiveSessions = async (silent = false) => {
     if (!silent) setRefreshing(true);
     try {
+      console.log('Fetching active sessions...');
       const response = await attendanceAPI.getStudentActiveSessions();
+      console.log('Active Sessions:', response.data);
       setActiveSessions(response.data || []);
     } catch (error) {
       console.error("Failed to fetch active sessions", error);
@@ -141,6 +147,7 @@ const StudentAttendance = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 }
       });
+      console.log('Camera started successfully');
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
@@ -208,6 +215,8 @@ const StudentAttendance = () => {
         longitude: position.coords.longitude,
         photo: capturedPhoto
       });
+
+      console.log('Attendance marked successfully');
 
       toast.dismiss();
       toast.success('Attendance marked successfully! ✅');

@@ -1008,6 +1008,10 @@ def submit_assignment(assignment_id):
         submission = find_one(CLASSROOM_SUBMISSIONS, {'assignment_id': assignment_id, 'student_id': data['student_id']})
 
         if submission:
+            # Check if already submitted
+            if submission.get('status') == 'turned_in':
+                return jsonify({'error': 'Assignment already submitted. You cannot resubmit unless the teacher returns it.'}), 400
+
             # Update existing submission
             update_one(
                 CLASSROOM_SUBMISSIONS,

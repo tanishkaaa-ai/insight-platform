@@ -161,6 +161,8 @@ def get_student_status():
         if not student_id:
             return jsonify({'error': 'User ID required'}), 401
             
+        logger.info(f"Getting student status | Student User: {student_id}")
+            
         student, error_resp = get_student_or_create_stub(student_id)
         if error_resp:
             return error_resp
@@ -342,16 +344,25 @@ def mark_attendance():
         if missing:
             return jsonify({'error': f'Missing required fields: {missing}'}), 400
 
-        # Get session
-        session = db[ATTENDANCE_SESSIONS].find_one({
-            '_id': ObjectId(data['session_id']),
-            'is_open': True,
-            'closes_at': {'$gt': datetime.utcnow()}
-        })
+        # 1. Get session (Robust lookup)
+        session_id = data['session_id']
+        session = None
+        if ObjectId.is_valid(session_id):
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': ObjectId(session_id)})
+        
+        if not session:
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': session_id})
 
         if not session:
-            logger.warning(f"Session not open | Session: {data['session_id']}")
-            return jsonify({'error': 'Attendance session is not open or has expired'}), 403
+            logger.warning(f"Session not found | ID: {session_id}")
+            return jsonify({'error': 'Attendance session not found'}), 404
+
+        # 2. Check Session Status
+        if not session.get('is_open'):
+             return jsonify({'error': 'Attendance session is closed'}), 403
+             
+        if session.get('closes_at') and session['closes_at'] < datetime.utcnow():
+             return jsonify({'error': 'Attendance session has expired'}), 403
 
         # Get student (RESOLVE CANONICAL ID)
         student, error_resp = get_student_or_create_stub(student_id_from_header)
@@ -363,9 +374,21 @@ def mark_attendance():
 
         # VALIDATION 1: IP Match
         registered_ip = normalize_ip(student.get('registered_ip'))
-        if registered_ip != student_ip:
+        
+        # Allow localhost debugging or identical IPs
+        ip_match = (registered_ip == student_ip)
+        
+        if not ip_match:
+            # Special dev case: if both are loopback variants, allow it
+            if registered_ip in ['127.0.0.1', '::1'] and student_ip in ['127.0.0.1', '::1']:
+                 ip_match = True
+        
+        if not ip_match:
             logger.warning(f"IP mismatch | Student: {actual_student_id} | Registered: {registered_ip} | Current: {student_ip}")
-            return jsonify({'error': 'IP address mismatch - please use your registered device'}), 403
+            # Explicitly allowing it for now if registered_ip is missing, or returning detailed error
+            if not registered_ip:
+                 return jsonify({'error': 'Device not registered. Please go to status page to register.'}), 403
+            return jsonify({'error': f'IP address mismatch. Registered: {registered_ip}, You: {student_ip}'}), 403
 
         # VALIDATION 2: Location within radius
         distance = calculate_distance(
@@ -373,10 +396,11 @@ def mark_attendance():
             session['center_lat'], session['center_lon']
         )
 
-        if distance > session['radius_meters']:
-            logger.warning(f"Location out of range | Student: {actual_student_id} | Distance: {distance}m | Allowed: {session['radius_meters']}m")
+        radius = session.get('radius_meters', 100)
+        if distance > radius:
+            logger.warning(f"Location out of range | Student: {actual_student_id} | Distance: {distance}m | Allowed: {radius}m")
             return jsonify({
-                'error': f'You are too far from the classroom ({int(distance)}m away). Please move closer.'
+                'error': f'You are too far from the classroom ({int(distance)}m away, max {radius}m). Please move closer.'
             }), 403
 
         # VALIDATION 3: Not already marked (Use canonical ID)
@@ -416,7 +440,7 @@ def mark_attendance():
 
     except Exception as e:
         logger.error(f"Error marking attendance | Error: {str(e)}")
-        return jsonify({'error': 'Failed to mark attendance'}), 500
+        return jsonify({'error': f'Failed to mark attendance: {str(e)}'}), 500
 
 
 # ============================================================================
@@ -504,15 +528,6 @@ def open_session():
 def close_session(session_id):
     """
     Teacher closes an attendance session
-
-    Request: POST /api/attendance/sessions/<session_id>/close
-    Headers: X-User-Id: <teacher_id>
-
-    Response:
-    {
-        "message": "Attendance session closed",
-        "total_marked": 25
-    }
     """
     try:
         teacher_id = get_current_user_id()
@@ -522,18 +537,35 @@ def close_session(session_id):
 
         logger.info(f"Closing attendance session | Teacher: {teacher_id} | Session: {session_id}")
 
+        # 1. Find Session (Robust ID check)
+        session = None
+        if ObjectId.is_valid(session_id):
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': ObjectId(session_id)})
+        
+        if not session:
+             # Try finding by string ID just in case
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': session_id})
+
+        if not session:
+             return jsonify({'error': 'Session not found'}), 404
+
+        # 2. Check Ownership
+        session_teacher = str(session.get('teacher_id', ''))
+        current_teacher = str(teacher_id)
+        
+        if session_teacher != current_teacher:
+            logger.warning(f"Unauthorized close attempt | Session Owner: {session_teacher} | Requestor: {current_teacher}")
+            return jsonify({'error': f'Unauthorized to close this session (Owner: {session_teacher}, You: {current_teacher})'}), 403
+
         # Update session
         result = db[ATTENDANCE_SESSIONS].update_one(
-            {'_id': ObjectId(session_id), 'teacher_id': teacher_id},
+            {'_id': session['_id']},
             {'$set': {'is_open': False, 'closed_at': datetime.utcnow()}}
         )
 
-        if result.matched_count == 0:
-            return jsonify({'error': 'Session not found or unauthorized'}), 404
-
         # Count attendance records
         total_marked = db[ATTENDANCE_RECORDS].count_documents({
-            'session_id': ObjectId(session_id)
+            'session_id': session['_id']
         })
 
         logger.info(f"Session closed | ID: {session_id} | Total marked: {total_marked}")
@@ -609,9 +641,16 @@ def get_active_student_sessions():
         classroom_ids = [m['classroom_id'] for m in memberships]
         logger.info(f"Checking sessions for Classrooms: {classroom_ids}")
         
-        # 3. Find Active Sessions
+        # 3. Find Active Sessions (ROBUST ID MATCHING)
+        # Create a list that includes both String and ObjectId versions to catch all matches
+        classroom_ids_query = []
+        for cid in classroom_ids:
+            classroom_ids_query.append(str(cid))
+            if ObjectId.is_valid(cid):
+                classroom_ids_query.append(ObjectId(cid))
+        
         active_sessions = list(db[ATTENDANCE_SESSIONS].find({
-            'classroom_id': {'$in': classroom_ids},
+            'classroom_id': {'$in': classroom_ids_query},
             'is_open': True,
             'closes_at': {'$gt': datetime.utcnow()}
         }))
@@ -623,8 +662,21 @@ def get_active_student_sessions():
         results = []
         for session in active_sessions:
             # Get Classroom Info
-            classroom = db[CLASSROOMS].find_one({'_id': session['classroom_id']})
+            classroom_id = session['classroom_id']
+            classroom = None
+            
+            # Try finding classroom with the ID from session
+            classroom = db[CLASSROOMS].find_one({'_id': classroom_id})
+            
+            # If not found, try type conversion
             if not classroom:
+                 if isinstance(classroom_id, str) and ObjectId.is_valid(classroom_id):
+                      classroom = db[CLASSROOMS].find_one({'_id': ObjectId(classroom_id)})
+                 elif isinstance(classroom_id, ObjectId):
+                      classroom = db[CLASSROOMS].find_one({'_id': str(classroom_id)})
+
+            if not classroom:
+                logger.warning(f"Session found but classroom missing | Session: {session['_id']} | ClassroomID: {classroom_id}")
                 continue
                 
             # Get Teacher Info
@@ -675,22 +727,6 @@ def get_active_student_sessions():
 def get_session_records(session_id):
     """
     Get all attendance records for a session
-
-    Request: GET /api/attendance/sessions/<session_id>/records
-    Headers: X-User-Id: <teacher_id>
-
-    Response:
-    [
-        {
-            "_id": "record_id",
-            "student_id": "student_id",
-            "student_name": "John Doe",
-            "marked_at": "2024-01-24T09:05:00Z",
-            "distance_meters": 45.5,
-            "photo_base64": "data:image/jpeg;base64,...",
-            "status": "present"
-        }
-    ]
     """
     try:
         teacher_id = get_current_user_id()
@@ -700,18 +736,31 @@ def get_session_records(session_id):
 
         logger.info(f"Getting attendance records | Teacher: {teacher_id} | Session: {session_id}")
 
-        # Verify teacher owns this session
-        session = db[ATTENDANCE_SESSIONS].find_one({
-            '_id': ObjectId(session_id),
-            'teacher_id': teacher_id
-        })
+        # 1. Find Session (Robust ID check)
+        session = None
+        if ObjectId.is_valid(session_id):
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': ObjectId(session_id)})
+        
+        if not session:
+             # Try finding by string ID just in case
+             session = db[ATTENDANCE_SESSIONS].find_one({'_id': session_id})
 
         if not session:
-            return jsonify({'error': 'Session not found or unauthorized'}), 404
+            logger.warning(f"Session not found | ID: {session_id}")
+            return jsonify({'error': 'Session not found'}), 404
+
+        # 2. Check Ownership
+        # Check if stored teacher_id matches current teacher_id (handling both string/obj types safely)
+        session_teacher = str(session.get('teacher_id', ''))
+        current_teacher = str(teacher_id)
+        
+        if session_teacher != current_teacher:
+            logger.warning(f"Unauthorized access to session | Session Owner: {session_teacher} | Requestor: {current_teacher}")
+            return jsonify({'error': f'Unauthorized to view this session (Owner: {session_teacher}, You: {current_teacher})'}), 403
 
         # Get all records
         records = list(db[ATTENDANCE_RECORDS].find({
-            'session_id': ObjectId(session_id)
+            'session_id': session['_id']
         }).sort('marked_at', 1))
 
         # Convert ObjectIds to strings

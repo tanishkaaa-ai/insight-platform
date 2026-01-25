@@ -61,7 +61,9 @@ const TeacherAttendance = () => {
   const loadSessions = async () => {
     try {
       const classroomId = selectedClassroom.classroom_id || selectedClassroom._id;
+      console.log('Loading sessions for classroom:', classroomId);
       const response = await attendanceAPI.getClassroomSessions(classroomId, { limit: 10 });
+      console.log('Sessions loaded:', response.data);
       setSessions(response.data || []);
     } catch (error) {
       console.error('Error loading sessions:', error);
@@ -88,6 +90,7 @@ const TeacherAttendance = () => {
 
     try {
       const response = await attendanceAPI.getSessionRecords(activeSession._id);
+      console.log('Attendance records loaded:', response.data?.length);
       setAttendanceRecords(response.data || []);
     } catch (error) {
       console.error('Error loading attendance records:', error);
@@ -128,6 +131,7 @@ const TeacherAttendance = () => {
         radius: parseInt(sessionForm.radius),
         duration: parseInt(sessionForm.duration)
       });
+      console.log('Session opened:', response.data);
 
       toast.dismiss();
       toast.success('Attendance session opened! Students can now mark attendance.');
@@ -156,6 +160,7 @@ const TeacherAttendance = () => {
       setLoading(true);
 
       await attendanceAPI.closeSession(activeSession._id);
+      console.log('Session closed successfully');
 
       toast.success('Attendance session closed');
 

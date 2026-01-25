@@ -33,7 +33,7 @@ const StatusColumn = ({ title, status, tasks, icon: Icon, color, onAddTask, onMo
 
     return (
         <div
-            className="flex flex-col h-full bg-[#1a2c3d] rounded-2xl p-4 border border-[#EAE0CF]/10 transition-colors hover:bg-[#1a2c3d]/80"
+            className="flex flex-col h-full bg-[#547792] rounded-2xl p-4 border border-[#EAE0CF]/10 transition-colors hover:bg-[#547792]/90"
             onDragOver={handleDragOver}
             onDrop={handleDrop}
         >
@@ -490,14 +490,14 @@ const StudentProjects = () => {
                     <div className="flex-1 mr-8">
                         {teams.length > 1 ? (
                             <div className="relative">
-                                <label className="text-xs font-bold text-[#EAE0CF]/60 uppercase tracking-wider mb-1 block">Switch Project</label>
+                                <label className="text-xs font-bold text-[#547792] uppercase tracking-wider mb-1 block">Switch Project</label>
                                 <button
                                     onClick={() => setShowProjectMenu(!showProjectMenu)}
-                                    className="group flex items-center gap-2 text-3xl font-extrabold text-[#EAE0CF] hover:text-[#547792] transition-colors focus:outline-none"
+                                    className="group flex items-center gap-2 text-3xl font-extrabold text-[#547792] hover:text-[#213448] transition-colors focus:outline-none"
                                 >
                                     <Map className="text-[#547792]" />
                                     {activeTeam.project_title || activeTeam.project_name || 'Project Workspace'}
-                                    <ChevronDown size={24} className={`text-[#EAE0CF]/40 transition-transform duration-200 ${showProjectMenu ? 'rotate-180' : ''} group-hover:text-[#547792]`} />
+                                    <ChevronDown size={24} className={`text-[#547792]/60 transition-transform duration-200 ${showProjectMenu ? 'rotate-180' : ''} group-hover:text-[#213448]`} />
                                 </button>
 
                                 {showProjectMenu && (
@@ -533,14 +533,14 @@ const StudentProjects = () => {
                                 )}
                             </div>
                         ) : (
-                            <h1 className="text-3xl font-extrabold text-[#EAE0CF] flex items-center gap-2">
+                            <h1 className="text-3xl font-extrabold text-[#547792] flex items-center gap-2">
                                 <Map className="text-[#547792]" /> {activeTeam.project_title || activeTeam.project_name || 'Project Workspace'}
                             </h1>
                         )}
 
-                        <p className="text-[#EAE0CF]/60 mt-1 flex items-center gap-2">
-                            <span className="text-xs font-bold bg-[#1a2c3d] px-2 py-1 rounded-md text-[#EAE0CF]/50">CURRENT TEAM</span>
-                            <span className="font-bold text-[#EAE0CF]/90">{activeTeam.team_name}</span>
+                        <p className="text-[#547792] mt-1 flex items-center gap-2">
+                            <span className="text-xs font-bold bg-[#1a2c3d] px-2 py-1 rounded-md text-white/50">CURRENT TEAM</span>
+                            <span className="font-bold text-[#213448]">{activeTeam.team_name}</span>
                         </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -571,9 +571,9 @@ const StudentProjects = () => {
                         </div>
                         <button
                             onClick={() => setShowAchievements(true)}
-                            className="bg-[#1a2c3d] border-2 border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-xl font-bold hover:bg-yellow-900/20 transition-colors flex items-center gap-2"
+                            className="bg-[#F4FFFD] border-2 border-yellow-500/20 text-[#213448] px-4 py-2 rounded-xl font-bold hover:bg-[#F4FFFD]/80 transition-colors flex items-center gap-2"
                         >
-                            <Trophy size={18} />
+                            <Trophy size={18} className="text-yellow-600" />
                             {teamProgress ? `Lvl ${teamProgress.current_level}` : 'Achievements'}
                         </button>
                         <button
@@ -583,19 +583,19 @@ const StudentProjects = () => {
                                     selectedProjectId: activeTeam.project_id
                                 }
                             })}
-                            className="bg-[#1a2c3d] border-2 border-[#547792]/20 text-[#547792] px-4 py-2 rounded-xl font-bold hover:bg-[#547792]/10 transition-colors flex items-center gap-2"
+                            className="bg-[#F4FFFD] border-2 border-[#547792]/20 text-[#213448] px-4 py-2 rounded-xl font-bold hover:bg-[#F4FFFD]/80 transition-colors flex items-center gap-2"
                         >
-                            <Target size={18} /> Milestones
+                            <Target size={18} className="text-[#213448]" /> Milestones
                         </button>
                         <button
                             onClick={() => setShowUpload(true)}
-                            className="bg-[#1a2c3d] border-2 border-[#EAE0CF]/20 text-[#EAE0CF]/70 px-4 py-2 rounded-xl font-bold hover:bg-[#EAE0CF]/5 transition-colors"
+                            className="bg-[#F4FFFD] border-2 border-[#213448]/10 text-[#213448] px-4 py-2 rounded-xl font-bold hover:bg-[#F4FFFD]/80 transition-colors"
                         >
                             Upload
                         </button>
                         <button
                             onClick={() => navigate('/student/peer-review')}
-                            className="bg-[#547792] text-[#EAE0CF] px-4 py-2 rounded-xl font-bold hover:bg-[#547792]/80 transition-colors"
+                            className="bg-[#547792] text-white px-4 py-2 rounded-xl font-bold hover:bg-[#547792]/80 transition-colors"
                         >
                             Review
                         </button>
@@ -604,26 +604,26 @@ const StudentProjects = () => {
 
                 {/* Team XP Progress Bar */}
                 {teamProgress && (
-                    <div className="mb-6 bg-[#213448] p-4 rounded-2xl shadow-sm border border-[#EAE0CF]/10 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-yellow-900/30 flex items-center justify-center text-yellow-400 font-bold text-xl border-4 border-[#1a2c3d] shadow-sm">
+                    <div className="mb-6 bg-[#F4FFFD] p-4 rounded-2xl shadow-sm border border-[#213448]/5 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-[#213448]/5 flex items-center justify-center text-[#213448] font-bold text-xl border-4 border-[#F4FFFD] shadow-sm">
                             {teamProgress.current_level}
                         </div>
                         <div className="flex-1">
                             <div className="flex justify-between text-xs font-bold uppercase tracking-wider mb-1">
-                                <span className="text-[#EAE0CF]/60">Team Experience</span>
-                                <span className="text-yellow-500">{teamProgress.total_xp} XP</span>
+                                <span className="text-[#213448]/70">Team Experience</span>
+                                <span className="text-[#213448]">{teamProgress.total_xp} XP</span>
                             </div>
-                            <div className="h-3 bg-[#1a2c3d] rounded-full overflow-hidden border border-[#EAE0CF]/5">
+                            <div className="h-3 bg-[#213448]/5 rounded-full overflow-hidden border border-[#213448]/5">
                                 <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.min((teamProgress.completion_percentage || 0), 100)}%` }} // Using completion % as proxy for level progress for MVP
-                                    className="h-full bg-gradient-to-r from-yellow-500 to-orange-600"
+                                    className="h-full bg-gradient-to-r from-[#213448] to-[#1a2c3d]"
                                 />
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs font-bold text-[#EAE0CF]/40 uppercase tracking-wider">Next Level</div>
-                            <div className="font-bold text-[#EAE0CF]/80">1000 XP</div>
+                            <div className="text-xs font-bold text-[#213448]/60 uppercase tracking-wider">Next Level</div>
+                            <div className="font-bold text-[#213448]">1000 XP</div>
                         </div>
                     </div>
                 )}
@@ -645,7 +645,7 @@ const StudentProjects = () => {
                         status="in_progress" // Backend likely uses 'in_progress' or 'doing'
                         tasks={tasks}
                         icon={Clock}
-                        color="text-[#547792]"
+                        color="text-white"
                         onAddTask={handleAddTask}
                         onMoveTask={handleMoveTask}
                         onDropTask={handleDropTask}
