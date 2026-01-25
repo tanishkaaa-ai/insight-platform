@@ -4,8 +4,9 @@ import DashboardLayout from '../components/DashboardLayout';
 import GamificationBadge from '../components/GamificationBadge';
 import ProgressBar from '../components/ProgressBar';
 import StudentSoftSkillsProfile from '../components/StudentSoftSkillsProfile';
-import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap, AlertCircle, Loader2, Mail, Save } from 'lucide-react';
+import { BookOpen, Clock, Calendar, ChevronRight, Compass, Flame, ClipboardList, GraduationCap, AlertCircle, Loader2, Mail, Save, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { masteryAPI, classroomAPI, engagementAPI, projectsAPI, authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -43,12 +44,14 @@ const StudentDashboard = () => {
                 setLoading(true);
 
                 // Parallel data fetching
-                const [masteryRes, assignmentsRes, classesRes, gamificationRes, projectsRes] = await Promise.allSettled([
+                // Parallel data fetching
+                const [masteryRes, assignmentsRes, classesRes, gamificationRes, projectsRes, historyRes] = await Promise.allSettled([
                     masteryAPI.getStudentMastery(STUDENT_ID),
                     classroomAPI.getStudentAssignments(STUDENT_ID, 'assigned'),
                     classroomAPI.getStudentClasses(STUDENT_ID),
                     engagementAPI.getGamificationProfile(STUDENT_ID),
-                    projectsAPI.getStudentProjects(STUDENT_ID)
+                    projectsAPI.getStudentProjects(STUDENT_ID),
+                    engagementAPI.getStudentEngagementHistory(STUDENT_ID, 7)
                 ]);
 
                 // Process Engagement/Gamification Data
@@ -115,6 +118,25 @@ const StudentDashboard = () => {
                     }
                 }
 
+
+                // Process Engagement History
+                let engagementHistory = [];
+                if (historyRes.status === 'fulfilled') {
+                    const historyData = historyRes.value.data.history || [];
+
+                    // Helper to get day name
+                    const getDayName = (isoDate) => {
+                        if (!isoDate) return '';
+                        return new Date(isoDate).toLocaleDateString('en-US', { weekday: 'short' });
+                    };
+
+                    engagementHistory = historyData.map(item => ({
+                        day: getDayName(item.date),
+                        score: Math.round(item.engagement_score || 0),
+                        fullDate: new Date(item.date).toLocaleDateString()
+                    }));
+                }
+
                 // Process Next Class (Real Schedule)
                 let nextClass = { subject: 'No Upcoming Classes', time: '--:--', topic: 'Relax!' };
                 if (classesRes.status === 'fulfilled' && classesRes.value.data.length > 0) {
@@ -156,6 +178,7 @@ const StudentDashboard = () => {
                     masteryScore: Math.round(masteryScore),
                     pendingAssignments: pendingCount,
                     activeProject: activeProject,
+                    engagementHistory: engagementHistory,
                     nextClass: nextClass,
                     recentActivity: [...recentMasteryActivity, ...recentAssignmentActivity]
                 }));
@@ -349,6 +372,48 @@ const StudentDashboard = () => {
                                 <Link to="/student/classes" className="text-orange-500 text-xs font-bold hover:underline mt-2 block">Browse Classes</Link>
                             </div>
                         )}
+                    </motion.div>
+
+
+
+                    {/* Engagement Trend Chart */}
+                    <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="bg-white p-6 rounded-2xl shadow-sm border border-orange-100 col-span-1 md:col-span-3 lg:col-span-1"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-purple-100 p-3 rounded-xl text-purple-600">
+                                <TrendingUp size={24} />
+                            </div>
+                            <h3 className="font-bold text-gray-700">Engagement Trend</h3>
+                        </div>
+                        <div className="h-32 w-full">
+                            {data.engagementHistory && data.engagementHistory.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data.engagementHistory}>
+                                        <XAxis
+                                            dataKey="day"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            cursor={{ fill: '#F3F4F6' }}
+                                        />
+                                        <Bar
+                                            dataKey="score"
+                                            fill="#8B5CF6"
+                                            radius={[4, 4, 0, 0]}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400 text-xs italic">
+                                    No activity data this week
+                                </div>
+                            )}
+                        </div>
                     </motion.div>
 
                     {/* Mastery Card */}
