@@ -19,10 +19,11 @@ RUN mkdir -p models
 
 # Set environment variables
 ENV PYTHONPATH=/app
+ENV FLASK_ENV=production
 ENV FLASK_DEBUG=false
 
 # Expose port
 EXPOSE 5000
 
-# Default command (can be overridden in docker-compose)
-CMD ["python", "app.py"]
+# Use Gunicorn with eventlet worker for SocketIO support
+CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "--timeout", "120", "wsgi:app"]
